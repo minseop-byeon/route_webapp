@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, Response, flash
+from flask import Flask, render_template, request, redirect, url_for, session, Response, flash, abort
 import requests
 import time
 from io import BytesIO
@@ -6,6 +6,7 @@ import smtplib
 from email.message import EmailMessage
 import os
 import json
+from datetime import datetime
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
@@ -20,6 +21,10 @@ START_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 
 ADMIN_PASSWORD = "cpskqrhksfleks12#"
 SETTINGS_FILE = "admin_settings.json"
+GEOCODE_CACHE_FILE = "geocode_cache.json"
+ROUTE_CACHE_FILE = "route_cache.json"
+
+DEFAULT_TEAM_USERS = {f"{i}조": [] for i in range(1, 36)}
 
 DEFAULT_SETTINGS = {
     "client_id": "",
@@ -27,8 +32,7 @@ DEFAULT_SETTINGS = {
     "default_recipient_email": "",
     "email_subject_template": "[경로결과] {team_no}({user_name}) - {trip_date}",
     "email_body_template": "경로 결과 PDF를 첨부합니다.",
-    "team_options": [f"{i}조" for i in range(1, 36)],
-    "user_options": [f"사용자 {str(i).zfill(2)}" for i in range(1, 51)]
+    "team_users": DEFAULT_TEAM_USERS
 }
 
 # Gmail SMTP 설정
@@ -53,6 +57,30 @@ LOCAL_IMPROVE_ITER = 80
 MAX_PARTIAL_CANDIDATES = 1200
 
 
+def load_json_file(path, default_value):
+    if not os.path.exists(path):
+        return default_value
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return default_value
+
+
+def save_json_file(path, data):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def normalize_team_users(team_users):
+    normalized = {f"{i}조": [] for i in range(1, 36)}
+    if isinstance(team_users, dict):
+        for team_name, users in team_users.items():
+            if team_name in normalized and isinstance(users, list):
+                normalized[team_name] = [str(x).strip() for x in users if str(x).strip()]
+    return normalized
+
+
 def load_settings():
     if not os.path.exists(SETTINGS_FILE):
         save_settings(DEFAULT_SETTINGS)
@@ -66,22 +94,15 @@ def load_settings():
 
     merged = dict(DEFAULT_SETTINGS)
     merged.update(data)
-
-    if not isinstance(merged.get("team_options"), list):
-        merged["team_options"] = DEFAULT_SETTINGS["team_options"]
-
-    if not isinstance(merged.get("user_options"), list):
-        merged["user_options"] = DEFAULT_SETTINGS["user_options"]
-
+    merged["team_users"] = normalize_team_users(merged.get("team_users", {}))
     return merged
 
 
 def save_settings(data):
     merged = dict(DEFAULT_SETTINGS)
     merged.update(data)
-
-    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-        json.dump(merged, f, ensure_ascii=False, indent=2)
+    merged["team_users"] = normalize_team_users(merged.get("team_users", {}))
+    save_json_file(SETTINGS_FILE, merged)
 
 
 def get_api_headers():
@@ -90,6 +111,12 @@ def get_api_headers():
         "X-NCP-APIGW-API-KEY-ID": settings.get("client_id", "").strip(),
         "X-NCP-APIGW-API-KEY": settings.get("client_secret", "").strip()
     }
+
+
+def is_mobile_request():
+    ua = (request.headers.get("User-Agent") or "").lower()
+    keywords = ["iphone", "android", "ipad", "mobile", "windows phone"]
+    return any(k in ua for k in keywords)
 
 
 def minutes_to_str(m: int) -> str:
@@ -110,6 +137,22 @@ def parse_appointment_minute(hour_str: str, minute_str: str):
     return hh * 60 + mm
 
 
+def get_geocode_cache():
+    return load_json_file(GEOCODE_CACHE_FILE, {})
+
+
+def save_geocode_cache(cache):
+    save_json_file(GEOCODE_CACHE_FILE, cache)
+
+
+def get_route_cache():
+    return load_json_file(ROUTE_CACHE_FILE, {})
+
+
+def save_route_cache(cache):
+    save_json_file(ROUTE_CACHE_FILE, cache)
+
+
 def geocode(address: str):
     url = "https://maps.apigw.ntruss.com/map-geocode/v2/geocode"
     query = (address or "").strip()
@@ -121,6 +164,14 @@ def geocode(address: str):
 
     if not headers["X-NCP-APIGW-API-KEY-ID"] or not headers["X-NCP-APIGW-API-KEY"]:
         return None, "관리자 설정에서 API 키가 입력되지 않았습니다."
+
+    cache = get_geocode_cache()
+    if query in cache:
+        item = cache[query]
+        try:
+            return (float(item["x"]), float(item["y"])), None
+        except Exception:
+            pass
 
     try:
         resp = requests.get(url, headers=headers, params=params, timeout=10)
@@ -147,6 +198,8 @@ def geocode(address: str):
     try:
         x = float(addresses[0]["x"])
         y = float(addresses[0]["y"])
+        cache[query] = {"x": x, "y": y, "updated_at": datetime.now().isoformat()}
+        save_geocode_cache(cache)
         return (x, y), None
     except Exception:
         return None, f"지오코딩 결과 파싱 실패: {query}"
@@ -154,12 +207,25 @@ def geocode(address: str):
 
 def get_route_info(start, goal):
     url = "https://maps.apigw.ntruss.com/map-direction/v1/driving"
+    headers = get_api_headers()
+
+    if not headers["X-NCP-APIGW-API-KEY-ID"] or not headers["X-NCP-APIGW-API-KEY"]:
+        return 99999999, 9999
+
+    start_key = f"{round(start[0], 6)},{round(start[1], 6)}"
+    goal_key = f"{round(goal[0], 6)},{round(goal[1], 6)}"
+    cache_key = f"{start_key}|{goal_key}"
+
+    route_cache = get_route_cache()
+    if cache_key in route_cache:
+        item = route_cache[cache_key]
+        return int(item["distance_m"]), int(item["duration_min"])
+
     params = {
         "start": f"{start[0]},{start[1]}",
         "goal": f"{goal[0]},{goal[1]}",
         "option": "trafast",
     }
-    headers = get_api_headers()
 
     try:
         resp = requests.get(url, headers=headers, params=params, timeout=15)
@@ -174,6 +240,14 @@ def get_route_info(start, goal):
         summary = data["route"]["trafast"][0]["summary"]
         distance_m = int(summary["distance"])
         duration_min = int(summary["duration"]) // 60000
+
+        route_cache[cache_key] = {
+            "distance_m": distance_m,
+            "duration_min": duration_min,
+            "updated_at": datetime.now().isoformat()
+        }
+        save_route_cache(route_cache)
+
         return distance_m, duration_min
     except Exception:
         return 99999999, 9999
@@ -546,15 +620,6 @@ def maybe_insert_lunch(route_view, current_time, lunch_used, wait_label):
 
 
 def best_depart_with_lunch(route_view, current_time, depart_time, lunch_used, wait_label):
-    """
-    허용:
-    - 대기 -> 점심
-    - 점심 -> 대기
-    - 대기만
-
-    금지:
-    - 대기 -> 점심 -> 대기
-    """
     if depart_time < current_time:
         return [{
             "time_after_pre": current_time,
@@ -1082,6 +1147,8 @@ def send_result_email(recipient, payload):
 @app.route("/", methods=["GET", "POST"])
 def start():
     settings = load_settings()
+    team_users = settings.get("team_users", DEFAULT_TEAM_USERS)
+    team_options = list(team_users.keys())
 
     if request.method == "POST":
         user_name = request.form.get("user_name", "").strip()
@@ -1094,8 +1161,8 @@ def start():
                 user_name="",
                 team_no="",
                 trip_date="",
-                team_options=settings["team_options"],
-                user_options=settings["user_options"]
+                team_options=team_options,
+                team_users=team_users
             )
 
         session["user_name"] = user_name
@@ -1114,8 +1181,8 @@ def start():
         user_name="",
         team_no="",
         trip_date="",
-        team_options=settings["team_options"],
-        user_options=settings["user_options"]
+        team_options=team_options,
+        team_users=team_users
     )
 
 
@@ -1127,13 +1194,16 @@ def reset():
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
+    if is_mobile_request():
+        return render_template("admin_login.html", mobile_blocked=True)
+
     if request.method == "POST":
         password = (request.form.get("password") or "").strip()
         if password == ADMIN_PASSWORD:
             session["is_admin"] = True
-            return redirect(url_for("admin_settings"))
+            return redirect(url_for("admin_settings_page"))
         flash("비밀번호가 올바르지 않습니다.")
-    return render_template("admin_login.html")
+    return render_template("admin_login.html", mobile_blocked=False)
 
 
 @app.route("/admin/logout")
@@ -1143,34 +1213,33 @@ def admin_logout():
 
 
 @app.route("/admin/settings", methods=["GET", "POST"])
-def admin_settings():
+def admin_settings_page():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
+
+    if is_mobile_request():
+        abort(403)
 
     settings = load_settings()
 
     if request.method == "POST":
-        team_text = (request.form.get("team_options") or "").strip()
-        user_text = (request.form.get("user_options") or "").strip()
-
         settings["default_recipient_email"] = (request.form.get("default_recipient_email") or "").strip()
         settings["email_subject_template"] = (request.form.get("email_subject_template") or "").strip()
         settings["email_body_template"] = (request.form.get("email_body_template") or "").strip()
         settings["client_id"] = (request.form.get("client_id") or "").strip()
         settings["client_secret"] = (request.form.get("client_secret") or "").strip()
 
-        settings["team_options"] = [x.strip() for x in team_text.splitlines() if x.strip()]
-        settings["user_options"] = [x.strip() for x in user_text.splitlines() if x.strip()]
+        team_users = {}
+        for i in range(1, 36):
+            team_name = f"{i}조"
+            raw = (request.form.get(f"team_users_{i}") or "").strip()
+            users = [x.strip() for x in raw.splitlines() if x.strip()]
+            team_users[team_name] = users
 
-        if not settings["team_options"]:
-            settings["team_options"] = DEFAULT_SETTINGS["team_options"]
-
-        if not settings["user_options"]:
-            settings["user_options"] = DEFAULT_SETTINGS["user_options"]
-
+        settings["team_users"] = team_users
         save_settings(settings)
         flash("관리자 설정이 저장되었습니다.")
-        return redirect(url_for("admin_settings"))
+        return redirect(url_for("admin_settings_page"))
 
     return render_template("admin_settings.html", settings=settings)
 
@@ -1284,7 +1353,6 @@ def planner():
                     d, t = get_route_info(coords[i], coords[j])
                     dist_matrix[i][j] = d
                     time_matrix[i][j] = t
-                    time.sleep(0.03)
 
         _, best = choose_best_schedule(visits, dist_matrix, time_matrix)
 
