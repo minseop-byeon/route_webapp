@@ -5,16 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>국세청 체납관리단 관리자 설정</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
+        * { box-sizing: border-box; }
+        html, body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f3f4f6;
-            color: #111827;
+            padding: 0;
+            font-family: "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
         }
+        body { min-height: 100vh; }
 
         .layout {
             display: flex;
@@ -24,9 +23,13 @@
         .sidebar {
             width: 280px;
             background: #1f2937;
-            color: #ffffff;
+            color: #fff;
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh;
+            position: sticky;
+            top: 0;
         }
 
         .sidebar-header {
@@ -35,20 +38,15 @@
         }
 
         .sidebar-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin: 0 0 8px 0;
-        }
-
-        .sidebar-subtitle {
-            font-size: 13px;
-            color: #d1d5db;
             margin: 0;
-            line-height: 1.5;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
         }
 
         .menu {
-            padding: 18px 0;
+            padding: 16px 0;
+            overflow-y: auto;
         }
 
         .menu-item {
@@ -59,6 +57,8 @@
             text-align: left;
             padding: 15px 24px;
             font-size: 15px;
+            font-weight: 500;
+            line-height: 1.4;
             cursor: pointer;
             transition: background 0.15s ease;
         }
@@ -76,6 +76,9 @@
             margin-top: auto;
             padding: 20px 24px 28px;
             border-top: 1px solid rgba(255,255,255,0.12);
+            background: #1f2937;
+            position: sticky;
+            bottom: 0;
         }
 
         .logout-link {
@@ -83,6 +86,7 @@
             color: #ffffff;
             text-decoration: none;
             font-size: 14px;
+            font-weight: 600;
             padding: 10px 14px;
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 8px;
@@ -94,29 +98,11 @@
 
         .content {
             flex: 1;
-            padding: 36px;
+            padding: 32px;
+            min-width: 0;
         }
 
-        .page-header {
-            margin-bottom: 24px;
-        }
-
-        .page-title {
-            margin: 0 0 8px 0;
-            font-size: 30px;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .page-desc {
-            margin: 0;
-            font-size: 15px;
-            color: #4b5563;
-        }
-
-        .flash-wrap {
-            margin-bottom: 18px;
-        }
+        .flash-wrap { margin-bottom: 18px; }
 
         .flash-message {
             background: #ecfdf3;
@@ -125,26 +111,26 @@
             border-radius: 10px;
             padding: 14px 16px;
             font-size: 14px;
+            font-weight: 500;
             margin-bottom: 10px;
         }
 
         .panel {
             display: none;
             background: #ffffff;
-            border-radius: 14px;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.08);
-            padding: 28px;
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+            padding: 30px;
         }
 
-        .panel.active {
-            display: block;
-        }
+        .panel.active { display: block; }
 
         .panel-title {
             margin: 0 0 8px 0;
             font-size: 24px;
             font-weight: 700;
             color: #111827;
+            letter-spacing: -0.2px;
         }
 
         .panel-desc {
@@ -154,19 +140,23 @@
             line-height: 1.6;
         }
 
+        .section-subtitle {
+            margin: 24px 0 12px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 18px 20px;
         }
 
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .form-group.full {
-            grid-column: 1 / -1;
-        }
+        .form-group { margin-bottom: 18px; }
+        .form-group.full { grid-column: 1 / -1; }
 
         .form-group label {
             display: block;
@@ -183,19 +173,17 @@
             border-radius: 10px;
             padding: 12px 14px;
             font-size: 14px;
+            font-family: inherit;
             color: #111827;
             outline: none;
             background: #fff;
         }
 
-        .form-group input {
-            height: 46px;
-        }
-
+        .form-group input { height: 46px; }
         .form-group textarea {
             min-height: 120px;
             resize: vertical;
-            line-height: 1.5;
+            line-height: 1.55;
         }
 
         .form-group input:focus,
@@ -208,31 +196,7 @@
             margin-top: 8px;
             font-size: 12px;
             color: #6b7280;
-            line-height: 1.5;
-        }
-
-        .team-users-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
-        }
-
-        .team-user-box {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 14px;
-            background: #f9fafb;
-        }
-
-        .team-user-box h4 {
-            margin: 0 0 10px 0;
-            font-size: 15px;
-            color: #111827;
-        }
-
-        .team-user-box textarea {
-            min-height: 110px;
-            background: #fff;
+            line-height: 1.55;
         }
 
         .button-row {
@@ -244,26 +208,37 @@
 
         .save-btn {
             border: none;
-            background: #2563eb;
+            background: #374151;
             color: #ffffff;
             height: 46px;
             padding: 0 20px;
             border-radius: 10px;
             font-size: 15px;
             font-weight: 700;
-            cursor: pointer;
+            font-family: inherit;
+            cursor: not-allowed;
+            opacity: 0.9;
+            transition: background 0.15s ease, opacity 0.15s ease;
         }
 
-        .save-btn:hover {
+        .save-btn.enabled {
+            background: #2563eb;
+            cursor: pointer;
+            opacity: 1;
+        }
+
+        .save-btn.enabled:hover {
             background: #1d4ed8;
         }
 
         .section-status {
             display: none;
             font-size: 14px;
+            font-weight: 500;
             padding: 12px 14px;
             border-radius: 10px;
             margin-top: 16px;
+            line-height: 1.5;
         }
 
         .section-status.success {
@@ -280,6 +255,114 @@
             border: 1px solid #fecdca;
         }
 
+        .cards-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .cards-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .add-card-btn,
+        .search-btn {
+            border: none;
+            background: #111827;
+            color: #fff;
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .add-card-btn:hover,
+        .search-btn:hover {
+            background: #000;
+        }
+
+        .team-cards {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .team-card {
+            position: relative;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            background: #f9fafb;
+            padding: 16px;
+        }
+
+        .team-card-remove {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: #6b7280;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .team-card-remove:hover {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .team-card-remove:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .team-card h4 {
+            margin: 0 24px 12px 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .team-card textarea {
+            min-height: 110px;
+        }
+
+        .team-card .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .address-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .check-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
         .modal-backdrop {
             position: fixed;
             inset: 0;
@@ -291,9 +374,7 @@
             padding: 20px;
         }
 
-        .modal-backdrop.show {
-            display: flex;
-        }
+        .modal-backdrop.show { display: flex; }
 
         .modal {
             width: 100%;
@@ -332,6 +413,7 @@
             padding: 0 16px;
             font-size: 14px;
             font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
         }
 
@@ -340,44 +422,34 @@
             color: #ffffff;
         }
 
-        .modal-btn.primary:hover {
-            background: #1d4ed8;
-        }
-
         .modal-btn.secondary {
             background: #e5e7eb;
             color: #111827;
         }
 
-        .modal-btn.secondary:hover {
-            background: #d1d5db;
+        .hidden {
+            display: none !important;
         }
 
         @media (max-width: 1200px) {
-            .team-users-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
+            .team-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
 
         @media (max-width: 900px) {
-            .layout {
-                flex-direction: column;
-            }
-
+            .layout { flex-direction: column; }
             .sidebar {
                 width: 100%;
+                height: auto;
+                position: relative;
             }
-
-            .form-grid {
+            .sidebar-footer {
+                position: relative;
+            }
+            .form-grid { grid-template-columns: 1fr; }
+            .team-cards { grid-template-columns: 1fr; }
+            .content { padding: 20px; }
+            .address-row {
                 grid-template-columns: 1fr;
-            }
-
-            .team-users-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .content {
-                padding: 20px;
             }
         }
     </style>
@@ -387,13 +459,13 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <h1 class="sidebar-title">관리자 설정</h1>
-            <p class="sidebar-subtitle">국세청 체납관리단 시스템 설정을 항목별로 관리합니다.</p>
         </div>
 
         <div class="menu">
             <button type="button" class="menu-item active" data-target="panel-mail">메일설정</button>
-            <button type="button" class="menu-item" data-target="panel-api">API 키설정</button>
+            <button type="button" class="menu-item" data-target="panel-api">API설정</button>
             <button type="button" class="menu-item" data-target="panel-user">사용자 설정</button>
+            <button type="button" class="menu-item" data-target="panel-location">출발/복귀지 설정</button>
             <button type="button" class="menu-item" data-target="panel-admin">관리자 비밀번호 변경</button>
         </div>
 
@@ -403,11 +475,6 @@
     </aside>
 
     <main class="content">
-        <div class="page-header">
-            <h2 class="page-title">국세청 체납관리단 관리자 페이지</h2>
-            <p class="page-desc">좌측 메뉴를 선택하여 설정을 확인하고 저장할 수 있습니다.</p>
-        </div>
-
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="flash-wrap">
@@ -418,10 +485,9 @@
             {% endif %}
         {% endwith %}
 
-        <!-- 메일설정 -->
         <section id="panel-mail" class="panel active">
             <h3 class="panel-title">메일설정</h3>
-            <p class="panel-desc">메일 발송 계정, 기본 수신자, 제목/본문 템플릿을 설정합니다.</p>
+            <p class="panel-desc">메일 발송 계정, 기본 수신자, 제목 및 본문 템플릿을 설정합니다.</p>
 
             <form class="settings-form" data-section="mail">
                 <div class="form-grid">
@@ -471,30 +537,32 @@
                 <div class="button-row">
                     <button type="button" class="save-btn">변경사항 저장</button>
                 </div>
-
                 <div class="section-status"></div>
             </form>
         </section>
 
-        <!-- API 키설정 -->
         <section id="panel-api" class="panel">
-            <h3 class="panel-title">API 키설정</h3>
-            <p class="panel-desc">지도 API 및 프론트 표시용 앱키를 관리합니다.</p>
+            <h3 class="panel-title">API설정</h3>
+            <p class="panel-desc">외부 연동에 필요한 API 정보를 설정합니다.</p>
 
             <form class="settings-form" data-section="api">
+                <div class="section-subtitle">NAVER Cloud</div>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="client_id">네이버 클라우드 Client ID</label>
+                        <label for="client_id">Client ID</label>
                         <input type="text" id="client_id" name="client_id" value="{{ settings.api.client_id }}">
                     </div>
 
                     <div class="form-group">
-                        <label for="client_secret">네이버 클라우드 Client Secret</label>
+                        <label for="client_secret">Client Secret</label>
                         <input type="text" id="client_secret" name="client_secret" value="{{ settings.api.client_secret }}">
                     </div>
+                </div>
 
+                <div class="section-subtitle">Tmap</div>
+                <div class="form-grid">
                     <div class="form-group full">
-                        <label for="tmap_app_key">Tmap App Key</label>
+                        <label for="tmap_app_key">App Key</label>
                         <input type="text" id="tmap_app_key" name="tmap_app_key" value="{{ settings.api.tmap_app_key }}">
                     </div>
                 </div>
@@ -502,48 +570,88 @@
                 <div class="button-row">
                     <button type="button" class="save-btn">변경사항 저장</button>
                 </div>
-
                 <div class="section-status"></div>
             </form>
         </section>
 
-        <!-- 사용자 설정 -->
         <section id="panel-user" class="panel">
             <h3 class="panel-title">사용자 설정</h3>
-            <p class="panel-desc">기본 출발지와 조별 사용자 목록을 관리합니다.</p>
+            <p class="panel-desc">조별 사용자 카드를 추가하거나 삭제하고 사용자명을 관리합니다.</p>
 
             <form class="settings-form" data-section="user">
-                <div class="form-grid">
-                    <div class="form-group full">
-                        <label for="start_address">기본 출발지 주소</label>
-                        <input type="text" id="start_address" name="start_address" value="{{ settings.user.start_address }}">
-                    </div>
+                <div class="cards-toolbar">
+                    <div class="cards-title">조별 사용자 카드</div>
+                    <button type="button" class="add-card-btn" id="addTeamCardBtn">카드 추가</button>
+                </div>
 
-                    <div class="form-group full">
-                        <label>조별 사용자 목록</label>
-                        <div class="help-text" style="margin-bottom: 12px;">각 칸에 사용자명을 한 줄에 하나씩 입력해 주세요.</div>
-
-                        <div class="team-users-grid">
-                            {% for i in range(1, 36) %}
-                            {% set team_name = i|string + '조' %}
-                            <div class="team-user-box">
-                                <h4>{{ team_name }}</h4>
-                                <textarea name="team_users_{{ i }}">{% if settings.user.team_users.get(team_name) %}{{ settings.user.team_users.get(team_name) | join('\n') }}{% endif %}</textarea>
-                            </div>
-                            {% endfor %}
+                <div class="team-cards" id="teamCardsWrap">
+                    {% for team_name, users in settings.user.team_users.items() %}
+                    <div class="team-card">
+                        <button type="button" class="team-card-remove" title="카드 삭제">×</button>
+                        <h4>조 카드</h4>
+                        <div class="form-group">
+                            <label>조 이름</label>
+                            <input type="text" name="team_name" value="{{ team_name }}">
+                        </div>
+                        <div class="form-group">
+                            <label>사용자 목록</label>
+                            <textarea name="team_users_block">{{ users | join('\n') }}</textarea>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
+
+                <input type="hidden" name="start_address" value="{{ settings.user.start_address }}">
+                <input type="hidden" name="return_address" value="{{ settings.user.return_address }}">
+                <input type="hidden" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
 
                 <div class="button-row">
                     <button type="button" class="save-btn">변경사항 저장</button>
                 </div>
-
                 <div class="section-status"></div>
             </form>
         </section>
 
-        <!-- 관리자 비밀번호 변경 -->
+        <section id="panel-location" class="panel">
+            <h3 class="panel-title">출발/복귀지 설정</h3>
+            <p class="panel-desc">경로 계산 시 사용하는 출발지와 복귀지 주소를 설정합니다.</p>
+
+            <form class="settings-form" data-section="user">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label for="start_address">출발지 주소</label>
+                        <div class="address-row">
+                            <input type="text" id="start_address" name="start_address" value="{{ settings.user.start_address }}" readonly>
+                            <button type="button" class="search-btn" data-target-input="start_address">주소 검색</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group full">
+                        <label for="return_address">복귀지 주소</label>
+                        <div class="check-row">
+                            <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
+                            <label for="return_same_as_start_checkbox" style="margin:0; font-weight:500;">출발지와 동일합니다.</label>
+                        </div>
+                        <div class="address-row" style="margin-top:10px;">
+                            <input type="text" id="return_address" name="return_address" value="{{ settings.user.return_address }}" readonly>
+                            <button type="button" class="search-btn" id="returnSearchBtn" data-target-input="return_address">주소 검색</button>
+                        </div>
+                        <input type="hidden" id="return_same_as_start" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
+                    </div>
+                </div>
+
+                {% for team_name, users in settings.user.team_users.items() %}
+                <input type="hidden" name="team_name" value="{{ team_name }}">
+                <textarea name="team_users_block" class="hidden">{{ users | join('\n') }}</textarea>
+                {% endfor %}
+
+                <div class="button-row">
+                    <button type="button" class="save-btn">변경사항 저장</button>
+                </div>
+                <div class="section-status"></div>
+            </form>
+        </section>
+
         <section id="panel-admin" class="panel">
             <h3 class="panel-title">관리자 비밀번호 변경</h3>
             <p class="panel-desc">현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.</p>
@@ -569,7 +677,6 @@
                 <div class="button-row">
                     <button type="button" class="save-btn">변경사항 저장</button>
                 </div>
-
                 <div class="section-status"></div>
             </form>
         </section>
@@ -587,6 +694,7 @@
     </div>
 </div>
 
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
     const menuItems = document.querySelectorAll('.menu-item');
     const panels = document.querySelectorAll('.panel');
@@ -605,9 +713,7 @@
         menuItems.forEach(item => item.classList.remove('active'));
 
         const targetPanel = document.getElementById(panelId);
-        if (targetPanel) {
-            targetPanel.classList.add('active');
-        }
+        if (targetPanel) targetPanel.classList.add('active');
 
         if (menuButton) {
             menuButton.classList.add('active');
@@ -615,7 +721,6 @@
             const found = document.querySelector(`.menu-item[data-target="${panelId}"]`);
             if (found) found.classList.add('active');
         }
-
         currentPanelId = panelId;
     }
 
@@ -639,32 +744,70 @@
         return form.querySelectorAll('input, textarea, select');
     }
 
+    function getSaveButton(form) {
+        return form.querySelector('.save-btn');
+    }
+
+    function updateSaveButtonState(form) {
+        const btn = getSaveButton(form);
+        if (!btn) return;
+        if (isFormDirty(form)) {
+            btn.classList.add('enabled');
+            btn.disabled = false;
+        } else {
+            btn.classList.remove('enabled');
+            btn.disabled = true;
+        }
+    }
+
     function markFormClean(form) {
         getFormFields(form).forEach(field => {
-            field.dataset.initialValue = field.value;
+            if (field.type === 'checkbox') {
+                field.dataset.initialValue = field.checked ? '1' : '0';
+            } else {
+                field.dataset.initialValue = field.value;
+            }
         });
+        updateSaveButtonState(form);
     }
 
     function resetFormToInitial(form) {
         getFormFields(form).forEach(field => {
-            field.value = field.dataset.initialValue || '';
+            const initial = field.dataset.initialValue || '';
+            if (field.type === 'checkbox') {
+                field.checked = initial === '1';
+            } else {
+                field.value = initial;
+            }
         });
+
+        syncReturnAddressState();
+        refreshAllCardRemoveButtons();
         clearStatus(form);
+        updateSaveButtonState(form);
     }
 
     function isFormDirty(form) {
         const fields = getFormFields(form);
         for (const field of fields) {
-            if ((field.dataset.initialValue || '') !== field.value) {
+            const current = field.type === 'checkbox' ? (field.checked ? '1' : '0') : field.value;
+            if ((field.dataset.initialValue || '') !== current) {
                 return true;
             }
         }
         return false;
     }
 
+    function bindDirtyEvents(form) {
+        getFormFields(form).forEach(field => {
+            const eventName = field.tagName === 'TEXTAREA' || field.type === 'text' || field.type === 'password' ? 'input' : 'change';
+            field.addEventListener(eventName, () => updateSaveButtonState(form));
+            field.addEventListener('change', () => updateSaveButtonState(form));
+        });
+    }
+
     async function saveForm(form, moveAfterSave = false) {
         clearStatus(form);
-
         const formData = new FormData(form);
         formData.append('section', form.dataset.section);
 
@@ -682,15 +825,13 @@
             }
 
             showStatus(form, 'success', result.message || '변경사항이 저장되었습니다.');
-            markFormClean(form);
 
             if (form.dataset.section === 'admin') {
                 const pwFields = form.querySelectorAll('input[type="password"]');
-                pwFields.forEach(field => {
-                    field.value = '';
-                    field.dataset.initialValue = '';
-                });
+                pwFields.forEach(field => field.value = '');
             }
+
+            markFormClean(form);
 
             if (moveAfterSave && pendingPanelId) {
                 setActivePanel(pendingPanelId, pendingMenuButton);
@@ -698,7 +839,6 @@
                 pendingMenuButton = null;
                 dirtyForm = null;
             }
-
             return true;
         } catch (error) {
             showStatus(form, 'error', '서버 통신 중 오류가 발생했습니다.');
@@ -706,28 +846,10 @@
         }
     }
 
-    forms.forEach(form => {
-        markFormClean(form);
-
-        const saveBtn = form.querySelector('.save-btn');
-        saveBtn.addEventListener('click', async () => {
-            await saveForm(form, false);
-        });
-
-        getFormFields(form).forEach(field => {
-            field.addEventListener('input', () => {
-                // dirty 여부는 이동 시점에 비교
-            });
-        });
-    });
-
     menuItems.forEach(item => {
         item.addEventListener('click', () => {
             const targetPanelId = item.dataset.target;
-
-            if (targetPanelId === currentPanelId) {
-                return;
-            }
+            if (targetPanelId === currentPanelId) return;
 
             const currentForm = document.querySelector(`#${currentPanelId} .settings-form`);
             if (currentForm && isFormDirty(currentForm)) {
@@ -764,19 +886,153 @@
         dirtyForm = null;
     });
 
+    forms.forEach(form => {
+        bindDirtyEvents(form);
+        markFormClean(form);
+
+        const saveBtn = form.querySelector('.save-btn');
+        saveBtn.addEventListener('click', async () => {
+            if (saveBtn.disabled) return;
+            await saveForm(form, false);
+        });
+    });
+
     window.addEventListener('beforeunload', function (e) {
         let hasDirty = false;
         forms.forEach(form => {
-            if (isFormDirty(form)) {
-                hasDirty = true;
-            }
+            if (isFormDirty(form)) hasDirty = true;
         });
-
         if (hasDirty) {
             e.preventDefault();
             e.returnValue = '';
         }
     });
+
+    function openPostcode(targetInputId) {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                const input = document.getElementById(targetInputId);
+                if (!input) return;
+                input.value = data.address || '';
+                if (targetInputId === 'start_address') {
+                    const sameCheckbox = document.getElementById('return_same_as_start_checkbox');
+                    if (sameCheckbox && sameCheckbox.checked) {
+                        document.getElementById('return_address').value = input.value;
+                    }
+                }
+                const panelForm = document.querySelector('#panel-location .settings-form');
+                updateSaveButtonState(panelForm);
+            }
+        }).open();
+    }
+
+    document.querySelectorAll('.search-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            openPostcode(btn.dataset.targetInput);
+        });
+    });
+
+    function syncReturnAddressState() {
+        const checkbox = document.getElementById('return_same_as_start_checkbox');
+        const hidden = document.getElementById('return_same_as_start');
+        const startInput = document.getElementById('start_address');
+        const returnInput = document.getElementById('return_address');
+        const returnSearchBtn = document.getElementById('returnSearchBtn');
+
+        const checked = checkbox.checked;
+        hidden.value = checked ? '1' : '0';
+
+        if (checked) {
+            returnInput.value = startInput.value;
+            returnInput.setAttribute('readonly', 'readonly');
+            returnSearchBtn.disabled = true;
+            returnSearchBtn.style.opacity = '0.5';
+            returnSearchBtn.style.cursor = 'not-allowed';
+        } else {
+            returnInput.removeAttribute('readonly');
+            returnSearchBtn.disabled = false;
+            returnSearchBtn.style.opacity = '1';
+            returnSearchBtn.style.cursor = 'pointer';
+        }
+    }
+
+    document.getElementById('return_same_as_start_checkbox').addEventListener('change', () => {
+        syncReturnAddressState();
+        updateSaveButtonState(document.querySelector('#panel-location .settings-form'));
+    });
+
+    document.getElementById('start_address').addEventListener('input', () => {
+        const checkbox = document.getElementById('return_same_as_start_checkbox');
+        if (checkbox.checked) {
+            document.getElementById('return_address').value = document.getElementById('start_address').value;
+        }
+        updateSaveButtonState(document.querySelector('#panel-location .settings-form'));
+    });
+
+    function createTeamCard(teamName = '', usersText = '') {
+        const wrap = document.createElement('div');
+        wrap.className = 'team-card';
+        wrap.innerHTML = `
+            <button type="button" class="team-card-remove" title="카드 삭제">×</button>
+            <h4>조 카드</h4>
+            <div class="form-group">
+                <label>조 이름</label>
+                <input type="text" name="team_name" value="${teamName}">
+            </div>
+            <div class="form-group">
+                <label>사용자 목록</label>
+                <textarea name="team_users_block">${usersText}</textarea>
+            </div>
+        `;
+        return wrap;
+    }
+
+    function refreshAllCardRemoveButtons() {
+        const cards = document.querySelectorAll('#teamCardsWrap .team-card');
+        cards.forEach(btnCard => {
+            const btn = btnCard.querySelector('.team-card-remove');
+            btn.disabled = cards.length <= 1;
+        });
+    }
+
+    function bindTeamCard(card) {
+        const removeBtn = card.querySelector('.team-card-remove');
+        removeBtn.addEventListener('click', () => {
+            const wrap = document.getElementById('teamCardsWrap');
+            const cards = wrap.querySelectorAll('.team-card');
+            if (cards.length <= 1) {
+                return;
+            }
+            card.remove();
+            refreshAllCardRemoveButtons();
+            const form = document.querySelector('#panel-user .settings-form');
+            bindDirtyEvents(form);
+            updateSaveButtonState(form);
+        });
+
+        card.querySelectorAll('input, textarea').forEach(field => {
+            field.addEventListener('input', () => {
+                updateSaveButtonState(document.querySelector('#panel-user .settings-form'));
+            });
+        });
+    }
+
+    document.querySelectorAll('#teamCardsWrap .team-card').forEach(card => bindTeamCard(card));
+    refreshAllCardRemoveButtons();
+
+    document.getElementById('addTeamCardBtn').addEventListener('click', () => {
+        const wrap = document.getElementById('teamCardsWrap');
+        const newCard = createTeamCard('', '');
+        wrap.appendChild(newCard);
+        bindTeamCard(newCard);
+        refreshAllCardRemoveButtons();
+
+        const form = document.querySelector('#panel-user .settings-form');
+        bindDirtyEvents(form);
+        updateSaveButtonState(form);
+    });
+
+    syncReturnAddressState();
 </script>
 </body>
 </html>
