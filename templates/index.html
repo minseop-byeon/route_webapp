@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국세청 체납지원단 - SMART 경로탐색</title>
+
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;}
+
+body{
+  font-family:Pretendard,sans-serif;
+  background:#f4f6fa;
+  margin:0;
+  color:#111827;
+}
+
+.container{
+  max-width:900px;
+  margin:40px auto;
+  padding:0 18px 32px;
+}
+
+.header-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.header-title{
+  font-size:26px;
+  font-weight:850;
+  letter-spacing:-0.2px;
+}
+
+.header-sub{
+  font-size:14px;
+  color:#6b7280;
+  margin-top:6px;
+}
+
+.trip-inline{
+  font-size:14px;
+  color:#475569;
+  font-weight:700;
+  white-space:nowrap;
+  text-align:right;
+  padding-top:4px;
+}
+
+.card{
+  position:relative;
+  background:white;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:14px;
+  border:1px solid #e2e8f0;
+  box-shadow:0 6px 14px rgba(15,23,42,0.05);
+}
+
+.card h3{
+  margin:0 0 12px 0;
+  font-size:14px;
+  font-weight:850;
+  color:#0f172a;
+}
+
+.grid-main{
+  display:grid;
+  grid-template-columns:1fr 2fr 150px;
+  gap:12px;
+  align-items:end;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+}
+
+label{
+  font-size:12px;
+  color:#6b7280;
+  margin-bottom:6px;
+}
+
+.required::after{
+  content:" *";
+  color:#ef4444;
+}
+
+input,select{
+  padding:10px 12px;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  font-size:14px;
+  transition:0.15s;
+  background:#fff;
+  min-height:42px;
+  font-family:Pretendard,sans-serif;
+}
+
+input:focus,select:focus{
+  outline:none;
+  border-color:#1d4ed8;
+}
+
+input.error, select.error{
+  border-color:#ef4444 !important;
+}
+
+.address-row{
+  display:flex;
+  gap:6px;
+}
+
+.address-row input{
+  flex:1;
+  pointer-events:none;
+  background:#f9fafb;
+}
+
+button{
+  border:none;
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:800;
+  font-family:Pretendard,sans-serif;
+}
+
+.btn-secondary{
+  background:#eef0f4;
+  color:#0f172a;
+}
+
+.btn-primary{
+  background:#1d4ed8;
+  color:#fff;
+}
+
+.add-btn{
+  width:100%;
+  margin-top:10px;
+}
+
+.submit-btn{
+  width:100%;
+  margin-top:18px;
+  padding:13px;
+}
+
+.delete-icon{
+  position:absolute;
+  top:12px;
+  right:14px;
+  font-size:18px;
+  color:#9ca3af;
+  cursor:pointer;
+  transition:0.2s;
+  user-select:none;
+}
+
+.delete-icon:hover{
+  color:#ef4444;
+  transform:scale(1.2);
+}
+
+.appointment-box{
+  margin-top:14px;
+  font-size:13px;
+  color:#374151;
+}
+
+.appointment-check{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
+  color:#475569;
+  margin:0;
+}
+
+.appointment-check input[type="checkbox"]{
+  width:auto;
+  min-height:auto;
+  padding:0;
+  margin:0;
+}
+
+.time-select-area{
+  margin-top:10px;
+  display:none;
+}
+
+.time-row{
+  display:flex;
+  gap:8px;
+}
+
+.warning{
+  margin-top:12px;
+  font-size:13px;
+  color:#ef4444;
+  display:none;
+  font-weight:800;
+}
+
+.bottom-actions{
+  margin-top:18px;
+  display:flex;
+  justify-content:flex-start;
+}
+
+.back-link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #dbe2ea;
+  background:#fff;
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  color:#0f172a;
+}
+
+.back-link svg{
+  width:15px;
+  height:15px;
+  flex:0 0 auto;
+}
+
+.loading-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(255,255,255,0.92);
+  z-index:9999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+
+.loading-box{
+  text-align:center;
+}
+
+.spinner{
+  width:44px;
+  height:44px;
+  border:4px solid #e5e7eb;
+  border-top:4px solid #1d4ed8;
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+  margin:0 auto 16px;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg);}
+}
+
+.loading-text{
+  font-size:16px;
+  font-weight:800;
+  color:#0f172a;
+}
+
+@media (max-width:760px){
+  .container{
+    margin:24px auto;
+    padding:0 14px 26px;
+  }
+
+  .header-row{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+  }
+
+  .trip-inline{
+    white-space:normal;
+    text-align:left;
+    padding-top:0;
+    font-size:13px;
+  }
+
+  .grid-main{
+    grid-template-columns:1fr;
+  }
+
+  .address-row{
+    flex-direction:column;
+  }
+
+  .address-row button{
+    width:100%;
+  }
+
+  .time-row{
+    flex-direction:column;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="header-row">
+    <div>
+      <div class="header-title">국세청 체납지원단</div>
+      <div class="header-sub">SMART 경로탐색</div>
+    </div>
+
+    <div class="trip-inline">
+      {{ team_no }}({{ user_name }}) - {{ trip_date|replace('-', '.') }}
+    </div>
+  </div>
+
+  <form id="routeForm" method="POST" action="/planner">
+    <div id="visits"></div>
+
+    <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 체납자 추가</button>
+    <button type="submit" class="btn-primary submit-btn" id="submitBtn">최적 경로 계산</button>
+  </form>
+
+  <div class="bottom-actions">
+    <button type="button" class="back-link" onclick="location.href='/'">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      시작화면으로 이동
+    </button>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text">최적 경로를 계산하고 있습니다.</div>
+  </div>
+</div>
+
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+<script>
+let visitContainer = document.getElementById("visits");
+let form = document.getElementById("routeForm");
+let count = 0;
+const DRAFT_KEY = "route_visit_draft_v5";
+
+function generateServiceOptions(){
+  let options = "";
+  for(let i=5;i<=60;i+=5){
+    options += `<option value="${i}">${i}분</option>`;
+  }
+  return options;
+}
+
+function generateHourOptions(){
+  let options = `<option value="">시</option>`;
+  for(let i=10;i<=17;i++){
+    options += `<option value="${i}">${i}시</option>`;
+  }
+  return options;
+}
+
+function generateMinuteOptions(){
+  let options = `<option value="">분</option>`;
+  for(let i=0;i<60;i+=5){
+    const v = i.toString().padStart(2, "0");
+    options += `<option value="${v}">${v}분</option>`;
+  }
+  return options;
+}
+
+function addVisit(){
+  count = visitContainer.children.length + 1;
+
+  const div = document.createElement("div");
+  div.className = "card";
+
+  div.innerHTML = `
+    <div class="delete-icon" onclick="removeVisit(this)">✕</div>
+
+    <h3>체납자 ${count}</h3>
+
+    <div class="grid-main">
+      <div class="field">
+        <label class="required">성명</label>
+        <input type="text" name="name">
+      </div>
+
+      <div class="field">
+        <label class="required">주소</label>
+        <div class="address-row">
+          <input type="text" name="address" readonly>
+          <button type="button" class="btn-secondary" onclick="openAddress(this)">검색</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>방문 소요 시간</label>
+        <select name="service_time">
+          ${generateServiceOptions()}
+        </select>
+      </div>
+    </div>
+
+    <div class="appointment-box">
+      <input type="hidden" name="has_appointment_flag" value="0">
+
+      <label class="appointment-check">
+        <input type="checkbox" class="appointment-toggle" onchange="toggleTime(this)">
+        체납자와 방문 약속 시간 지정하기
+      </label>
+
+      <div class="time-select-area">
+        <div class="time-row">
+          <select name="visit_hour">${generateHourOptions()}</select>
+          <select name="visit_minute">${generateMinuteOptions()}</select>
+        </div>
+      </div>
+    </div>
+
+    <div class="warning">입력되지 않은 항목이 있습니다</div>
+  `;
+
+  visitContainer.appendChild(div);
+  bindDraftEvents(div);
+  updateDeleteButtons();
+  saveDraft();
+}
+
+function removeVisit(el){
+  el.closest(".card").remove();
+  renumber();
+  updateDeleteButtons();
+  saveDraft();
+}
+
+function renumber(){
+  const cards = document.querySelectorAll(".card");
+  count = cards.length;
+  cards.forEach((card, idx) => {
+    card.querySelector("h3").innerText = "체납자 " + (idx + 1);
+  });
+}
+
+function updateDeleteButtons(){
+  const cards = document.querySelectorAll(".card");
+  cards.forEach(card => {
+    const btn = card.querySelector(".delete-icon");
+    btn.style.display = (cards.length === 1) ? "none" : "block";
+  });
+}
+
+function toggleTime(cb){
+  const card = cb.closest(".card");
+  const box = cb.closest(".appointment-box");
+  const timeArea = box.querySelector(".time-select-area");
+  const hiddenFlag = box.querySelector('input[name="has_appointment_flag"]');
+  const hourEl = box.querySelector('select[name="visit_hour"]');
+  const minuteEl = box.querySelector('select[name="visit_minute"]');
+
+  if(cb.checked){
+    timeArea.style.display = "block";
+    hiddenFlag.value = "1";
+  }else{
+    timeArea.style.display = "none";
+    hiddenFlag.value = "0";
+    hourEl.value = "";
+    minuteEl.value = "";
+    hourEl.classList.remove("error");
+    minuteEl.classList.remove("error");
+    clearWarning(card);
+  }
+
+  saveDraft();
+}
+
+function openAddress(button){
+  const input = button.parentElement.querySelector('input[name="address"]');
+
+  new daum.Postcode({
+    oncomplete: function(data){
+      input.value = data.address;
+      input.classList.remove("error");
+      clearWarning(input.closest(".card"));
+      saveDraft();
+    }
+  }).open();
+}
+
+function showWarning(card){
+  const warning = card.querySelector(".warning");
+  if(warning) warning.style.display = "block";
+}
+
+function clearWarning(card){
+  const name = card.querySelector('input[name="name"]');
+  const address = card.querySelector('input[name="address"]');
+  const hiddenFlag = card.querySelector('input[name="has_appointment_flag"]');
+  const hourEl = card.querySelector('select[name="visit_hour"]');
+  const minuteEl = card.querySelector('select[name="visit_minute"]');
+  const warning = card.querySelector(".warning");
+
+  const hasAppointment = hiddenFlag && hiddenFlag.value === "1";
+  const baseOk = name.value.trim() && address.value.trim();
+  const timeOk = !hasAppointment || (hourEl.value && minuteEl.value);
+
+  if(baseOk && timeOk){
+    warning.style.display = "none";
+    name.classList.remove("error");
+    address.classList.remove("error");
+    hourEl.classList.remove("error");
+    minuteEl.classList.remove("error");
+  }
+}
+
+function validateForm(e){
+  let hasError = false;
+
+  document.querySelectorAll(".card").forEach(card => {
+    const name = card.querySelector('input[name="name"]');
+    const address = card.querySelector('input[name="address"]');
+    const hiddenFlag = card.querySelector('input[name="has_appointment_flag"]');
+    const hourEl = card.querySelector('select[name="visit_hour"]');
+    const minuteEl = card.querySelector('select[name="visit_minute"]');
+
+    let localError = false;
+
+    name.classList.remove("error");
+    address.classList.remove("error");
+    hourEl.classList.remove("error");
+    minuteEl.classList.remove("error");
+
+    if(!name.value.trim()){
+      name.classList.add("error");
+      localError = true;
+    }
+
+    if(!address.value.trim()){
+      address.classList.add("error");
+      localError = true;
+    }
+
+    const hasAppointment = hiddenFlag.value === "1";
+    if(hasAppointment){
+      if(!hourEl.value){
+        hourEl.classList.add("error");
+        localError = true;
+      }
+      if(!minuteEl.value){
+        minuteEl.classList.add("error");
+        localError = true;
+      }
+    }
+
+    if(localError){
+      showWarning(card);
+      hasError = true;
+    }else{
+      clearWarning(card);
+    }
+  });
+
+  if(hasError){
+    e.preventDefault();
+    return false;
+  }
+
+  saveDraft();
+  return true;
+}
+
+function bindDraftEvents(scope){
+  scope.querySelectorAll('input[name="name"], select[name="service_time"], select[name="visit_hour"], select[name="visit_minute"]').forEach(el => {
+    el.addEventListener("input", saveDraft);
+    el.addEventListener("change", saveDraft);
+  });
+
+  const checkbox = scope.querySelector(".appointment-toggle");
+  if(checkbox){
+    checkbox.addEventListener("change", saveDraft);
+  }
+}
+
+function saveDraft(){
+  const cards = document.querySelectorAll(".card");
+  const draft = [];
+
+  cards.forEach(card => {
+    const name = card.querySelector('input[name="name"]')?.value || "";
+    const address = card.querySelector('input[name="address"]')?.value || "";
+    const service = card.querySelector('select[name="service_time"]')?.value || "5";
+    const checkbox = card.querySelector('.appointment-toggle');
+    const hasAppt = checkbox ? checkbox.checked : false;
+    const hour = card.querySelector('select[name="visit_hour"]')?.value || "";
+    const minute = card.querySelector('select[name="visit_minute"]')?.value || "";
+
+    draft.push({ name, address, service, hasAppt, hour, minute });
+  });
+
+  sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+function restoreDraft(){
+  const raw = sessionStorage.getItem(DRAFT_KEY);
+  if(!raw) return false;
+
+  let draft;
+  try{
+    draft = JSON.parse(raw);
+  }catch{
+    return false;
+  }
+
+  if(!Array.isArray(draft) || draft.length === 0) return false;
+
+  visitContainer.innerHTML = "";
+  count = 0;
+
+  draft.forEach(item => {
+    addVisit();
+    const card = visitContainer.lastElementChild;
+
+    const nameEl = card.querySelector('input[name="name"]');
+    const addrEl = card.querySelector('input[name="address"]');
+    const svcEl = card.querySelector('select[name="service_time"]');
+    const checkbox = card.querySelector('.appointment-toggle');
+    const hiddenFlag = card.querySelector('input[name="has_appointment_flag"]');
+    const timeArea = card.querySelector(".time-select-area");
+    const hourEl = card.querySelector('select[name="visit_hour"]');
+    const minEl = card.querySelector('select[name="visit_minute"]');
+
+    if(nameEl) nameEl.value = item.name || "";
+    if(addrEl) addrEl.value = item.address || "";
+    if(svcEl) svcEl.value = item.service || "5";
+
+    if(checkbox) checkbox.checked = !!item.hasAppt;
+    if(hiddenFlag) hiddenFlag.value = item.hasAppt ? "1" : "0";
+    if(timeArea) timeArea.style.display = item.hasAppt ? "block" : "none";
+
+    if(hourEl) hourEl.value = item.hour || "";
+    if(minEl) minEl.value = item.minute || "";
+  });
+
+  updateDeleteButtons();
+  return true;
+}
+
+form.addEventListener("submit", function(e){
+  if(!validateForm(e)){
+    return false;
+  }
+
+  document.getElementById("loadingOverlay").style.display = "flex";
+  document.getElementById("submitBtn").disabled = true;
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+  const restored = restoreDraft();
+  if(!restored){
+    addVisit();
+  }
+});
+</script>
+</body>
+</html>

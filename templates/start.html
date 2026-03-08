@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>국세청 체납지원단 - SMART 경로탐색</title>
+
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Pretendard, sans-serif;
+      background: #f4f6fa;
+      margin: 0;
+      color: #111827;
+    }
+
+    .container {
+      max-width: 440px;
+      margin: 28px auto;
+      padding: 0 14px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .admin-btn-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    .admin-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #374151;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .gov-symbol {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 8px;
+      display: block;
+    }
+
+    .gov-name {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 850;
+      letter-spacing: -0.2px;
+      color: #111827;
+      font-family:
+        "대한민국정부상징체",
+        "대한민국정부상징서체",
+        Pretendard,
+        sans-serif;
+    }
+
+    .header-sub {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 14px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+    }
+
+    .field-group + .field-group {
+      margin-top: 12px;
+    }
+
+    .field-group.hidden {
+      display: none;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .required::after {
+      content: " *";
+      color: #ef4444;
+    }
+
+    input, select {
+      padding: 9px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: 0.15s;
+      background: #fff;
+      color: #111827;
+      width: 100%;
+      min-height: 42px;
+      font-family: Pretendard, sans-serif;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #1d4ed8;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: none;
+    }
+
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap::after {
+      content: "";
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid #9ca3af;
+      border-bottom: 2px solid #9ca3af;
+      transform: translateY(-65%) rotate(45deg);
+      pointer-events: none;
+    }
+
+    .date-wrap {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .date-wrap input[type="date"] {
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: none;
+      padding-right: 40px;
+    }
+
+    .date-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0;
+      display: block;
+      position: absolute;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .date-wrap input[type="date"]::-webkit-clear-button,
+    .date-wrap input[type="date"]::-webkit-inner-spin-button {
+      display: none;
+    }
+
+    .calendar-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+      opacity: 0.72;
+    }
+
+    .btn-primary {
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 800;
+      width: 100%;
+      margin-top: 16px;
+      background: #1d4ed8;
+      color: #fff;
+      transition: 0.15s;
+    }
+
+    .btn-primary:disabled {
+      background: #94a3b8;
+      color: #e5e7eb;
+      cursor: default;
+      pointer-events: none;
+    }
+
+    @media (max-width: 760px) {
+      .container {
+        max-width: 100%;
+        margin: 18px auto;
+        padding: 0 12px;
+      }
+
+      .gov-symbol {
+        width: 68px;
+        height: 68px;
+      }
+
+      .gov-name {
+        font-size: 21px;
+      }
+
+      .card {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="hero">
+    <div class="admin-btn-wrap">
+      <a href="/admin/login" class="admin-btn">관리자 설정</a>
+    </div>
+
+    <svg class="gov-symbol" viewBox="0 0 120 120" aria-hidden="true">
+      <g fill="#8c8c8c" opacity="0.92">
+        <ellipse cx="60" cy="11" rx="6" ry="15"/>
+        <ellipse cx="87" cy="20" rx="6" ry="15" transform="rotate(36 87 20)"/>
+        <ellipse cx="104" cy="46" rx="6" ry="15" transform="rotate(72 104 46)"/>
+        <ellipse cx="101" cy="75" rx="6" ry="15" transform="rotate(108 101 75)"/>
+        <ellipse cx="79" cy="98" rx="6" ry="15" transform="rotate(144 79 98)"/>
+        <ellipse cx="41" cy="98" rx="6" ry="15" transform="rotate(216 41 98)"/>
+        <ellipse cx="19" cy="75" rx="6" ry="15" transform="rotate(252 19 75)"/>
+        <ellipse cx="16" cy="46" rx="6" ry="15" transform="rotate(288 16 46)"/>
+        <ellipse cx="33" cy="20" rx="6" ry="15" transform="rotate(324 33 20)"/>
+      </g>
+      <path d="M60,22 C79,22 94,37 94,56 C94,75 79,90 60,90 C41,90 26,75 26,56 C26,44 32,34 42,28 C47,25 53,24 60,24 Z"
+            fill="#ffffff" opacity="0.98"/>
+      <path d="M60,27 C74,27 86,39 86,53 C86,67 74,79 60,79 C46,79 34,67 34,53 C34,47 36,42 40,38 C44,49 54,57 66,57 C74,57 80,53 84,47 C82,36 72,27 60,27 Z"
+            fill="#003764"/>
+      <path d="M60,27 C48,27 37,35 34,47 C38,54 45,59 54,59 C66,59 76,51 80,40 C76,32 69,27 60,27 Z"
+            fill="#c43c35"/>
+      <circle cx="60" cy="53" r="27" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.9"/>
+    </svg>
+
+    <div class="gov-name">국세청 체납지원단</div>
+    <div class="header-sub">SMART 경로탐색</div>
+  </div>
+
+  <form method="POST" action="/" id="startForm">
+    <div class="card">
+      <div class="field-group" id="teamGroup">
+        <div class="field">
+          <label class="required" for="team_no">조 선택</label>
+          <div class="select-wrap">
+            <select name="team_no" id="team_no" required>
+              <option value="">조를 선택하세요</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group hidden" id="userGroup">
+        <div class="field">
+          <label class="required" for="user_name">사용자명</label>
+          <div class="select-wrap">
+            <select name="user_name" id="user_name" required>
+              <option value="">사용자명을 선택하세요</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group hidden" id="dateGroup">
+        <div class="field">
+          <label class="required" for="trip_date">출장일자</label>
+          <div class="date-wrap" id="dateWrap">
+            <input
+              type="date"
+              name="trip_date"
+              id="trip_date"
+              min="2026-01-01"
+              max="2026-12-31"
+              required
+              inputmode="none"
+              autocomplete="off"
+            >
+            <svg class="calendar-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="5" width="16" height="15" rx="2" ry="2" fill="none" stroke="#6b7280" stroke-width="1.8"/>
+              <line x1="8" y1="3.8" x2="8" y2="7" stroke="#6b7280" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="16" y1="3.8" x2="16" y2="7" stroke="#6b7280" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="4" y1="9" x2="20" y2="9" stroke="#6b7280" stroke-width="1.8"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submitBtn" disabled>경로 최적화 시작하기</button>
+    </div>
+  </form>
+
+</div>
+
+<script>
+  sessionStorage.removeItem("route_visit_draft_v5");
+
+  const TEAM_OPTIONS = {{ team_options|tojson }};
+  const USER_OPTIONS = {{ user_options|tojson }};
+
+  const teamSelect = document.getElementById("team_no");
+  const userSelect = document.getElementById("user_name");
+  const tripDateInput = document.getElementById("trip_date");
+  const dateWrap = document.getElementById("dateWrap");
+
+  const userGroup = document.getElementById("userGroup");
+  const dateGroup = document.getElementById("dateGroup");
+  const submitBtn = document.getElementById("submitBtn");
+
+  function populateTeams() {
+    teamSelect.innerHTML = '<option value="">조를 선택하세요</option>';
+    TEAM_OPTIONS.forEach(team => {
+      const option = document.createElement("option");
+      option.value = team;
+      option.textContent = team;
+      teamSelect.appendChild(option);
+    });
+  }
+
+  function populateUsers() {
+    userSelect.innerHTML = '<option value="">사용자명을 선택하세요</option>';
+    USER_OPTIONS.forEach(name => {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      userSelect.appendChild(option);
+    });
+  }
+
+  function clampDateTo2026(dateObj) {
+    const min = new Date("2026-01-01");
+    const max = new Date("2026-12-31");
+    if (dateObj < min) return "2026-01-01";
+    if (dateObj > max) return "2026-12-31";
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const d = String(dateObj.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function setDefaultDate() {
+    if (tripDateInput.value) return;
+    tripDateInput.value = clampDateTo2026(new Date());
+  }
+
+  function showOrHideFields() {
+    const hasTeam = !!teamSelect.value;
+    const hasUser = !!userSelect.value;
+    const hasDate = !!tripDateInput.value;
+
+    userGroup.classList.toggle("hidden", !hasTeam);
+    dateGroup.classList.toggle("hidden", !(hasTeam && hasUser));
+    submitBtn.disabled = !(hasTeam && hasUser && hasDate);
+  }
+
+  function openDatePicker() {
+    if (dateGroup.classList.contains("hidden")) return;
+    tripDateInput.focus();
+    if (typeof tripDateInput.showPicker === "function") {
+      tripDateInput.showPicker();
+    } else {
+      tripDateInput.click();
+    }
+  }
+
+  teamSelect.addEventListener("change", () => {
+    if (teamSelect.value) {
+      populateUsers();
+    } else {
+      userSelect.innerHTML = '<option value="">사용자명을 선택하세요</option>';
+      userSelect.value = "";
+      tripDateInput.value = "";
+    }
+    showOrHideFields();
+  });
+
+  userSelect.addEventListener("change", () => {
+    if (userSelect.value) {
+      setDefaultDate();
+    } else {
+      tripDateInput.value = "";
+    }
+    showOrHideFields();
+  });
+
+  tripDateInput.addEventListener("input", showOrHideFields);
+  tripDateInput.addEventListener("change", showOrHideFields);
+  tripDateInput.addEventListener("keydown", (e) => e.preventDefault());
+  tripDateInput.addEventListener("paste", (e) => e.preventDefault());
+
+  dateWrap.addEventListener("click", openDatePicker);
+  dateWrap.addEventListener("touchstart", openDatePicker, { passive: true });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    populateTeams();
+    showOrHideFields();
+  });
+</script>
+</body>
+</html>
