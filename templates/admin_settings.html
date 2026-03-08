@@ -1,83 +1,529 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>국세청 체납관리단 관리자 설정</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-<meta charset="utf-8">
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
 
-<title>관리자 설정</title>
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
 
-<style>
+        .sidebar {
+            width: 260px;
+            background: #1f2937;
+            color: white;
+            padding: 24px 0;
+            flex-shrink: 0;
+        }
 
-body{
-font-family:Arial;
-background:#f4f4f4;
-}
+        .sidebar h2 {
+            margin: 0;
+            padding: 0 24px 24px;
+            font-size: 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+        }
 
-.container{
+        .menu {
+            margin-top: 20px;
+        }
 
-width:800px;
-margin:60px auto;
-background:white;
-padding:40px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
+        .menu-item {
+            display: block;
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 16px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
 
-}
+        .menu-item:hover {
+            background: rgba(255,255,255,0.08);
+        }
 
-h1{
-margin-bottom:20px;
-}
+        .menu-item.active {
+            background: #2563eb;
+            font-weight: bold;
+        }
 
-textarea{
+        .content {
+            flex: 1;
+            padding: 40px;
+        }
 
-width:100%;
-height:300px;
-padding:15px;
-font-size:14px;
+        .page-title {
+            margin: 0 0 24px;
+            font-size: 28px;
+            font-weight: bold;
+        }
 
-}
+        .panel {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+            padding: 30px;
+        }
 
-button{
+        .panel.active {
+            display: block;
+        }
 
-margin-top:20px;
-padding:14px 30px;
-background:#007bff;
-color:white;
-border:none;
-cursor:pointer;
+        .panel h3 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 22px;
+        }
 
-}
+        .form-group {
+            margin-bottom: 18px;
+        }
 
-button:hover{
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-background:#0056b3;
+        .form-group input {
+            width: 100%;
+            height: 44px;
+            padding: 10px 12px;
+            border: 1px solid #cfd6df;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
 
-}
+        .form-group input:focus {
+            border-color: #2563eb;
+        }
 
-</style>
+        .button-row {
+            margin-top: 28px;
+        }
 
+        .save-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            height: 44px;
+            padding: 0 22px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .save-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .message-box {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message-success {
+            background: #ecfdf3;
+            color: #027a48;
+            border: 1px solid #abefc6;
+        }
+
+        .message-error {
+            background: #fef3f2;
+            color: #b42318;
+            border: 1px solid #fecdca;
+        }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .modal {
+            width: 420px;
+            background: white;
+            border-radius: 12px;
+            padding: 26px 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+        }
+
+        .modal-title {
+            margin: 0 0 12px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .modal-text {
+            margin: 0 0 22px;
+            font-size: 15px;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            min-width: 90px;
+            height: 42px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .top-desc {
+            margin-bottom: 28px;
+            color: #555;
+            font-size: 15px;
+        }
+    </style>
 </head>
-
-
 <body>
 
-<div class="container">
+<div class="layout">
+    <aside class="sidebar">
+        <h2>관리자 설정</h2>
+        <div class="menu">
+            <button class="menu-item active" data-target="mail-panel">메일설정</button>
+            <button class="menu-item" data-target="api-panel">API 키설정</button>
+            <button class="menu-item" data-target="user-panel">사용자 설정</button>
+            <button class="menu-item" data-target="admin-panel">관리자 비밀번호 변경</button>
+        </div>
+    </aside>
 
-<h1>국세청 체납관리단 관리자 설정</h1>
+    <main class="content">
+        <h1 class="page-title">국세청 체납관리단 관리자 페이지</h1>
+        <div class="top-desc">좌측 메뉴에서 항목을 선택하여 설정을 변경할 수 있습니다.</div>
 
-<form action="/save_settings" method="post">
+        <!-- 메일설정 -->
+        <section id="mail-panel" class="panel active">
+            <h3>메일설정</h3>
+            <form class="settings-form" data-section="mail">
+                <div class="form-group">
+                    <label>SMTP 서버</label>
+                    <input type="text" name="smtp_server" value="{{ settings.mail.smtp_server }}">
+                </div>
+                <div class="form-group">
+                    <label>SMTP 포트</label>
+                    <input type="text" name="smtp_port" value="{{ settings.mail.smtp_port }}">
+                </div>
+                <div class="form-group">
+                    <label>발신자 이메일</label>
+                    <input type="text" name="sender_email" value="{{ settings.mail.sender_email }}">
+                </div>
+                <div class="form-group">
+                    <label>발신자 이름</label>
+                    <input type="text" name="sender_name" value="{{ settings.mail.sender_name }}">
+                </div>
 
-<textarea name="settings">{{settings}}</textarea>
+                <div class="button-row">
+                    <button type="button" class="save-btn">변경사항 저장</button>
+                </div>
+                <div class="message-box"></div>
+            </form>
+        </section>
 
-<br>
+        <!-- API 키설정 -->
+        <section id="api-panel" class="panel">
+            <h3>API 키설정</h3>
+            <form class="settings-form" data-section="api">
+                <div class="form-group">
+                    <label>Tmap API 키</label>
+                    <input type="text" name="tmap_api_key" value="{{ settings.api.tmap_api_key }}">
+                </div>
+                <div class="form-group">
+                    <label>Google Maps API 키</label>
+                    <input type="text" name="google_maps_api_key" value="{{ settings.api.google_maps_api_key }}">
+                </div>
+                <div class="form-group">
+                    <label>Kakao API 키</label>
+                    <input type="text" name="kakao_api_key" value="{{ settings.api.kakao_api_key }}">
+                </div>
 
-<button type="submit">설정 저장</button>
+                <div class="button-row">
+                    <button type="button" class="save-btn">변경사항 저장</button>
+                </div>
+                <div class="message-box"></div>
+            </form>
+        </section>
 
-</form>
+        <!-- 사용자 설정 -->
+        <section id="user-panel" class="panel">
+            <h3>사용자 설정</h3>
+            <form class="settings-form" data-section="user">
+                <div class="form-group">
+                    <label>기본 조</label>
+                    <input type="text" name="default_team" value="{{ settings.user.default_team }}">
+                </div>
+                <div class="form-group">
+                    <label>기본 사용자명</label>
+                    <input type="text" name="default_username" value="{{ settings.user.default_username }}">
+                </div>
+                <div class="form-group">
+                    <label>기본 출발지</label>
+                    <input type="text" name="default_start_location" value="{{ settings.user.default_start_location }}">
+                </div>
 
+                <div class="button-row">
+                    <button type="button" class="save-btn">변경사항 저장</button>
+                </div>
+                <div class="message-box"></div>
+            </form>
+        </section>
+
+        <!-- 관리자 비밀번호 변경 -->
+        <section id="admin-panel" class="panel">
+            <h3>관리자 비밀번호 변경</h3>
+            <form class="settings-form" data-section="admin">
+                <div class="form-group">
+                    <label>새 관리자 비밀번호</label>
+                    <input type="password" name="admin_password" value="">
+                </div>
+                <div class="form-group">
+                    <label>새 관리자 비밀번호 확인</label>
+                    <input type="password" name="admin_password_confirm" value="">
+                </div>
+
+                <div class="button-row">
+                    <button type="button" class="save-btn">변경사항 저장</button>
+                </div>
+                <div class="message-box"></div>
+            </form>
+        </section>
+    </main>
 </div>
 
-</body>
+<!-- 이동 확인 모달 -->
+<div class="modal-backdrop" id="confirmModal">
+    <div class="modal">
+        <h3 class="modal-title">변경사항 확인</h3>
+        <p class="modal-text">저장 후 이동하시겠습니까?</p>
+        <div class="modal-buttons">
+            <button class="modal-btn btn-primary" id="modalSaveBtn">저장</button>
+            <button class="modal-btn btn-secondary" id="modalDiscardBtn">취소</button>
+        </div>
+    </div>
+</div>
 
+<script>
+    const menuItems = document.querySelectorAll('.menu-item');
+    const panels = document.querySelectorAll('.panel');
+    const forms = document.querySelectorAll('.settings-form');
+    const confirmModal = document.getElementById('confirmModal');
+    const modalSaveBtn = document.getElementById('modalSaveBtn');
+    const modalDiscardBtn = document.getElementById('modalDiscardBtn');
+
+    let currentPanelId = 'mail-panel';
+    let pendingPanelId = null;
+    let pendingMenuButton = null;
+    let dirtyForm = null;
+
+    function setActivePanel(panelId, menuButton) {
+        panels.forEach(panel => {
+            panel.classList.remove('active');
+        });
+        menuItems.forEach(item => {
+            item.classList.remove('active');
+        });
+
+        document.getElementById(panelId).classList.add('active');
+        if (menuButton) {
+            menuButton.classList.add('active');
+        } else {
+            document.querySelector(`.menu-item[data-target="${panelId}"]`).classList.add('active');
+        }
+
+        currentPanelId = panelId;
+    }
+
+    function showMessage(form, type, message) {
+        const box = form.querySelector('.message-box');
+        box.style.display = 'block';
+        box.className = 'message-box ' + (type === 'success' ? 'message-success' : 'message-error');
+        box.textContent = message;
+    }
+
+    function clearMessage(form) {
+        const box = form.querySelector('.message-box');
+        box.style.display = 'none';
+        box.textContent = '';
+        box.className = 'message-box';
+    }
+
+    function markFormClean(form) {
+        form.dataset.dirty = 'false';
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.dataset.initialValue = input.value;
+        });
+    }
+
+    function checkDirty(form) {
+        const inputs = form.querySelectorAll('input');
+        for (const input of inputs) {
+            if ((input.dataset.initialValue || '') !== input.value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    async function saveForm(form, moveAfterSave = false) {
+        clearMessage(form);
+
+        const formData = new FormData(form);
+        formData.append('section', form.dataset.section);
+
+        try {
+            const response = await fetch('/save_section_settings', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showMessage(form, 'success', result.message);
+                markFormClean(form);
+
+                if (moveAfterSave && pendingPanelId) {
+                    setActivePanel(pendingPanelId, pendingMenuButton);
+                    pendingPanelId = null;
+                    pendingMenuButton = null;
+                    dirtyForm = null;
+                }
+            } else {
+                showMessage(form, 'error', result.message || '저장 중 오류가 발생했습니다.');
+            }
+        } catch (error) {
+            showMessage(form, 'error', '서버 통신 중 오류가 발생했습니다.');
+        }
+    }
+
+    forms.forEach(form => {
+        markFormClean(form);
+
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                form.dataset.dirty = checkDirty(form) ? 'true' : 'false';
+            });
+        });
+
+        const saveBtn = form.querySelector('.save-btn');
+        saveBtn.addEventListener('click', () => {
+            saveForm(form, false);
+        });
+    });
+
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const targetPanelId = item.dataset.target;
+
+            if (targetPanelId === currentPanelId) {
+                return;
+            }
+
+            const currentForm = document.querySelector(`#${currentPanelId} .settings-form`);
+            const isDirty = checkDirty(currentForm);
+
+            if (isDirty) {
+                pendingPanelId = targetPanelId;
+                pendingMenuButton = item;
+                dirtyForm = currentForm;
+                confirmModal.classList.add('show');
+            } else {
+                setActivePanel(targetPanelId, item);
+            }
+        });
+    });
+
+    modalSaveBtn.addEventListener('click', async () => {
+        confirmModal.classList.remove('show');
+        if (dirtyForm) {
+            await saveForm(dirtyForm, true);
+        }
+    });
+
+    modalDiscardBtn.addEventListener('click', () => {
+        confirmModal.classList.remove('show');
+
+        if (dirtyForm) {
+            const inputs = dirtyForm.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.value = input.dataset.initialValue || '';
+            });
+            dirtyForm.dataset.dirty = 'false';
+            clearMessage(dirtyForm);
+        }
+
+        if (pendingPanelId) {
+            setActivePanel(pendingPanelId, pendingMenuButton);
+        }
+
+        pendingPanelId = null;
+        pendingMenuButton = null;
+        dirtyForm = null;
+    });
+
+    window.addEventListener('beforeunload', function (e) {
+        let hasDirty = false;
+        forms.forEach(form => {
+            if (checkDirty(form)) {
+                hasDirty = true;
+            }
+        });
+
+        if (hasDirty) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+</script>
+
+</body>
 </html>
