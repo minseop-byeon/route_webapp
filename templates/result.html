@@ -1,137 +1,757 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 로그인</title>
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국세청 체납관리단 - SMART 경로탐색</title>
 
-    body {
-      font-family: Pretendard, sans-serif;
-      background: #f4f6fa;
-      margin: 0;
-      color: #111827;
-    }
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 
-    .container {
-      max-width: 440px;
-      margin: 28px auto;
-      padding: 0 14px;
-    }
+<style>
+*{box-sizing:border-box;}
 
-    .hero {
-      text-align: center;
-      margin-bottom: 12px;
-    }
+body{
+  font-family:Pretendard,sans-serif;
+  background:#f4f6fa;
+  margin:0;
+  color:#111827;
+}
 
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 14px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
-    }
+.container{
+  max-width:900px;
+  margin:40px auto;
+  padding:0 18px 32px;
+}
 
-    .title {
-      margin: 0 0 14px;
-      font-size: 22px;
-      font-weight: 850;
-    }
+.header-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  margin-bottom:18px;
+  padding-left:0;
+}
 
-    .field {
-      display: flex;
-      flex-direction: column;
-    }
+.header-left{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  margin-left:-4px;
+}
 
-    label {
-      font-size: 12px;
-      color: #6b7280;
-      margin-bottom: 6px;
-    }
+.header-logo{
+  width:64px;
+  height:64px;
+  object-fit:contain;
+  flex:0 0 auto;
+  display:block;
+}
 
-    input {
-      padding: 9px 12px;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      font-size: 14px;
-      background: #fff;
-      color: #111827;
-      width: 100%;
-      min-height: 42px;
-      font-family: Pretendard, sans-serif;
-    }
+.header-text{
+  min-width:0;
+}
 
-    input:focus {
-      outline: none;
-      border-color: #1d4ed8;
-    }
+.header-title{
+  font-size:24px;
+  font-weight:850;
+  letter-spacing:-0.25px;
+  line-height:1.1;
+}
 
-    .btn-primary {
-      border: none;
-      border-radius: 10px;
-      padding: 12px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 800;
-      width: 100%;
-      margin-top: 16px;
-      background: #1d4ed8;
-      color: #fff;
-    }
+.header-sub{
+  font-size:13px;
+  color:#6b7280;
+  margin-top:4px;
+  font-weight:700;
+  line-height:1.15;
+}
 
-    .msg {
-      margin-bottom: 12px;
-      font-size: 13px;
-      color: #dc2626;
-      font-weight: 700;
-    }
+.trip-inline{
+  font-size:14px;
+  color:#475569;
+  font-weight:700;
+  white-space:nowrap;
+  text-align:right;
+  padding-top:6px;
+}
 
-    .notice {
-      font-size: 14px;
-      color: #374151;
-      line-height: 1.6;
-    }
+.toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:flex-end;
+  margin-bottom:14px;
+}
 
-    .back {
-      display: inline-block;
-      margin-top: 12px;
-      font-size: 13px;
-      color: #374151;
-      text-decoration: none;
-    }
-  </style>
+.icon-btn{
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:12px;
+  background:#ffffff;
+  border:1px solid #dbe2ea;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(15,23,42,0.04);
+}
+
+.icon-btn svg{
+  width:19px;
+  height:19px;
+}
+
+.card{
+  background:#fff;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:14px;
+  border:1px solid #e2e8f0;
+  box-shadow:0 6px 14px rgba(15,23,42,0.05);
+}
+
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+
+.summary-item{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:12px 10px;
+  text-align:center;
+}
+
+.summary-label{
+  font-size:11px;
+  color:#64748b;
+  margin-bottom:4px;
+}
+
+.summary-value{
+  font-size:18px;
+  font-weight:850;
+  letter-spacing:-0.3px;
+  color:#0f172a;
+}
+
+.section-title{
+  margin:0 0 12px 0;
+  font-size:15px;
+  font-weight:850;
+  color:#0f172a;
+}
+
+.notice-box{
+  margin-bottom:12px;
+  padding:12px 14px;
+  border-radius:12px;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+  font-size:13px;
+  font-weight:800;
+}
+
+.empty-box{
+  border:1px dashed #cbd5e1;
+  background:#f8fafc;
+  border-radius:12px;
+  padding:18px;
+  text-align:center;
+  color:#64748b;
+  font-size:14px;
+}
+
+.route-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.route-item{
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:14px;
+  background:#fff;
+}
+
+.route-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+
+.route-left{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.route-main{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.route-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+  flex:0 0 auto;
+}
+
+.badge{
+  width:30px;
+  height:30px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  font-weight:800;
+  color:#fff;
+  flex:0 0 auto;
+}
+
+.badge-start{ background:#64748b; }
+.badge-visit{ background:#1d4ed8; }
+.badge-return{ background:#0f172a; }
+.badge-wait{ background:#f59e0b; }
+.badge-lunch{ background:#10b981; }
+
+.route-name{
+  font-size:14px;
+  font-weight:850;
+  color:#0f172a;
+  line-height:1.4;
+  word-break:break-word;
+}
+
+.route-address{
+  margin-top:6px;
+  font-size:15px;
+  color:#111827;
+  line-height:1.5;
+  word-break:break-word;
+  font-weight:800;
+}
+
+.route-time{
+  font-size:13px;
+  font-weight:800;
+  color:#1d4ed8;
+  white-space:nowrap;
+  padding-top:1px;
+}
+
+.route-meta{
+  margin-top:10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.meta-chip{
+  display:inline-flex;
+  align-items:center;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  font-size:12px;
+  font-weight:700;
+  color:#334155;
+}
+
+.travel-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  margin:2px 0;
+  border-radius:12px;
+  background:#eff6ff;
+  border:1px solid #dbeafe;
+}
+
+.travel-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#1d4ed8;
+  font-weight:800;
+  font-size:13px;
+}
+
+.travel-right{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.travel-pill{
+  background:#ffffff;
+  color:#0f172a;
+  border:1px solid #dbeafe;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:800;
+}
+
+.mobile-only{
+  display:none;
+}
+
+.route-nav-btn{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  min-width:66px;
+  height:30px;
+  padding:0 12px;
+  border:none;
+  border-radius:999px;
+  background:#1d4ed8;
+  color:#ffffff;
+  font-size:12px;
+  font-weight:800;
+  font-family:Pretendard,sans-serif;
+  text-decoration:none;
+  cursor:pointer;
+  white-space:nowrap;
+  box-shadow:0 4px 10px rgba(29,78,216,0.16);
+}
+
+.route-nav-btn:active{
+  transform:scale(0.98);
+}
+
+.route-nav-btn.disabled{
+  opacity:0.45;
+  pointer-events:none;
+  box-shadow:none;
+}
+
+.bottom-actions{
+  margin-top:18px;
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.action-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #dbe2ea;
+  background:#fff;
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  color:#0f172a;
+  font-family:Pretendard,sans-serif;
+}
+
+.action-btn svg{
+  width:15px;
+  height:15px;
+  flex:0 0 auto;
+}
+
+.action-btn-primary{
+  background:#1d4ed8;
+  border-color:#1d4ed8;
+  color:#fff;
+}
+
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,0.48);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  padding:16px;
+}
+
+.modal{
+  width:100%;
+  max-width:360px;
+  background:#fff;
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 12px 24px rgba(15,23,42,0.18);
+}
+
+.modal-title{
+  font-size:16px;
+  font-weight:850;
+  margin-bottom:12px;
+}
+
+.modal input{
+  width:100%;
+  padding:11px 12px;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  font-size:14px;
+  font-family:Pretendard,sans-serif;
+}
+
+.modal input:focus{
+  outline:none;
+  border-color:#1d4ed8;
+}
+
+.modal-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  margin-top:14px;
+}
+
+.modal-actions button{
+  border:none;
+  border-radius:10px;
+  padding:10px 12px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  font-family:Pretendard,sans-serif;
+}
+
+.modal-cancel{
+  background:#eef0f4;
+  color:#0f172a;
+}
+
+.modal-send{
+  background:#1d4ed8;
+  color:#fff;
+}
+
+@media(max-width:760px){
+  .container{
+    margin:24px auto;
+    padding:0 14px 26px;
+  }
+
+  .header-row{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+  }
+
+  .header-left{
+    align-items:center;
+    gap:6px;
+    margin-left:0;
+  }
+
+  .header-logo{
+    width:56px;
+    height:56px;
+  }
+
+  .header-title{
+    font-size:22px;
+  }
+
+  .header-sub{
+    font-size:12px;
+    margin-top:3px;
+  }
+
+  .trip-inline{
+    white-space:normal;
+    text-align:left;
+    padding-top:0;
+    font-size:13px;
+  }
+
+  .summary-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .route-top{
+    flex-direction:row;
+    align-items:flex-start;
+  }
+
+  .route-left{
+    min-width:0;
+    flex:1 1 auto;
+  }
+
+  .route-right{
+    align-items:flex-end;
+    margin-left:8px;
+  }
+
+  .route-time{
+    white-space:nowrap;
+    font-size:12px;
+  }
+
+  .bottom-actions{
+    flex-direction:column;
+  }
+
+  .action-btn{
+    width:100%;
+    justify-content:center;
+  }
+
+  .travel-card{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .mobile-only{
+    display:inline-flex;
+  }
+
+  .route-nav-btn.mobile-only{
+    display:inline-flex;
+  }
+}
+</style>
 </head>
+
 <body>
-  <div class="container">
-    <div class="hero"></div>
+<div class="container">
 
-    <div class="card">
-      {% if mobile_blocked %}
-        <h1 class="title">관리자 설정</h1>
-        <div class="notice">관리자 설정은 PC에서만 가능합니다.</div>
-        <a href="/" class="back">← 시작 화면으로 돌아가기</a>
-      {% else %}
-        <h1 class="title">관리자 설정 로그인</h1>
+  <div class="header-row">
+    <div class="header-left">
+      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
+      <div class="header-text">
+        <div class="header-title">국세청 체납관리단</div>
+        <div class="header-sub">SMART 경로탐색</div>
+      </div>
+    </div>
 
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="msg">{{ messages[0] }}</div>
-          {% endif %}
-        {% endwith %}
-
-        <form method="POST">
-          <div class="field">
-            <label for="password">비밀번호</label>
-            <input type="password" id="password" name="password" required>
-          </div>
-          <button type="submit" class="btn-primary">로그인</button>
-        </form>
-
-        <a href="/" class="back">← 시작 화면으로 돌아가기</a>
-      {% endif %}
+    <div class="trip-inline">
+      {{ team_no }}({{ user_name }}) - {{ trip_date|replace('-', '.') }}
     </div>
   </div>
+
+  <div class="toolbar">
+    <button type="button" class="icon-btn" id="emailOpenBtn" title="이메일 발송">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 6h16v12H4z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="summary-label">총 체납자 수</div>
+        <div class="summary-value">{{ total_count }}명</div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-label">총 이동 거리</div>
+        <div class="summary-value">{{ total_distance }}km</div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-label">총 소요 시간</div>
+        <div class="summary-value">{{ total_time }}분</div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-label">예상 종료 시간</div>
+        <div class="summary-value">{{ end_time }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="section-title">최적 방문 순서</h3>
+
+    {% if warning_message %}
+      <div class="notice-box">{{ warning_message }}</div>
+    {% endif %}
+
+    {% if route|length == 0 %}
+      <div class="empty-box">
+        경로를 생성할 수 없습니다. 입력 정보를 확인한 뒤 다시 시도해주세요.
+      </div>
+    {% else %}
+      <div class="route-list">
+        {% for v in route %}
+
+          {% if v.travel_km is not none and v.travel_min is not none %}
+            <div class="travel-card">
+              <div class="travel-left">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path d="M5 18h14M7 15l3-6h4l3 6M9 9l1-3h4l1 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                다음 이동
+              </div>
+              <div class="travel-right">
+                <div class="travel-pill">이동시간 {{ v.travel_min }}분</div>
+                <div class="travel-pill">이동거리 {{ "%.2f"|format(v.travel_km) }}km</div>
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="route-item">
+            <div class="route-top">
+              <div class="route-left">
+
+                {% if v.type == "start" %}
+                  <div class="badge badge-start">S</div>
+                {% elif v.type == "visit" %}
+                  <div class="badge badge-visit">{{ v.label }}</div>
+                {% elif v.type == "return" %}
+                  <div class="badge badge-return">R</div>
+                {% elif v.type == "wait" %}
+                  <div class="badge badge-wait">W</div>
+                {% elif v.type == "lunch" %}
+                  <div class="badge badge-lunch">L</div>
+                {% endif %}
+
+                <div class="route-main">
+                  <div class="route-name">{{ v.name }}</div>
+                  {% if v.address %}
+                    <div class="route-address">{{ v.address }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="route-right">
+                {% if v.type == "visit" %}
+                  <a
+                    class="route-nav-btn mobile-only {% if not tmap_app_key %}disabled{% endif %}"
+                    href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}"
+                    title="길찾기"
+                    aria-label="길찾기"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    길찾기
+                  </a>
+                {% endif %}
+
+                <div class="route-time">
+                  {% if v.type == "start" %}
+                    출발 {{ v.arrival }}
+                  {% elif v.type == "return" %}
+                    도착 {{ v.arrival }}
+                  {% else %}
+                    {{ v.arrival }} ~ {{ v.end_time }}
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="route-meta">
+              {% if v.type == "visit" %}
+                <div class="meta-chip">방문 {{ v.service_time }}분</div>
+                {% if v.appointment_time %}
+                  <div class="meta-chip">약속 {{ v.appointment_time }}</div>
+                {% endif %}
+              {% elif v.type == "wait" %}
+                <div class="meta-chip">대기 {{ v.service_time }}분</div>
+              {% elif v.type == "lunch" %}
+                <div class="meta-chip">점심 {{ v.service_time }}분</div>
+              {% elif v.type == "start" %}
+                <div class="meta-chip">출발지</div>
+              {% elif v.type == "return" %}
+                <div class="meta-chip">복귀</div>
+              {% endif %}
+            </div>
+          </div>
+
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="bottom-actions">
+      <button type="button" class="action-btn" onclick="location.href='/planner'">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        입력화면으로 돌아가기
+      </button>
+
+      <button type="button" class="action-btn action-btn-primary" onclick="location.href='/reset'">
+        새로 시작하기
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-backdrop" id="emailModal">
+  <div class="modal">
+    <div class="modal-title">결과 PDF 메일 발송</div>
+    <input type="email" id="emailInput" placeholder="수신 메일주소 입력">
+    <div class="modal-actions">
+      <button type="button" class="modal-cancel" id="emailCancelBtn">닫기</button>
+      <button type="button" class="modal-send" id="emailSendBtn">발송</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const emailModal = document.getElementById("emailModal");
+const emailOpenBtn = document.getElementById("emailOpenBtn");
+const emailCancelBtn = document.getElementById("emailCancelBtn");
+const emailSendBtn = document.getElementById("emailSendBtn");
+const emailInput = document.getElementById("emailInput");
+
+emailOpenBtn.addEventListener("click", () => {
+  emailInput.value = "";
+  emailModal.style.display = "flex";
+  setTimeout(() => emailInput.focus(), 10);
+});
+
+emailCancelBtn.addEventListener("click", () => {
+  emailModal.style.display = "none";
+});
+
+emailModal.addEventListener("click", (e) => {
+  if (e.target === emailModal) {
+    emailModal.style.display = "none";
+  }
+});
+
+emailSendBtn.addEventListener("click", async () => {
+  const email = emailInput.value.trim();
+  if (!email) return;
+
+  const formData = new FormData();
+  formData.append("email", email);
+
+  try {
+    await fetch("/send-result-email", {
+      method: "POST",
+      body: formData
+    });
+  } catch (e) {
+    // 표시하지 않음
+  }
+
+  emailModal.style.display = "none";
+});
+</script>
 </body>
 </html>
