@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>국세청 체납지원단 - SMART 경로탐색</title>
+<title>국세청 체납관리단 - SMART 경로탐색</title>
 
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 
@@ -29,18 +29,42 @@ body{
   align-items:flex-start;
   gap:16px;
   margin-bottom:18px;
+  padding-left:0;
+}
+
+.header-left{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  margin-left:-4px;
+}
+
+.header-logo{
+  width:64px;
+  height:64px;
+  object-fit:contain;
+  flex:0 0 auto;
+  display:block;
+}
+
+.header-text{
+  min-width:0;
 }
 
 .header-title{
-  font-size:26px;
+  font-size:24px;
   font-weight:850;
-  letter-spacing:-0.2px;
+  letter-spacing:-0.25px;
+  line-height:1.1;
 }
 
 .header-sub{
-  font-size:14px;
+  font-size:13px;
   color:#6b7280;
-  margin-top:6px;
+  margin-top:4px;
+  font-weight:700;
+  line-height:1.15;
 }
 
 .trip-inline{
@@ -49,7 +73,7 @@ body{
   font-weight:700;
   white-space:nowrap;
   text-align:right;
-  padding-top:4px;
+  padding-top:6px;
 }
 
 .toolbar{
@@ -409,7 +433,27 @@ body{
   .header-row{
     flex-direction:column;
     align-items:flex-start;
+    gap:8px;
+  }
+
+  .header-left{
+    align-items:center;
     gap:6px;
+    margin-left:0;
+  }
+
+  .header-logo{
+    width:56px;
+    height:56px;
+  }
+
+  .header-title{
+    font-size:22px;
+  }
+
+  .header-sub{
+    font-size:12px;
+    margin-top:3px;
   }
 
   .trip-inline{
@@ -453,9 +497,12 @@ body{
 <div class="container">
 
   <div class="header-row">
-    <div>
-      <div class="header-title">국세청 체납지원단</div>
-      <div class="header-sub">SMART 경로탐색</div>
+    <div class="header-left">
+      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
+      <div class="header-text">
+        <div class="header-title">국세청 체납관리단</div>
+        <div class="header-sub">SMART 경로탐색</div>
+      </div>
     </div>
 
     <div class="trip-inline">
