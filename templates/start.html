@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>국세청 체납지원단 - SMART 경로탐색</title>
-
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 
   <style>
@@ -148,46 +147,6 @@
       pointer-events: none;
     }
 
-    .date-wrap {
-      position: relative;
-      cursor: pointer;
-    }
-
-    .date-wrap input[type="date"] {
-      cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      background-image: none;
-      padding-right: 40px;
-    }
-
-    .date-wrap input[type="date"]::-webkit-calendar-picker-indicator {
-      opacity: 0;
-      display: block;
-      position: absolute;
-      right: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-    }
-
-    .date-wrap input[type="date"]::-webkit-clear-button,
-    .date-wrap input[type="date"]::-webkit-inner-spin-button {
-      display: none;
-    }
-
-    .calendar-icon {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
-      pointer-events: none;
-      opacity: 0.72;
-    }
-
     .btn-primary {
       border: none;
       border-radius: 10px;
@@ -273,6 +232,9 @@
           <div class="select-wrap">
             <select name="team_no" id="team_no" required>
               <option value="">조를 선택하세요</option>
+              {% for team in team_options %}
+                <option value="{{ team }}">{{ team }}</option>
+              {% endfor %}
             </select>
           </div>
         </div>
@@ -292,24 +254,13 @@
       <div class="field-group hidden" id="dateGroup">
         <div class="field">
           <label class="required" for="trip_date">출장일자</label>
-          <div class="date-wrap" id="dateWrap">
-            <input
-              type="date"
-              name="trip_date"
-              id="trip_date"
-              min="2026-01-01"
-              max="2026-12-31"
-              required
-              inputmode="none"
-              autocomplete="off"
-            >
-            <svg class="calendar-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="4" y="5" width="16" height="15" rx="2" ry="2" fill="none" stroke="#6b7280" stroke-width="1.8"/>
-              <line x1="8" y1="3.8" x2="8" y2="7" stroke="#6b7280" stroke-width="1.8" stroke-linecap="round"/>
-              <line x1="16" y1="3.8" x2="16" y2="7" stroke="#6b7280" stroke-width="1.8" stroke-linecap="round"/>
-              <line x1="4" y1="9" x2="20" y2="9" stroke="#6b7280" stroke-width="1.8"/>
-            </svg>
-          </div>
+          <input
+            type="date"
+            name="trip_date"
+            id="trip_date"
+            required
+            autocomplete="off"
+          >
         </div>
       </div>
 
@@ -322,52 +273,44 @@
 <script>
   sessionStorage.removeItem("route_visit_draft_v5");
 
-  const TEAM_OPTIONS = {{ team_options|tojson }};
-  const USER_OPTIONS = {{ user_options|tojson }};
+  const TEAM_USERS = {{ team_users|tojson }};
 
   const teamSelect = document.getElementById("team_no");
   const userSelect = document.getElementById("user_name");
   const tripDateInput = document.getElementById("trip_date");
-  const dateWrap = document.getElementById("dateWrap");
 
   const userGroup = document.getElementById("userGroup");
   const dateGroup = document.getElementById("dateGroup");
   const submitBtn = document.getElementById("submitBtn");
 
-  function populateTeams() {
-    teamSelect.innerHTML = '<option value="">조를 선택하세요</option>';
-    TEAM_OPTIONS.forEach(team => {
-      const option = document.createElement("option");
-      option.value = team;
-      option.textContent = team;
-      teamSelect.appendChild(option);
-    });
+  function setDateRange() {
+    const today = new Date();
+    const min = new Date(today);
+    const max = new Date(today);
+
+    min.setFullYear(today.getFullYear() - 1);
+    max.setFullYear(today.getFullYear() + 1);
+
+    tripDateInput.min = min.toISOString().slice(0, 10);
+    tripDateInput.max = max.toISOString().slice(0, 10);
+
+    if (!tripDateInput.value) {
+      tripDateInput.value = today.toISOString().slice(0, 10);
+    }
   }
 
   function populateUsers() {
+    const team = teamSelect.value;
     userSelect.innerHTML = '<option value="">사용자명을 선택하세요</option>';
-    USER_OPTIONS.forEach(name => {
+
+    if (!team || !TEAM_USERS[team]) return;
+
+    TEAM_USERS[team].forEach(name => {
       const option = document.createElement("option");
       option.value = name;
       option.textContent = name;
       userSelect.appendChild(option);
     });
-  }
-
-  function clampDateTo2026(dateObj) {
-    const min = new Date("2026-01-01");
-    const max = new Date("2026-12-31");
-    if (dateObj < min) return "2026-01-01";
-    if (dateObj > max) return "2026-12-31";
-    const y = dateObj.getFullYear();
-    const m = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const d = String(dateObj.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-
-  function setDefaultDate() {
-    if (tripDateInput.value) return;
-    tripDateInput.value = clampDateTo2026(new Date());
   }
 
   function showOrHideFields() {
@@ -378,16 +321,6 @@
     userGroup.classList.toggle("hidden", !hasTeam);
     dateGroup.classList.toggle("hidden", !(hasTeam && hasUser));
     submitBtn.disabled = !(hasTeam && hasUser && hasDate);
-  }
-
-  function openDatePicker() {
-    if (dateGroup.classList.contains("hidden")) return;
-    tripDateInput.focus();
-    if (typeof tripDateInput.showPicker === "function") {
-      tripDateInput.showPicker();
-    } else {
-      tripDateInput.click();
-    }
   }
 
   teamSelect.addEventListener("change", () => {
@@ -402,24 +335,17 @@
   });
 
   userSelect.addEventListener("change", () => {
-    if (userSelect.value) {
-      setDefaultDate();
-    } else {
-      tripDateInput.value = "";
+    if (userSelect.value && !tripDateInput.value) {
+      setDateRange();
     }
     showOrHideFields();
   });
 
   tripDateInput.addEventListener("input", showOrHideFields);
   tripDateInput.addEventListener("change", showOrHideFields);
-  tripDateInput.addEventListener("keydown", (e) => e.preventDefault());
-  tripDateInput.addEventListener("paste", (e) => e.preventDefault());
-
-  dateWrap.addEventListener("click", openDatePicker);
-  dateWrap.addEventListener("touchstart", openDatePicker, { passive: true });
 
   document.addEventListener("DOMContentLoaded", () => {
-    populateTeams();
+    setDateRange();
     showOrHideFields();
   });
 </script>
