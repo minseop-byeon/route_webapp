@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, Response, flash, abort, jsonify
 import requests
-import time
 from io import BytesIO
 import smtplib
 from email.message import EmailMessage
@@ -18,13 +17,14 @@ app = Flask(__name__)
 app.secret_key = "replace-this-with-your-secure-secret-key"
 
 START_ADDRESS = "서울특별시 종로구 율곡로2길 19"
+RETURN_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 
 ADMIN_PASSWORD = "cpskqrhksfleks12#"
 SETTINGS_FILE = "admin_settings.json"
 GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
 
-DEFAULT_TEAM_USERS = {f"{i}조": [] for i in range(1, 36)}
+DEFAULT_TEAM_USERS = {"1조": []}
 
 DEFAULT_SETTINGS = {
     "mail": {
@@ -44,6 +44,8 @@ DEFAULT_SETTINGS = {
     },
     "user": {
         "start_address": START_ADDRESS,
+        "return_address": RETURN_ADDRESS,
+        "return_same_as_start": True,
         "team_users": DEFAULT_TEAM_USERS
     },
     "admin": {
@@ -79,11 +81,19 @@ def save_json_file(path, data):
 
 
 def normalize_team_users(team_users):
-    normalized = {f"{i}조": [] for i in range(1, 36)}
+    normalized = {}
+
     if isinstance(team_users, dict):
         for team_name, users in team_users.items():
-            if team_name in normalized and isinstance(users, list):
-                normalized[team_name] = [str(x).strip() for x in users if str(x).strip()]
+            key = str(team_name).strip()
+            if not key:
+                continue
+            if isinstance(users, list):
+                normalized[key] = [str(x).strip() for x in users if str(x).strip()]
+
+    if not normalized:
+        normalized = {"1조": []}
+
     return normalized
 
 
@@ -92,13 +102,6 @@ def deep_copy_default_settings():
 
 
 def migrate_legacy_settings(data):
-    """
-    구버전 평면 구조:
-      client_id, client_secret, default_recipient_email, email_subject_template,
-      email_body_template, team_users
-    신버전 중첩 구조:
-      mail / api / user / admin
-    """
     merged = deep_copy_default_settings()
 
     if not isinstance(data, dict):
@@ -110,7 +113,6 @@ def migrate_legacy_settings(data):
             if isinstance(data.get(section), dict):
                 merged[section].update(data[section])
     else:
-        # 구버전 자동 이관
         merged["api"]["client_id"] = str(data.get("client_id", "") or "").strip()
         merged["api"]["client_secret"] = str(data.get("client_secret", "") or "").strip()
         merged["mail"]["default_recipient_email"] = str(data.get("default_recipient_email", "") or "").strip()
@@ -121,12 +123,18 @@ def migrate_legacy_settings(data):
             data.get("email_body_template", DEFAULT_SETTINGS["mail"]["email_body_template"]) or ""
         ).strip()
         merged["user"]["team_users"] = data.get("team_users", DEFAULT_TEAM_USERS)
+        merged["user"]["start_address"] = START_ADDRESS
+        merged["user"]["return_address"] = RETURN_ADDRESS
+        merged["user"]["return_same_as_start"] = True
 
     merged["user"]["team_users"] = normalize_team_users(merged["user"].get("team_users", {}))
 
-    # 누락값 보정
     if not merged["user"].get("start_address"):
         merged["user"]["start_address"] = START_ADDRESS
+    if not merged["user"].get("return_address"):
+        merged["user"]["return_address"] = merged["user"].get("start_address", START_ADDRESS)
+    if "return_same_as_start" not in merged["user"]:
+        merged["user"]["return_same_as_start"] = True
     if not merged["admin"].get("admin_password"):
         merged["admin"]["admin_password"] = ADMIN_PASSWORD
     if not merged["mail"].get("smtp_host"):
@@ -134,12 +142,12 @@ def migrate_legacy_settings(data):
     if not merged["mail"].get("smtp_port"):
         merged["mail"]["smtp_port"] = 587
 
-    # 포트 정규화
     try:
         merged["mail"]["smtp_port"] = int(merged["mail"].get("smtp_port", 587))
     except Exception:
         merged["mail"]["smtp_port"] = 587
 
+    merged["user"]["return_same_as_start"] = bool(merged["user"].get("return_same_as_start"))
     return merged
 
 
@@ -155,8 +163,7 @@ def load_settings():
     except Exception:
         data = {}
 
-    merged = migrate_legacy_settings(data)
-    return merged
+    return migrate_legacy_settings(data)
 
 
 def save_settings(data):
@@ -167,6 +174,15 @@ def save_settings(data):
 def get_start_address():
     settings = load_settings()
     return (settings.get("user", {}).get("start_address") or START_ADDRESS).strip() or START_ADDRESS
+
+
+def get_return_address():
+    settings = load_settings()
+    user = settings.get("user", {})
+    start_address = (user.get("start_address") or START_ADDRESS).strip() or START_ADDRESS
+    if user.get("return_same_as_start"):
+        return start_address
+    return (user.get("return_address") or start_address).strip() or start_address
 
 
 def get_mail_config():
@@ -503,8 +519,7 @@ def beam_search_route(visits, dist_matrix, time_matrix):
         if len(candidates) > MAX_PARTIAL_CANDIDATES:
             beams = beams[:BEAM_WIDTH]
 
-    best_path = min(beams, key=lambda x: x[1])[0]
-    return best_path
+    return min(beams, key=lambda x: x[1])[0]
 
 
 def two_opt(order, dist_matrix, time_matrix, visits, max_iter=LOCAL_IMPROVE_ITER):
@@ -650,7 +665,7 @@ def add_return_block(route_view, arrival_min, travel_m, travel_min):
         "type": "return",
         "label": "R",
         "name": "복귀",
-        "address": get_start_address(),
+        "address": get_return_address(),
         "arrival": minutes_to_str(arrival_min),
         "end_time": minutes_to_str(arrival_min),
         "service_time": 0,
@@ -825,7 +840,6 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
 
     def consider_result(result):
         nonlocal best_result
-
         result["route_view"] = compress_route_view(result["route_view"])
         result["intra_wait_count"] = count_intra_wait_blocks(result["route_view"])
 
@@ -845,24 +859,11 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
         if best_result is None or score < best_result["score"]:
             best_result = result
 
-    def dfs(
-        idx,
-        last_node,
-        current_time,
-        lunch_used,
-        route_view,
-        total_distance_m,
-        total_travel_min,
-        wait_count,
-        wait_total,
-        appointment_violation_count,
-        appointment_late_total,
-        visit_no
-    ):
+    def dfs(idx, last_node, current_time, lunch_used, route_view, total_distance_m, total_travel_min,
+            wait_count, wait_total, appointment_violation_count, appointment_late_total, visit_no):
         if idx == len(order):
             end_route = clone_route(route_view)
             effective_end = current_time
-
             lunch_optional = current_time <= NO_LUNCH_IF_DONE_BY
 
             if not lunch_used and not lunch_optional:
@@ -912,7 +913,6 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
         visit = visits[node - 1]
         travel_min = time_matrix[last_node][node]
         travel_m = distance_matrix[last_node][node]
-
         wait_label = "출발지 대기" if idx == 0 and last_node == 0 else "대기"
 
         pre_options = [{
@@ -936,14 +936,12 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
             expanded = []
             for pre in pre_options:
                 expanded.append(pre)
-                expanded.extend(
-                    maybe_insert_lunch(
-                        pre["route"],
-                        pre["time_after_pre"],
-                        pre["lunch_used"],
-                        wait_label
-                    )
-                )
+                expanded.extend(maybe_insert_lunch(
+                    pre["route"],
+                    pre["time_after_pre"],
+                    pre["lunch_used"],
+                    wait_label
+                ))
             pre_options = expanded
 
         for pre in pre_options:
@@ -966,18 +964,10 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
             new_time = arrival_time + visit["service_time"]
 
             dfs(
-                idx + 1,
-                node,
-                new_time,
-                pre["lunch_used"],
-                new_route,
-                total_distance_m + travel_m,
-                total_travel_min + travel_min,
-                wait_count + pre["wait_count"],
-                wait_total + pre["wait_total"],
-                appt_violation,
-                appt_late,
-                visit_no + 1
+                idx + 1, node, new_time, pre["lunch_used"], new_route,
+                total_distance_m + travel_m, total_travel_min + travel_min,
+                wait_count + pre["wait_count"], wait_total + pre["wait_total"],
+                appt_violation, appt_late, visit_no + 1
             )
 
     initial_route = [{
@@ -992,21 +982,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
         "travel_min": None
     }]
 
-    dfs(
-        idx=0,
-        last_node=0,
-        current_time=DAY_START,
-        lunch_used=False,
-        route_view=initial_route,
-        total_distance_m=0,
-        total_travel_min=0,
-        wait_count=0,
-        wait_total=0,
-        appointment_violation_count=0,
-        appointment_late_total=0,
-        visit_no=0
-    )
-
+    dfs(0, 0, DAY_START, False, initial_route, 0, 0, 0, 0, 0, 0, 0)
     return best_result
 
 
@@ -1023,51 +999,19 @@ def build_pdf_bytes(payload):
     buffer = BytesIO()
     page_size = landscape(A4)
     doc = SimpleDocTemplate(
-        buffer,
-        pagesize=page_size,
-        leftMargin=8 * mm,
-        rightMargin=8 * mm,
-        topMargin=8 * mm,
-        bottomMargin=8 * mm
+        buffer, pagesize=page_size,
+        leftMargin=8 * mm, rightMargin=8 * mm, topMargin=8 * mm, bottomMargin=8 * mm
     )
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        "TitleSmall",
-        parent=styles["Heading2"],
-        fontName="Helvetica-Bold",
-        fontSize=12,
-        leading=14,
-        spaceAfter=4
-    )
-    info_style = ParagraphStyle(
-        "InfoSmall",
-        parent=styles["Normal"],
-        fontName="Helvetica",
-        fontSize=8,
-        leading=10
-    )
-    cell_style = ParagraphStyle(
-        "CellSmall",
-        parent=styles["Normal"],
-        fontName="Helvetica",
-        fontSize=7,
-        leading=8
-    )
-    addr_style = ParagraphStyle(
-        "AddrBold",
-        parent=styles["Normal"],
-        fontName="Helvetica-Bold",
-        fontSize=8,
-        leading=9
-    )
+    title_style = ParagraphStyle("TitleSmall", parent=styles["Heading2"], fontName="Helvetica-Bold", fontSize=12, leading=14, spaceAfter=4)
+    info_style = ParagraphStyle("InfoSmall", parent=styles["Normal"], fontName="Helvetica", fontSize=8, leading=10)
+    cell_style = ParagraphStyle("CellSmall", parent=styles["Normal"], fontName="Helvetica", fontSize=7, leading=8)
+    addr_style = ParagraphStyle("AddrBold", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=8, leading=9)
 
     story = []
     story.append(Paragraph("국세청 체납관리단 - SMART 경로탐색 결과", title_style))
-    meta_text = (
-        f"{payload.get('team_no', '')}({payload.get('user_name', '')}) - "
-        f"{payload.get('trip_date', '').replace('-', '.')}"
-    )
+    meta_text = f"{payload.get('team_no', '')}({payload.get('user_name', '')}) - {payload.get('trip_date', '').replace('-', '.')}"
     story.append(Paragraph(meta_text, info_style))
     story.append(Spacer(1, 2 * mm))
 
@@ -1131,15 +1075,9 @@ def build_pdf_bytes(payload):
             "return": "복귀",
         }.get(v.get("type"), v.get("type", ""))
 
-        if v.get("type") == "visit":
-            addr_content = Paragraph(v.get("address", ""), addr_style)
-        else:
-            addr_content = Paragraph(v.get("name", ""), cell_style)
+        addr_content = Paragraph(v.get("address", "") if v.get("type") == "visit" else v.get("name", ""), addr_style if v.get("type") == "visit" else cell_style)
 
-        if v.get("type") in ("start", "return"):
-            time_text = f"{v.get('arrival', '')}"
-        else:
-            time_text = f"{v.get('arrival', '')}~{v.get('end_time', '')}"
+        time_text = f"{v.get('arrival', '')}" if v.get("type") in ("start", "return") else f"{v.get('arrival', '')}~{v.get('end_time', '')}"
 
         table_rows.append([
             Paragraph(kind, cell_style),
@@ -1151,11 +1089,7 @@ def build_pdf_bytes(payload):
             Paragraph(f"{v.get('travel_km', '')}km" if v.get("travel_km") is not None else "-", cell_style),
         ])
 
-    detail_table = Table(
-        table_rows,
-        colWidths=[20 * mm, 28 * mm, 95 * mm, 18 * mm, 18 * mm, 18 * mm, 18 * mm],
-        repeatRows=1
-    )
+    detail_table = Table(table_rows, colWidths=[20 * mm, 28 * mm, 95 * mm, 18 * mm, 18 * mm, 18 * mm, 18 * mm], repeatRows=1)
     detail_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#dbeafe")),
         ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
@@ -1190,14 +1124,8 @@ def send_result_email(recipient, payload):
     settings = load_settings()
     mail_settings = settings.get("mail", {})
 
-    subject_template = mail_settings.get(
-        "email_subject_template",
-        DEFAULT_SETTINGS["mail"]["email_subject_template"]
-    )
-    body_template = mail_settings.get(
-        "email_body_template",
-        DEFAULT_SETTINGS["mail"]["email_body_template"]
-    )
+    subject_template = mail_settings.get("email_subject_template", DEFAULT_SETTINGS["mail"]["email_subject_template"])
+    body_template = mail_settings.get("email_body_template", DEFAULT_SETTINGS["mail"]["email_body_template"])
 
     try:
         subject = subject_template.format(
@@ -1228,13 +1156,7 @@ def send_result_email(recipient, payload):
         msg["From"] = mail_from
         msg["To"] = recipient
         msg.set_content(body)
-
-        msg.add_attachment(
-            pdf_bytes,
-            maintype="application",
-            subtype="pdf",
-            filename="route_result.pdf"
-        )
+        msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename="route_result.pdf")
 
         with smtplib.SMTP(smtp_host, smtp_port) as smtp:
             smtp.starttls()
@@ -1248,7 +1170,7 @@ def send_result_email(recipient, payload):
 @app.route("/", methods=["GET", "POST"])
 def start():
     settings = load_settings()
-    team_users = settings.get("user", {}).get("team_users", DEFAULT_TEAM_USERS)
+    team_users = settings.get("user", {}).get("team_users", {"1조": []})
     team_options = list(team_users.keys())
 
     if request.method == "POST":
@@ -1317,10 +1239,8 @@ def admin_logout():
 def admin_settings_page():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
-
     if is_mobile_request():
         abort(403)
-
     settings = load_settings()
     return render_template("admin_settings.html", settings=settings)
 
@@ -1328,16 +1248,10 @@ def admin_settings_page():
 @app.route("/admin/settings/save-section", methods=["POST"])
 def save_admin_settings_section():
     if not session.get("is_admin"):
-        return jsonify({
-            "success": False,
-            "message": "관리자 로그인이 필요합니다."
-        }), 401
+        return jsonify({"success": False, "message": "관리자 로그인이 필요합니다."}), 401
 
     if is_mobile_request():
-        return jsonify({
-            "success": False,
-            "message": "모바일에서는 관리자 설정을 변경할 수 없습니다."
-        }), 403
+        return jsonify({"success": False, "message": "모바일에서는 관리자 설정을 변경할 수 없습니다."}), 403
 
     settings = load_settings()
     section = (request.form.get("section") or "").strip()
@@ -1350,23 +1264,14 @@ def save_admin_settings_section():
             try:
                 settings["mail"]["smtp_port"] = int(smtp_port_raw)
             except Exception:
-                return jsonify({
-                    "success": False,
-                    "message": "SMTP 포트는 숫자로 입력해 주세요."
-                })
+                return jsonify({"success": False, "message": "SMTP 포트는 숫자로 입력해 주세요."})
 
             settings["mail"]["smtp_user"] = (request.form.get("smtp_user") or "").strip()
             settings["mail"]["smtp_password"] = (request.form.get("smtp_password") or "").strip()
             settings["mail"]["mail_from"] = (request.form.get("mail_from") or "").strip()
             settings["mail"]["default_recipient_email"] = (request.form.get("default_recipient_email") or "").strip()
-            settings["mail"]["email_subject_template"] = (
-                request.form.get("email_subject_template")
-                or DEFAULT_SETTINGS["mail"]["email_subject_template"]
-            ).strip()
-            settings["mail"]["email_body_template"] = (
-                request.form.get("email_body_template")
-                or DEFAULT_SETTINGS["mail"]["email_body_template"]
-            ).strip()
+            settings["mail"]["email_subject_template"] = (request.form.get("email_subject_template") or DEFAULT_SETTINGS["mail"]["email_subject_template"]).strip()
+            settings["mail"]["email_body_template"] = (request.form.get("email_body_template") or DEFAULT_SETTINGS["mail"]["email_body_template"]).strip()
 
         elif section == "api":
             settings["api"]["client_id"] = (request.form.get("client_id") or "").strip()
@@ -1375,16 +1280,27 @@ def save_admin_settings_section():
 
         elif section == "user":
             start_address = (request.form.get("start_address") or "").strip()
+            return_address = (request.form.get("return_address") or "").strip()
+            return_same_as_start = (request.form.get("return_same_as_start") or "").strip() == "1"
+
             settings["user"]["start_address"] = start_address or START_ADDRESS
+            settings["user"]["return_same_as_start"] = return_same_as_start
+            settings["user"]["return_address"] = settings["user"]["start_address"] if return_same_as_start else (return_address or settings["user"]["start_address"])
+
+            team_names = request.form.getlist("team_name")
+            team_user_blocks = request.form.getlist("team_users_block")
 
             team_users = {}
-            for i in range(1, 36):
-                team_name = f"{i}조"
-                raw = (request.form.get(f"team_users_{i}") or "").strip()
-                users = [x.strip() for x in raw.splitlines() if x.strip()]
+            for idx, raw_name in enumerate(team_names):
+                team_name = (raw_name or "").strip()
+                if not team_name:
+                    continue
+
+                raw_users = team_user_blocks[idx] if idx < len(team_user_blocks) else ""
+                users = [x.strip() for x in raw_users.splitlines() if x.strip()]
                 team_users[team_name] = users
 
-            settings["user"]["team_users"] = team_users
+            settings["user"]["team_users"] = normalize_team_users(team_users)
 
         elif section == "admin":
             current_password = (request.form.get("current_admin_password") or "").strip()
@@ -1394,48 +1310,27 @@ def save_admin_settings_section():
             saved_password = get_admin_password()
 
             if not current_password:
-                return jsonify({
-                    "success": False,
-                    "message": "현재 관리자 비밀번호를 입력해 주세요."
-                })
+                return jsonify({"success": False, "message": "현재 관리자 비밀번호를 입력해 주세요."})
 
             if current_password != saved_password:
-                return jsonify({
-                    "success": False,
-                    "message": "현재 관리자 비밀번호가 올바르지 않습니다."
-                })
+                return jsonify({"success": False, "message": "현재 관리자 비밀번호가 올바르지 않습니다."})
 
             if not new_password:
-                return jsonify({
-                    "success": False,
-                    "message": "새 관리자 비밀번호를 입력해 주세요."
-                })
+                return jsonify({"success": False, "message": "새 관리자 비밀번호를 입력해 주세요."})
 
             if new_password != confirm_password:
-                return jsonify({
-                    "success": False,
-                    "message": "새 관리자 비밀번호와 확인 값이 일치하지 않습니다."
-                })
+                return jsonify({"success": False, "message": "새 관리자 비밀번호와 확인 값이 일치하지 않습니다."})
 
             settings["admin"]["admin_password"] = new_password
 
         else:
-            return jsonify({
-                "success": False,
-                "message": "잘못된 설정 항목입니다."
-            }), 400
+            return jsonify({"success": False, "message": "잘못된 설정 항목입니다."}), 400
 
         save_settings(settings)
-        return jsonify({
-            "success": True,
-            "message": "변경사항이 저장되었습니다."
-        })
+        return jsonify({"success": True, "message": "변경사항이 저장되었습니다."})
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"저장 중 오류가 발생했습니다: {e}"
-        }), 500
+        return jsonify({"success": False, "message": f"저장 중 오류가 발생했습니다: {e}"}), 500
 
 
 @app.route("/planner", methods=["GET", "POST"])
@@ -1587,24 +1482,17 @@ def planner():
 
         return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
 
-    return render_template(
-        "index.html",
-        team_no=trip_meta["team_no"],
-        user_name=trip_meta["user_name"],
-        trip_date=trip_meta["trip_date"]
-    )
+    return render_template("index.html", team_no=trip_meta["team_no"], user_name=trip_meta["user_name"], trip_date=trip_meta["trip_date"])
 
 
 @app.route("/send-result-email", methods=["POST"])
 def send_result_email_route():
     settings = load_settings()
-
     recipient = (request.form.get("email") or "").strip()
     if not recipient:
         recipient = settings.get("mail", {}).get("default_recipient_email", "").strip()
 
     payload = session.get("last_result_payload")
-
     if recipient and payload:
         send_result_email(recipient, payload)
 
