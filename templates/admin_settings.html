@@ -1,236 +1,83 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 설정</title>
-  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; }
 
-    body {
-      font-family: Pretendard, sans-serif;
-      background: #f4f6fa;
-      margin: 0;
-      color: #111827;
-    }
+<meta charset="utf-8">
 
-    .container {
-      max-width: 960px;
-      margin: 28px auto;
-      padding: 0 14px 32px;
-    }
+<title>관리자 설정</title>
 
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
+<style>
 
-    .topbar a {
-      text-decoration: none;
-      color: #374151;
-      font-size: 13px;
-      font-weight: 700;
-    }
+body{
+font-family:Arial;
+background:#f4f4f4;
+}
 
-    .hero {
-      text-align: center;
-      margin-bottom: 12px;
-    }
+.container{
 
-    .gov-name {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 850;
-      letter-spacing: -0.2px;
-      color: #111827;
-    }
+width:800px;
+margin:60px auto;
+background:white;
+padding:40px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
 
-    .header-sub {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 4px;
-      margin-bottom: 12px;
-    }
+}
 
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 14px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
-    }
+h1{
+margin-bottom:20px;
+}
 
-    .section + .section {
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid #eef2f7;
-    }
+textarea{
 
-    .section-title {
-      margin: 0 0 12px;
-      font-size: 18px;
-      font-weight: 800;
-    }
+width:100%;
+height:300px;
+padding:15px;
+font-size:14px;
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+}
 
-    .grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-    }
+button{
 
-    .field {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
+margin-top:20px;
+padding:14px 30px;
+background:#007bff;
+color:white;
+border:none;
+cursor:pointer;
 
-    label {
-      font-size: 12px;
-      color: #6b7280;
-      margin-bottom: 6px;
-    }
+}
 
-    input, textarea {
-      padding: 9px 12px;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      font-size: 14px;
-      background: #fff;
-      color: #111827;
-      width: 100%;
-      min-height: 42px;
-      font-family: Pretendard, sans-serif;
-      max-width: 100%;
-    }
+button:hover{
 
-    textarea {
-      min-height: 110px;
-      resize: vertical;
-      overflow-x: hidden;
-    }
+background:#0056b3;
 
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: #1d4ed8;
-    }
+}
 
-    .msg {
-      margin-bottom: 12px;
-      font-size: 13px;
-      color: #16a34a;
-      font-weight: 700;
-    }
+</style>
 
-    .hint {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-
-    .btn-primary {
-      border: none;
-      border-radius: 10px;
-      padding: 12px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 800;
-      width: 100%;
-      margin-top: 18px;
-      background: #1d4ed8;
-      color: #fff;
-    }
-
-    @media (max-width: 900px) {
-      .grid-3 {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        display: none;
-      }
-    }
-  </style>
 </head>
+
+
 <body>
-  <div class="container">
-    <div class="topbar">
-      <a href="/">← 시작 화면</a>
-      <a href="/admin/logout">로그아웃</a>
-    </div>
 
-    <div class="hero">
-      <div class="gov-name">국세청 체납지원단</div>
-      <div class="header-sub">SMART 경로탐색 관리자 설정</div>
-    </div>
+<div class="container">
 
-    <form method="POST" class="card">
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="msg">{{ messages[0] }}</div>
-        {% endif %}
-      {% endwith %}
+<h1>국세청 체납관리단 관리자 설정</h1>
 
-      <div class="section">
-        <h2 class="section-title">메일 설정</h2>
+<form action="/save_settings" method="post">
 
-        <div class="field">
-          <label for="default_recipient_email">기본 발송 주소</label>
-          <input type="email" id="default_recipient_email" name="default_recipient_email" value="{{ settings.default_recipient_email }}">
-        </div>
+<textarea name="settings">{{settings}}</textarea>
 
-        <div class="field" style="margin-top: 12px;">
-          <label for="email_subject_template">메일 제목 템플릿</label>
-          <input type="text" id="email_subject_template" name="email_subject_template" value="{{ settings.email_subject_template }}">
-        </div>
+<br>
 
-        <div class="field" style="margin-top: 12px;">
-          <label for="email_body_template">메일 본문 템플릿</label>
-          <textarea id="email_body_template" name="email_body_template">{{ settings.email_body_template }}</textarea>
-          <div class="hint">사용 가능 변수: {team_no}, {user_name}, {trip_date}, {total_count}, {total_distance}, {total_time}, {end_time}</div>
-        </div>
-      </div>
+<button type="submit">설정 저장</button>
 
-      <div class="section">
-        <h2 class="section-title">API 키 설정</h2>
-        <div class="grid-2">
-          <div class="field">
-            <label for="client_id">Client ID</label>
-            <input type="text" id="client_id" name="client_id" value="{{ settings.client_id }}">
-          </div>
-          <div class="field">
-            <label for="client_secret">Client Secret</label>
-            <input type="text" id="client_secret" name="client_secret" value="{{ settings.client_secret }}">
-          </div>
-        </div>
-      </div>
+</form>
 
-      <div class="section">
-        <h2 class="section-title">조별 사용자 설정</h2>
-        <div class="grid-3">
-          {% for i in range(1, 36) %}
-            {% set team_name = i ~ '조' %}
-            <div class="field">
-              <label for="team_users_{{ i }}">{{ team_name }}</label>
-              <textarea id="team_users_{{ i }}" name="team_users_{{ i }}" placeholder="한 줄에 한 명씩 입력">{% for user in settings.team_users.get(team_name, []) %}{{ user }}
-{% endfor %}</textarea>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
+</div>
 
-      <button type="submit" class="btn-primary">설정 저장</button>
-    </form>
-  </div>
 </body>
+
 </html>
