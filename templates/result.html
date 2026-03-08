@@ -315,11 +315,26 @@ body{
   align-items:center;
   justify-content:center;
   cursor:pointer;
+  text-decoration:none;
+  transition:transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.visit-tool-btn:hover{
+  box-shadow:0 4px 10px rgba(29,78,216,0.15);
+}
+
+.visit-tool-btn:active{
+  transform:scale(0.96);
 }
 
 .visit-tool-btn svg{
   width:18px;
   height:18px;
+}
+
+.visit-tool-btn.disabled{
+  opacity:0.45;
+  pointer-events:none;
 }
 
 .bottom-actions{
@@ -628,13 +643,30 @@ body{
             {% if v.type == "visit" %}
               <div class="visit-tools mobile-only">
                 <a
-                  class="visit-tool-btn"
-                  href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}#{% endif %}"
-                  title="티맵 경로안내"
+                  class="visit-tool-btn {% if not tmap_app_key %}disabled{% endif %}"
+                  href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}"
+                  title="티맵으로 길안내"
+                  aria-label="티맵으로 길안내"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" fill="none" stroke="#1d4ed8" stroke-width="1.8"/>
-                    <circle cx="12" cy="10" r="2.6" fill="none" stroke="#1d4ed8" stroke-width="1.8"/>
+                    <path
+                      d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"
+                      fill="none"
+                      stroke="#1d4ed8"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <circle
+                      cx="12"
+                      cy="10"
+                      r="2.6"
+                      fill="none"
+                      stroke="#1d4ed8"
+                      stroke-width="1.8"
+                    />
                   </svg>
                 </a>
               </div>
