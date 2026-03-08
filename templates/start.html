@@ -1,76 +1,394 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국세청 체납관리단 - SMART 경로탐색</title>
 
-<meta charset="utf-8">
-
-<title>국세청 체납관리단 경로 최적화</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 
 <style>
+*{box-sizing:border-box;}
+
+html, body{
+  margin:0;
+  padding:0;
+}
 
 body{
-font-family: Arial;
-background:#f5f5f5;
-text-align:center;
+  font-family:Pretendard,sans-serif;
+  background:#f4f6fa;
+  color:#111827;
+  min-height:100vh;
 }
 
 .container{
-background:white;
-width:420px;
-margin:120px auto;
-padding:40px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
+  max-width:420px;
+  margin:34px auto;
+  padding:0 18px 28px;
 }
 
-h1{
-margin-bottom:30px;
+.top-actions{
+  display:flex;
+  justify-content:flex-end;
+  margin-bottom:10px;
+  padding-right:2px;
 }
 
-input{
-width:100%;
-padding:12px;
-margin:10px 0;
+.admin-btn{
+  font-size:12px;
+  font-weight:600;
+  color:#94a3b8;
+  text-decoration:none;
+  line-height:1;
 }
 
-button{
-width:100%;
-padding:14px;
-background:#007bff;
-color:white;
-border:none;
-font-size:16px;
-cursor:pointer;
+.admin-btn:hover{
+  color:#64748b;
+  text-decoration:underline;
 }
 
-button:hover{
-background:#0056b3;
+.card{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  padding:34px 24px 22px;
+  box-shadow:0 10px 24px rgba(15,23,42,0.045);
 }
 
+.logo-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.logo-circle{
+  width:126px;
+  height:126px;
+  border-radius:50%;
+  background:#ffffff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.logo-circle img{
+  width:112px;
+  height:112px;
+  object-fit:contain;
+  display:block;
+}
+
+.title-wrap{
+  text-align:center;
+  margin-bottom:26px;
+}
+
+.main-title{
+  font-size:24px;
+  font-weight:850;
+  letter-spacing:-0.45px;
+  color:#111827;
+  line-height:1.2;
+}
+
+.sub-title{
+  margin-top:7px;
+  font-size:13px;
+  color:#64748b;
+  font-weight:700;
+  letter-spacing:0.25px;
+}
+
+.form-group{
+  margin-bottom:15px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+}
+
+label{
+  font-size:12px;
+  color:#6b7280;
+  margin-bottom:7px;
+  font-weight:700;
+}
+
+.required::after{
+  content:" *";
+  color:#ef4444;
+}
+
+.select-wrap,
+.date-wrap{
+  position:relative;
+}
+
+select,
+input[type="date"]{
+  width:100%;
+  height:48px;
+  padding:0 44px 0 14px;
+  border:1px solid #dbe2ea;
+  border-radius:13px;
+  background:#ffffff;
+  font-size:14px;
+  color:#0f172a;
+  font-family:Pretendard,sans-serif;
+  font-weight:600;
+  line-height:48px;
+  transition:border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+}
+
+select:focus,
+input[type="date"]:focus{
+  outline:none;
+  border-color:#1d4ed8;
+  box-shadow:0 0 0 3px rgba(29,78,216,0.08);
+}
+
+.select-wrap::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  right:16px;
+  width:9px;
+  height:9px;
+  border-right:2px solid #94a3b8;
+  border-bottom:2px solid #94a3b8;
+  transform:translateY(-65%) rotate(45deg);
+  pointer-events:none;
+}
+
+.date-wrap::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  right:14px;
+  width:16px;
+  height:16px;
+  transform:translateY(-50%);
+  border:2px solid #94a3b8;
+  border-radius:4px;
+  pointer-events:none;
+}
+
+.date-wrap::before{
+  content:"";
+  position:absolute;
+  top:calc(50% - 5px);
+  right:18px;
+  width:8px;
+  height:2px;
+  background:#94a3b8;
+  pointer-events:none;
+  z-index:1;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator{
+  position:absolute;
+  right:10px;
+  width:24px;
+  height:24px;
+  opacity:0;
+  cursor:pointer;
+}
+
+.hidden{
+  display:none;
+}
+
+.submit-btn{
+  width:100%;
+  margin-top:10px;
+  border:none;
+  border-radius:13px;
+  padding:14px 16px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:800;
+  font-family:Pretendard,sans-serif;
+  background:#1d4ed8;
+  color:#ffffff;
+  transition:background 0.15s, transform 0.15s;
+}
+
+.submit-btn:hover:enabled{
+  background:#1e40af;
+}
+
+.submit-btn:disabled{
+  background:#94a3b8;
+  cursor:not-allowed;
+}
+
+@media (max-width:560px){
+  .container{
+    margin:22px auto;
+    padding:0 14px 22px;
+  }
+
+  .card{
+    padding:28px 18px 18px;
+    border-radius:18px;
+  }
+
+  .logo-wrap{
+    margin-bottom:16px;
+  }
+
+  .logo-circle{
+    width:112px;
+    height:112px;
+  }
+
+  .logo-circle img{
+    width:100px;
+    height:100px;
+  }
+
+  .title-wrap{
+    margin-bottom:22px;
+  }
+
+  .main-title{
+    font-size:22px;
+  }
+
+  .sub-title{
+    font-size:12px;
+  }
+
+  select,
+  input[type="date"]{
+    height:46px;
+    line-height:46px;
+  }
+}
 </style>
-
 </head>
 
-
 <body>
-
 <div class="container">
 
-<h1>국세청 체납관리단</h1>
+  <div class="top-actions">
+    <a href="{{ url_for('admin_login') }}" class="admin-btn">관리자 설정</a>
+  </div>
 
-<form action="/start_process" method="post">
+  <div class="card">
+    <div class="logo-wrap">
+      <div class="logo-circle">
+        <img src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
+      </div>
+    </div>
 
-<input type="text" name="team" placeholder="조 입력" required>
+    <div class="title-wrap">
+      <div class="main-title">국세청 체납관리단</div>
+      <div class="sub-title">SMART 경로탐색</div>
+    </div>
 
-<input type="text" name="username" placeholder="사용자명 입력" required>
+    <form id="startForm" method="POST">
+      <div class="form-group">
+        <div class="field">
+          <label class="required" for="teamSelect">조 선택</label>
+          <div class="select-wrap">
+            <select name="team_no" id="teamSelect" required>
+              <option value="">선택</option>
+              {% for team in team_options %}
+              <option value="{{ team }}">{{ team }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
 
-<input type="date" name="date" required>
+      <div class="form-group hidden" id="userField">
+        <div class="field">
+          <label class="required" for="userSelect">사용자명</label>
+          <div class="select-wrap">
+            <select name="user_name" id="userSelect" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-<button type="submit">경로 최적화 시작하기</button>
+      <div class="form-group hidden" id="dateField">
+        <div class="field">
+          <label class="required" for="tripDate">방문 날짜</label>
+          <div class="date-wrap">
+            <input type="date" name="trip_date" id="tripDate" required>
+          </div>
+        </div>
+      </div>
 
-</form>
+      <button type="submit" class="submit-btn" id="submitBtn" disabled>경로 최적화 시작하기</button>
+    </form>
+  </div>
 
 </div>
 
+<script>
+const teamUsers = {{ team_users | tojson }};
+
+const teamSelect = document.getElementById("teamSelect");
+const userSelect = document.getElementById("userSelect");
+const tripDate = document.getElementById("tripDate");
+const userField = document.getElementById("userField");
+const dateField = document.getElementById("dateField");
+const submitBtn = document.getElementById("submitBtn");
+
+function updateSubmitState(){
+  const isReady = !!(teamSelect.value && userSelect.value && tripDate.value);
+  submitBtn.disabled = !isReady;
+}
+
+teamSelect.addEventListener("change", function(){
+  const team = this.value;
+
+  userSelect.innerHTML = '<option value="">선택</option>';
+  userField.classList.add("hidden");
+  dateField.classList.add("hidden");
+  userSelect.value = "";
+  tripDate.value = "";
+
+  if(!team || !teamUsers[team] || teamUsers[team].length === 0){
+    updateSubmitState();
+    return;
+  }
+
+  teamUsers[team].forEach(user => {
+    const opt = document.createElement("option");
+    opt.value = user;
+    opt.textContent = user;
+    userSelect.appendChild(opt);
+  });
+
+  userField.classList.remove("hidden");
+  updateSubmitState();
+});
+
+userSelect.addEventListener("change", function(){
+  tripDate.value = "";
+
+  if(this.value){
+    dateField.classList.remove("hidden");
+  }else{
+    dateField.classList.add("hidden");
+  }
+
+  updateSubmitState();
+});
+
+tripDate.addEventListener("change", function(){
+  updateSubmitState();
+});
+</script>
 </body>
 </html>
