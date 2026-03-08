@@ -4,147 +4,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>국세청 체납관리단 관리자 설정</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
+
         html, body {
             margin: 0;
             padding: 0;
-            font-family: "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
-            background: #f5f7fb;
-            color: #1f2937;
         }
-        body { min-height: 100vh; }
 
-        .layout {
-            display: flex;
+        body {
+            font-family: Pretendard, sans-serif;
+            background: #f4f6fa;
+            color: #111827;
             min-height: 100vh;
         }
 
-        .sidebar {
-            width: 280px;
-            background: #1f2937;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            height: 100vh;
-            position: sticky;
-            top: 0;
+        .page-shell {
+            max-width: 1120px;
+            margin: 34px auto;
+            padding: 0 18px 32px;
         }
 
-        .sidebar-header {
-            padding: 28px 24px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.12);
-        }
-
-        .sidebar-title {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-        }
-
-        .menu {
-            padding: 16px 0;
-            overflow-y: auto;
-        }
-
-        .menu-item {
+        .container {
             width: 100%;
-            border: none;
-            background: transparent;
-            color: #f9fafb;
-            text-align: left;
-            padding: 15px 24px;
-            font-size: 15px;
-            font-weight: 500;
-            line-height: 1.4;
-            cursor: pointer;
-            transition: background 0.15s ease;
         }
 
-        .menu-item:hover {
-            background: rgba(255,255,255,0.08);
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 18px;
+            width: 100%;
         }
 
-        .menu-item.active {
-            background: #2563eb;
-            font-weight: 700;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            margin-left: -4px;
         }
 
-        .sidebar-footer {
-            margin-top: auto;
-            padding: 20px 24px 28px;
-            border-top: 1px solid rgba(255,255,255,0.12);
-            background: #1f2937;
-            position: sticky;
-            bottom: 0;
+        .header-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            flex: 0 0 auto;
+            display: block;
         }
 
-        .logout-link {
-            display: inline-block;
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 10px 14px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-        }
-
-        .logout-link:hover {
-            background: rgba(255,255,255,0.08);
-        }
-
-        .content {
-            flex: 1;
-            padding: 32px;
+        .header-text {
             min-width: 0;
         }
 
-        .flash-wrap { margin-bottom: 18px; }
+        .header-title {
+            font-size: 24px;
+            font-weight: 850;
+            letter-spacing: -0.25px;
+            line-height: 1.1;
+            color: #111827;
+        }
+
+        .header-sub {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 4px;
+            font-weight: 700;
+            line-height: 1.15;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .action-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            padding: 0 14px;
+            border-radius: 10px;
+            border: 1px solid #dbe2ea;
+            background: #ffffff;
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+        }
+
+        .action-link.primary {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .flash-wrap {
+            margin-bottom: 14px;
+            width: 100%;
+        }
 
         .flash-message {
             background: #ecfdf3;
             border: 1px solid #abefc6;
             color: #027a48;
-            border-radius: 10px;
-            padding: 14px 16px;
+            border-radius: 12px;
+            padding: 13px 15px;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 700;
             margin-bottom: 10px;
+        }
+
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 16px;
+            align-items: start;
+            width: 100%;
+        }
+
+        .tabs-card,
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+        }
+
+        .tabs-card {
+            padding: 12px;
+            position: sticky;
+            top: 18px;
+            width: 100%;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu-item {
+            border: none;
+            background: #eef0f4;
+            color: #334155;
+            text-align: left;
+            padding: 12px 14px;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.2;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: Pretendard, sans-serif;
+            transition: 0.15s ease;
+            width: 100%;
+        }
+
+        .menu-item:hover {
+            background: #e2e8f0;
+        }
+
+        .menu-item.active {
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .content-area {
+            min-width: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .panel {
             display: none;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
-            padding: 30px;
+            padding: 18px;
+            margin-bottom: 14px;
+            width: 100%;
+            max-width: none;
         }
 
-        .panel.active { display: block; }
+        .panel.active {
+            display: block;
+        }
 
         .panel-title {
             margin: 0 0 8px 0;
-            font-size: 24px;
-            font-weight: 700;
-            color: #111827;
+            font-size: 20px;
+            font-weight: 850;
+            color: #0f172a;
             letter-spacing: -0.2px;
         }
 
         .panel-desc {
-            margin: 0 0 24px 0;
-            font-size: 14px;
+            margin: 0 0 18px 0;
+            font-size: 13px;
             color: #6b7280;
             line-height: 1.6;
+            font-weight: 600;
         }
 
         .section-subtitle {
-            margin: 24px 0 12px;
-            font-size: 15px;
-            font-weight: 700;
-            color: #111827;
+            margin: 22px 0 12px;
+            font-size: 14px;
+            font-weight: 850;
+            color: #0f172a;
             padding-bottom: 8px;
             border-bottom: 1px solid #e5e7eb;
         }
@@ -152,34 +222,43 @@
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 18px 20px;
+            gap: 14px 16px;
         }
 
-        .form-group { margin-bottom: 18px; }
-        .form-group.full { grid-column: 1 / -1; }
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 6px;
+            font-size: 12px;
             font-weight: 700;
-            color: #374151;
+            color: #6b7280;
         }
 
         .form-group input,
         .form-group textarea {
             width: 100%;
-            border: 1px solid #d1d5db;
+            border: 1px solid #e5e7eb;
             border-radius: 10px;
-            padding: 12px 14px;
+            padding: 10px 12px;
             font-size: 14px;
-            font-family: inherit;
+            font-family: Pretendard, sans-serif;
             color: #111827;
             outline: none;
             background: #fff;
+            transition: 0.15s ease;
         }
 
-        .form-group input { height: 46px; }
+        .form-group input {
+            min-height: 42px;
+        }
+
         .form-group textarea {
             min-height: 120px;
             resize: vertical;
@@ -188,8 +267,8 @@
 
         .form-group input:focus,
         .form-group textarea:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+            border-color: #1d4ed8;
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.08);
         }
 
         .help-text {
@@ -197,58 +276,81 @@
             font-size: 12px;
             color: #6b7280;
             line-height: 1.55;
+            font-weight: 600;
         }
 
         .button-row {
-            margin-top: 28px;
+            margin-top: 20px;
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .save-btn,
+        .add-card-btn,
+        .search-btn,
+        .modal-btn,
+        .verify-btn {
+            border: none;
+            border-radius: 10px;
+            font-family: Pretendard, sans-serif;
+            cursor: pointer;
+            font-weight: 800;
         }
 
         .save-btn {
-            border: none;
-            background: #374151;
+            min-height: 42px;
+            padding: 0 16px;
+            background: #94a3b8;
             color: #ffffff;
-            height: 46px;
-            padding: 0 20px;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 700;
-            font-family: inherit;
+            font-size: 14px;
             cursor: not-allowed;
-            opacity: 0.9;
-            transition: background 0.15s ease, opacity 0.15s ease;
+            transition: 0.15s ease;
         }
 
         .save-btn.enabled {
-            background: #2563eb;
+            background: #1d4ed8;
             cursor: pointer;
-            opacity: 1;
         }
 
         .save-btn.enabled:hover {
-            background: #1d4ed8;
+            background: #1e40af;
         }
 
-        .section-status {
-            display: none;
+        .verify-btn {
+            min-height: 42px;
+            padding: 0 16px;
+            background: #1d4ed8;
+            color: #ffffff;
             font-size: 14px;
-            font-weight: 500;
+        }
+
+        .verify-btn:hover {
+            background: #1e40af;
+        }
+
+        .section-status,
+        .verify-status {
+            display: none;
+            font-size: 13px;
+            font-weight: 700;
             padding: 12px 14px;
-            border-radius: 10px;
-            margin-top: 16px;
+            border-radius: 12px;
+            margin-top: 14px;
             line-height: 1.5;
         }
 
-        .section-status.success {
+        .section-status.success,
+        .verify-status.success {
             display: block;
             background: #ecfdf3;
             color: #027a48;
             border: 1px solid #abefc6;
         }
 
-        .section-status.error {
+        .section-status.error,
+        .verify-status.error {
             display: block;
             background: #fef3f2;
             color: #b42318;
@@ -257,68 +359,60 @@
 
         .cards-toolbar {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
+            gap: 12px;
             margin-bottom: 14px;
-        }
-
-        .cards-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #374151;
+            flex-wrap: wrap;
         }
 
         .add-card-btn,
         .search-btn {
-            border: none;
-            background: #111827;
-            color: #fff;
-            height: 40px;
+            background: #eef0f4;
+            color: #0f172a;
+            min-height: 42px;
             padding: 0 14px;
-            border-radius: 10px;
             font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
         }
 
         .add-card-btn:hover,
         .search-btn:hover {
-            background: #000;
+            background: #e2e8f0;
         }
 
         .team-cards {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
         }
 
         .team-card {
             position: relative;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #e2e8f0;
             border-radius: 14px;
-            background: #f9fafb;
+            background: #f8fafc;
             padding: 16px;
         }
 
         .team-card-remove {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 12px;
             width: 28px;
             height: 28px;
             border: none;
             border-radius: 50%;
             background: transparent;
-            color: #6b7280;
+            color: #9ca3af;
             font-size: 18px;
             line-height: 1;
             cursor: pointer;
-            transition: background 0.15s ease, color 0.15s ease;
+            transition: 0.15s ease;
         }
 
         .team-card-remove:hover {
             background: #fee2e2;
-            color: #b91c1c;
+            color: #ef4444;
         }
 
         .team-card-remove:disabled {
@@ -327,10 +421,10 @@
         }
 
         .team-card h4 {
-            margin: 0 24px 12px 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #111827;
+            margin: 0 26px 12px 0;
+            font-size: 14px;
+            font-weight: 850;
+            color: #0f172a;
         }
 
         .team-card textarea {
@@ -352,9 +446,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 4px;
-            font-size: 14px;
-            color: #374151;
+            margin-top: 2px;
+            font-size: 13px;
+            color: #475569;
+            font-weight: 700;
         }
 
         .check-row input[type="checkbox"] {
@@ -363,118 +458,199 @@
             margin: 0;
         }
 
+        .password-step-box {
+            max-width: 420px;
+        }
+
+        .password-fields {
+            display: none;
+            max-width: 420px;
+            margin-top: 14px;
+        }
+
+        .password-fields.show {
+            display: block;
+        }
+
+        .verify-row {
+            display: flex;
+            align-items: end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .verify-row .form-group {
+            flex: 1 1 240px;
+            margin-bottom: 0;
+        }
+
         .modal-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(17,24,39,0.55);
+            background: rgba(15, 23, 42, 0.48);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            padding: 20px;
+            z-index: 10000;
+            padding: 16px;
         }
 
-        .modal-backdrop.show { display: flex; }
+        .modal-backdrop.show {
+            display: flex;
+        }
 
         .modal {
             width: 100%;
-            max-width: 420px;
-            background: #ffffff;
-            border-radius: 14px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-            padding: 24px;
+            max-width: 360px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
         }
 
         .modal-title {
-            margin: 0 0 10px 0;
-            font-size: 20px;
-            font-weight: 700;
-            color: #111827;
+            font-size: 16px;
+            font-weight: 850;
+            margin: 0 0 10px;
+            color: #0f172a;
         }
 
         .modal-text {
-            margin: 0 0 20px 0;
-            font-size: 15px;
-            color: #4b5563;
+            margin: 0 0 16px;
+            font-size: 14px;
+            color: #475569;
             line-height: 1.6;
+            font-weight: 600;
         }
 
         .modal-buttons {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 8px;
         }
 
         .modal-btn {
-            border: none;
-            border-radius: 10px;
-            height: 42px;
-            min-width: 88px;
-            padding: 0 16px;
-            font-size: 14px;
-            font-weight: 700;
-            font-family: inherit;
-            cursor: pointer;
+            min-height: 40px;
+            padding: 0 14px;
+            font-size: 13px;
         }
 
         .modal-btn.primary {
-            background: #2563eb;
+            background: #1d4ed8;
             color: #ffffff;
         }
 
         .modal-btn.secondary {
-            background: #e5e7eb;
-            color: #111827;
+            background: #eef0f4;
+            color: #0f172a;
         }
 
         .hidden {
             display: none !important;
         }
 
-        @media (max-width: 1200px) {
-            .team-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-
         @media (max-width: 900px) {
-            .layout { flex-direction: column; }
-            .sidebar {
+            .page-shell {
+                margin: 24px auto;
+                padding: 0 14px 26px;
+            }
+
+            .header-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header-left {
+                margin-left: 0;
+            }
+
+            .header-logo {
+                width: 56px;
+                height: 56px;
+            }
+
+            .header-title {
+                font-size: 22px;
+            }
+
+            .header-sub {
+                font-size: 12px;
+                margin-top: 3px;
+            }
+
+            .header-actions {
                 width: 100%;
-                height: auto;
-                position: relative;
+                justify-content: flex-start;
             }
-            .sidebar-footer {
-                position: relative;
+
+            .admin-layout {
+                grid-template-columns: 1fr;
             }
-            .form-grid { grid-template-columns: 1fr; }
-            .team-cards { grid-template-columns: 1fr; }
-            .content { padding: 20px; }
+
+            .tabs-card {
+                position: static;
+                padding: 10px;
+            }
+
+            .menu {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .menu-item {
+                text-align: center;
+            }
+
+            .form-grid,
+            .team-cards {
+                grid-template-columns: 1fr;
+            }
+
             .address-row {
                 grid-template-columns: 1fr;
+            }
+
+            .panel {
+                max-width: none;
+            }
+
+            .password-step-box,
+            .password-fields {
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .menu-item {
+                width: 100%;
+            }
+
+            .panel {
+                padding: 16px;
             }
         }
     </style>
 </head>
 <body>
-<div class="layout">
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <h1 class="sidebar-title">관리자 설정</h1>
+<div class="page-shell">
+    <div class="container">
+        <div class="header-row">
+            <div class="header-left">
+                <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
+                <div class="header-text">
+                    <div class="header-title">국세청 체납관리단</div>
+                    <div class="header-sub">SMART 경로탐색 · 관리자 설정</div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a class="action-link" href="/">시작화면으로 이동</a>
+                <a class="action-link primary" href="{{ url_for('admin_logout') }}">로그아웃</a>
+            </div>
         </div>
 
-        <div class="menu">
-            <button type="button" class="menu-item active" data-target="panel-mail">메일설정</button>
-            <button type="button" class="menu-item" data-target="panel-api">API설정</button>
-            <button type="button" class="menu-item" data-target="panel-user">사용자 설정</button>
-            <button type="button" class="menu-item" data-target="panel-location">출발/복귀지 설정</button>
-            <button type="button" class="menu-item" data-target="panel-admin">관리자 비밀번호 변경</button>
-        </div>
-
-        <div class="sidebar-footer">
-            <a class="logout-link" href="{{ url_for('admin_logout') }}">로그아웃</a>
-        </div>
-    </aside>
-
-    <main class="content">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="flash-wrap">
@@ -485,208 +661,230 @@
             {% endif %}
         {% endwith %}
 
-        <section id="panel-mail" class="panel active">
-            <h3 class="panel-title">메일설정</h3>
-            <p class="panel-desc">메일 발송 계정, 기본 수신자, 제목 및 본문 템플릿을 설정합니다.</p>
-
-            <form class="settings-form" data-section="mail">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="smtp_host">SMTP 호스트</label>
-                        <input type="text" id="smtp_host" name="smtp_host" value="{{ settings.mail.smtp_host }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="smtp_port">SMTP 포트</label>
-                        <input type="text" id="smtp_port" name="smtp_port" value="{{ settings.mail.smtp_port }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="smtp_user">SMTP 사용자 계정</label>
-                        <input type="text" id="smtp_user" name="smtp_user" value="{{ settings.mail.smtp_user }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="smtp_password">SMTP 비밀번호</label>
-                        <input type="password" id="smtp_password" name="smtp_password" value="{{ settings.mail.smtp_password }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="mail_from">발신자 이메일</label>
-                        <input type="text" id="mail_from" name="mail_from" value="{{ settings.mail.mail_from }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="default_recipient_email">기본 수신자 이메일</label>
-                        <input type="text" id="default_recipient_email" name="default_recipient_email" value="{{ settings.mail.default_recipient_email }}">
-                    </div>
-
-                    <div class="form-group full">
-                        <label for="email_subject_template">메일 제목 템플릿</label>
-                        <input type="text" id="email_subject_template" name="email_subject_template" value="{{ settings.mail.email_subject_template }}">
-                        <div class="help-text">{team_no}, {user_name}, {trip_date} 변수를 사용할 수 있습니다.</div>
-                    </div>
-
-                    <div class="form-group full">
-                        <label for="email_body_template">메일 본문 템플릿</label>
-                        <textarea id="email_body_template" name="email_body_template">{{ settings.mail.email_body_template }}</textarea>
-                        <div class="help-text">{team_no}, {user_name}, {trip_date}, {total_count}, {total_distance}, {total_time}, {end_time} 변수를 사용할 수 있습니다.</div>
-                    </div>
+        <div class="admin-layout">
+            <div class="tabs-card">
+                <div class="menu">
+                    <button type="button" class="menu-item active" data-target="panel-mail">메일설정</button>
+                    <button type="button" class="menu-item" data-target="panel-api">API설정</button>
+                    <button type="button" class="menu-item" data-target="panel-user">사용자 설정</button>
+                    <button type="button" class="menu-item" data-target="panel-location">출발/복귀지 설정</button>
+                    <button type="button" class="menu-item" data-target="panel-admin">관리자 비밀번호 변경</button>
                 </div>
+            </div>
 
-                <div class="button-row">
-                    <button type="button" class="save-btn">변경사항 저장</button>
-                </div>
-                <div class="section-status"></div>
-            </form>
-        </section>
+            <div class="content-area">
+                <section id="panel-mail" class="panel active">
+                    <h3 class="panel-title">메일설정</h3>
+                    <p class="panel-desc">메일 발송 계정, 기본 수신자, 제목 및 본문 템플릿을 설정합니다.</p>
 
-        <section id="panel-api" class="panel">
-            <h3 class="panel-title">API설정</h3>
-            <p class="panel-desc">외부 연동에 필요한 API 정보를 설정합니다.</p>
+                    <form class="settings-form" data-section="mail">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="smtp_host">SMTP 호스트</label>
+                                <input type="text" id="smtp_host" name="smtp_host" value="{{ settings.mail.smtp_host }}">
+                            </div>
 
-            <form class="settings-form" data-section="api">
-                <div class="section-subtitle">NAVER Cloud</div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="client_id">Client ID</label>
-                        <input type="text" id="client_id" name="client_id" value="{{ settings.api.client_id }}">
-                    </div>
+                            <div class="form-group">
+                                <label for="smtp_port">SMTP 포트</label>
+                                <input type="text" id="smtp_port" name="smtp_port" value="{{ settings.mail.smtp_port }}">
+                            </div>
 
-                    <div class="form-group">
-                        <label for="client_secret">Client Secret</label>
-                        <input type="text" id="client_secret" name="client_secret" value="{{ settings.api.client_secret }}">
-                    </div>
-                </div>
+                            <div class="form-group">
+                                <label for="smtp_user">SMTP 사용자 계정</label>
+                                <input type="text" id="smtp_user" name="smtp_user" value="{{ settings.mail.smtp_user }}">
+                            </div>
 
-                <div class="section-subtitle">Tmap</div>
-                <div class="form-grid">
-                    <div class="form-group full">
-                        <label for="tmap_app_key">App Key</label>
-                        <input type="text" id="tmap_app_key" name="tmap_app_key" value="{{ settings.api.tmap_app_key }}">
-                    </div>
-                </div>
+                            <div class="form-group">
+                                <label for="smtp_password">SMTP 비밀번호</label>
+                                <input type="password" id="smtp_password" name="smtp_password" value="{{ settings.mail.smtp_password }}">
+                            </div>
 
-                <div class="button-row">
-                    <button type="button" class="save-btn">변경사항 저장</button>
-                </div>
-                <div class="section-status"></div>
-            </form>
-        </section>
+                            <div class="form-group">
+                                <label for="mail_from">발신자 이메일</label>
+                                <input type="text" id="mail_from" name="mail_from" value="{{ settings.mail.mail_from }}">
+                            </div>
 
-        <section id="panel-user" class="panel">
-            <h3 class="panel-title">사용자 설정</h3>
-            <p class="panel-desc">조별 사용자 카드를 추가하거나 삭제하고 사용자명을 관리합니다.</p>
+                            <div class="form-group">
+                                <label for="default_recipient_email">기본 수신자 이메일</label>
+                                <input type="text" id="default_recipient_email" name="default_recipient_email" value="{{ settings.mail.default_recipient_email }}">
+                            </div>
 
-            <form class="settings-form" data-section="user">
-                <div class="cards-toolbar">
-                    <div class="cards-title">조별 사용자 카드</div>
-                    <button type="button" class="add-card-btn" id="addTeamCardBtn">카드 추가</button>
-                </div>
+                            <div class="form-group full">
+                                <label for="email_subject_template">메일 제목 템플릿</label>
+                                <input type="text" id="email_subject_template" name="email_subject_template" value="{{ settings.mail.email_subject_template }}">
+                                <div class="help-text">{team_no}, {user_name}, {trip_date} 변수를 사용할 수 있습니다.</div>
+                            </div>
 
-                <div class="team-cards" id="teamCardsWrap">
-                    {% for team_name, users in settings.user.team_users.items() %}
-                    <div class="team-card">
-                        <button type="button" class="team-card-remove" title="카드 삭제">×</button>
-                        <h4>조 카드</h4>
-                        <div class="form-group">
-                            <label>조 이름</label>
-                            <input type="text" name="team_name" value="{{ team_name }}">
+                            <div class="form-group full">
+                                <label for="email_body_template">메일 본문 템플릿</label>
+                                <textarea id="email_body_template" name="email_body_template">{{ settings.mail.email_body_template }}</textarea>
+                                <div class="help-text">{team_no}, {user_name}, {trip_date}, {total_count}, {total_distance}, {total_time}, {end_time} 변수를 사용할 수 있습니다.</div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>사용자 목록</label>
-                            <textarea name="team_users_block">{{ users | join('\n') }}</textarea>
+
+                        <div class="button-row">
+                            <button type="button" class="save-btn">변경사항 저장</button>
                         </div>
-                    </div>
-                    {% endfor %}
-                </div>
+                        <div class="section-status"></div>
+                    </form>
+                </section>
 
-                <input type="hidden" name="start_address" value="{{ settings.user.start_address }}">
-                <input type="hidden" name="return_address" value="{{ settings.user.return_address }}">
-                <input type="hidden" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
+                <section id="panel-api" class="panel">
+                    <h3 class="panel-title">API설정</h3>
+                    <p class="panel-desc">외부 연동에 필요한 API 정보를 설정합니다.</p>
 
-                <div class="button-row">
-                    <button type="button" class="save-btn">변경사항 저장</button>
-                </div>
-                <div class="section-status"></div>
-            </form>
-        </section>
+                    <form class="settings-form" data-section="api">
+                        <div class="section-subtitle">NAVER Cloud</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="client_id">Client ID</label>
+                                <input type="text" id="client_id" name="client_id" value="{{ settings.api.client_id }}">
+                            </div>
 
-        <section id="panel-location" class="panel">
-            <h3 class="panel-title">출발/복귀지 설정</h3>
-            <p class="panel-desc">경로 계산 시 사용하는 출발지와 복귀지 주소를 설정합니다.</p>
-
-            <form class="settings-form" data-section="user">
-                <div class="form-grid">
-                    <div class="form-group full">
-                        <label for="start_address">출발지 주소</label>
-                        <div class="address-row">
-                            <input type="text" id="start_address" name="start_address" value="{{ settings.user.start_address }}" readonly>
-                            <button type="button" class="search-btn" data-target-input="start_address">주소 검색</button>
+                            <div class="form-group">
+                                <label for="client_secret">Client Secret</label>
+                                <input type="text" id="client_secret" name="client_secret" value="{{ settings.api.client_secret }}">
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-group full">
-                        <label for="return_address">복귀지 주소</label>
-                        <div class="check-row">
-                            <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
-                            <label for="return_same_as_start_checkbox" style="margin:0; font-weight:500;">출발지와 동일합니다.</label>
+                        <div class="section-subtitle">Tmap</div>
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label for="tmap_app_key">App Key</label>
+                                <input type="text" id="tmap_app_key" name="tmap_app_key" value="{{ settings.api.tmap_app_key }}">
+                            </div>
                         </div>
-                        <div class="address-row" style="margin-top:10px;">
-                            <input type="text" id="return_address" name="return_address" value="{{ settings.user.return_address }}" readonly>
-                            <button type="button" class="search-btn" id="returnSearchBtn" data-target-input="return_address">주소 검색</button>
+
+                        <div class="button-row">
+                            <button type="button" class="save-btn">변경사항 저장</button>
                         </div>
-                        <input type="hidden" id="return_same_as_start" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
-                    </div>
-                </div>
+                        <div class="section-status"></div>
+                    </form>
+                </section>
 
-                {% for team_name, users in settings.user.team_users.items() %}
-                <input type="hidden" name="team_name" value="{{ team_name }}">
-                <textarea name="team_users_block" class="hidden">{{ users | join('\n') }}</textarea>
-                {% endfor %}
+                <section id="panel-user" class="panel">
+                    <h3 class="panel-title">사용자 설정</h3>
+                    <p class="panel-desc">조 및 사용자를 등록하거나 삭제할 수 있습니다.</p>
 
-                <div class="button-row">
-                    <button type="button" class="save-btn">변경사항 저장</button>
-                </div>
-                <div class="section-status"></div>
-            </form>
-        </section>
+                    <form class="settings-form" data-section="user">
+                        <div class="cards-toolbar">
+                            <button type="button" class="add-card-btn" id="addTeamCardBtn">+ 카드 추가</button>
+                        </div>
 
-        <section id="panel-admin" class="panel">
-            <h3 class="panel-title">관리자 비밀번호 변경</h3>
-            <p class="panel-desc">현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.</p>
+                        <div class="team-cards" id="teamCardsWrap">
+                            {% for team_name, users in settings.user.team_users.items() %}
+                            <div class="team-card">
+                                <button type="button" class="team-card-remove" title="카드 삭제">×</button>
+                                <h4>조</h4>
+                                <div class="form-group">
+                                    <label>조 이름</label>
+                                    <input type="text" name="team_name" value="{{ team_name }}">
+                                </div>
+                                <div class="form-group">
+                                    <label>사용자 목록</label>
+                                    <textarea name="team_users_block">{{ users | join('\n') }}</textarea>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
 
-            <form class="settings-form" data-section="admin">
-                <div class="form-grid">
-                    <div class="form-group full">
-                        <label for="current_admin_password">현재 관리자 비밀번호</label>
-                        <input type="password" id="current_admin_password" name="current_admin_password" value="">
-                    </div>
+                        <input type="hidden" name="start_address" value="{{ settings.user.start_address }}">
+                        <input type="hidden" name="return_address" value="{{ settings.user.return_address }}">
+                        <input type="hidden" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
 
-                    <div class="form-group">
-                        <label for="new_admin_password">새 관리자 비밀번호</label>
-                        <input type="password" id="new_admin_password" name="new_admin_password" value="">
-                    </div>
+                        <div class="button-row">
+                            <button type="button" class="save-btn">변경사항 저장</button>
+                        </div>
+                        <div class="section-status"></div>
+                    </form>
+                </section>
 
-                    <div class="form-group">
-                        <label for="confirm_admin_password">새 관리자 비밀번호 확인</label>
-                        <input type="password" id="confirm_admin_password" name="confirm_admin_password" value="">
-                    </div>
-                </div>
+                <section id="panel-location" class="panel">
+                    <h3 class="panel-title">출발/복귀지 설정</h3>
+                    <p class="panel-desc">경로 계산 시 사용하는 출발지와 복귀지 주소를 설정합니다.</p>
 
-                <div class="button-row">
-                    <button type="button" class="save-btn">변경사항 저장</button>
-                </div>
-                <div class="section-status"></div>
-            </form>
-        </section>
-    </main>
+                    <form class="settings-form" data-section="user">
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label for="start_address">출발지 주소</label>
+                                <div class="address-row">
+                                    <input type="text" id="start_address" name="start_address" value="{{ settings.user.start_address }}" readonly>
+                                    <button type="button" class="search-btn" data-target-input="start_address">주소 검색</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group full">
+                                <label for="return_address">복귀지 주소</label>
+                                <div class="check-row">
+                                    <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
+                                    <label for="return_same_as_start_checkbox" style="margin:0; font-weight:700; color:#475569;">출발지와 동일합니다.</label>
+                                </div>
+                                <div class="address-row" style="margin-top:10px;">
+                                    <input type="text" id="return_address" name="return_address" value="{{ settings.user.return_address }}" readonly>
+                                    <button type="button" class="search-btn" id="returnSearchBtn" data-target-input="return_address">주소 검색</button>
+                                </div>
+                                <input type="hidden" id="return_same_as_start" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
+                            </div>
+                        </div>
+
+                        {% for team_name, users in settings.user.team_users.items() %}
+                        <input type="hidden" name="team_name" value="{{ team_name }}">
+                        <textarea name="team_users_block" class="hidden">{{ users | join('\n') }}</textarea>
+                        {% endfor %}
+
+                        <div class="button-row">
+                            <button type="button" class="save-btn">변경사항 저장</button>
+                        </div>
+                        <div class="section-status"></div>
+                    </form>
+                </section>
+
+                <section id="panel-admin" class="panel">
+                    <h3 class="panel-title">관리자 비밀번호 변경</h3>
+                    <p class="panel-desc">현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.</p>
+
+                    <form class="settings-form" data-section="admin" id="adminPasswordForm">
+                        <div class="password-step-box">
+                            <div class="verify-row" id="adminVerifyRow">
+                                <div class="form-group">
+                                    <label for="current_admin_password">현재 관리자 비밀번호</label>
+                                    <input type="password" id="current_admin_password" name="current_admin_password" value="">
+                                </div>
+                                <button type="button" class="verify-btn" id="verifyAdminPasswordBtn">비밀번호 확인</button>
+                            </div>
+
+                            <div class="verify-status" id="verifyStatus"></div>
+
+                            <div class="password-fields" id="newPasswordFields">
+                                <div class="form-grid" style="grid-template-columns: 1fr;">
+                                    <div class="form-group">
+                                        <label for="new_admin_password">새 관리자 비밀번호</label>
+                                        <input type="password" id="new_admin_password" name="new_admin_password" value="">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="confirm_admin_password">새 관리자 비밀번호 확인</label>
+                                        <input type="password" id="confirm_admin_password" name="confirm_admin_password" value="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="button-row">
+                            <button type="button" class="save-btn">변경사항 저장</button>
+                        </div>
+                        <div class="section-status"></div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal-backdrop" id="confirmModal">
     <div class="modal">
         <h3 class="modal-title">변경사항 확인</h3>
-        <p class="modal-text">저장 후 이동하시겠습니까?</p>
+        <p class="modal-text">저장 후 화면을 이동하시겠습니까?</p>
         <div class="modal-buttons">
             <button type="button" class="modal-btn primary" id="modalSaveBtn">저장</button>
             <button type="button" class="modal-btn secondary" id="modalDiscardBtn">취소</button>
@@ -703,6 +901,12 @@
     const modalSaveBtn = document.getElementById('modalSaveBtn');
     const modalDiscardBtn = document.getElementById('modalDiscardBtn');
 
+    const adminPasswordForm = document.getElementById('adminPasswordForm');
+    const verifyAdminPasswordBtn = document.getElementById('verifyAdminPasswordBtn');
+    const verifyStatus = document.getElementById('verifyStatus');
+    const newPasswordFields = document.getElementById('newPasswordFields');
+    const adminVerifyRow = document.getElementById('adminVerifyRow');
+
     let currentPanelId = 'panel-mail';
     let pendingPanelId = null;
     let pendingMenuButton = null;
@@ -718,46 +922,44 @@
         if (menuButton) {
             menuButton.classList.add('active');
         } else {
-            const found = document.querySelector(`.menu-item[data-target="${panelId}"]`);
-            if (found) found.classList.add('active');
+            const targetMenu = document.querySelector(`.menu-item[data-target="${panelId}"]`);
+            if (targetMenu) targetMenu.classList.add('active');
         }
+
         currentPanelId = panelId;
-    }
-
-    function getSectionStatus(form) {
-        return form.querySelector('.section-status');
-    }
-
-    function showStatus(form, type, message) {
-        const box = getSectionStatus(form);
-        box.className = 'section-status ' + type;
-        box.textContent = message;
-    }
-
-    function clearStatus(form) {
-        const box = getSectionStatus(form);
-        box.className = 'section-status';
-        box.textContent = '';
     }
 
     function getFormFields(form) {
         return form.querySelectorAll('input, textarea, select');
     }
 
-    function getSaveButton(form) {
-        return form.querySelector('.save-btn');
+    function showStatus(form, type, message) {
+        const status = form.querySelector('.section-status');
+        status.className = `section-status ${type}`;
+        status.textContent = message;
+    }
+
+    function clearStatus(form) {
+        const status = form.querySelector('.section-status');
+        status.className = 'section-status';
+        status.textContent = '';
+    }
+
+    function showVerifyStatus(type, message) {
+        verifyStatus.className = `verify-status ${type}`;
+        verifyStatus.textContent = message;
+    }
+
+    function clearVerifyStatus() {
+        verifyStatus.className = 'verify-status';
+        verifyStatus.textContent = '';
     }
 
     function updateSaveButtonState(form) {
-        const btn = getSaveButton(form);
-        if (!btn) return;
-        if (isFormDirty(form)) {
-            btn.classList.add('enabled');
-            btn.disabled = false;
-        } else {
-            btn.classList.remove('enabled');
-            btn.disabled = true;
-        }
+        const saveBtn = form.querySelector('.save-btn');
+        const dirty = isFormDirty(form);
+        saveBtn.disabled = !dirty;
+        saveBtn.classList.toggle('enabled', dirty);
     }
 
     function markFormClean(form) {
@@ -768,6 +970,12 @@
                 field.dataset.initialValue = field.value;
             }
         });
+
+        if (form.dataset.section === 'admin') {
+            form.dataset.passwordVerified = form.dataset.passwordVerified || '0';
+            form.dataset.initialCardCount = form.dataset.initialCardCount || '0';
+        }
+
         updateSaveButtonState(form);
     }
 
@@ -781,6 +989,14 @@
             }
         });
 
+        if (form.id === 'adminPasswordForm') {
+            form.dataset.passwordVerified = '0';
+            adminVerifyRow.classList.remove('hidden');
+            verifyAdminPasswordBtn.classList.remove('hidden');
+            newPasswordFields.classList.remove('show');
+            clearVerifyStatus();
+        }
+
         syncReturnAddressState();
         refreshAllCardRemoveButtons();
         clearStatus(form);
@@ -788,6 +1004,14 @@
     }
 
     function isFormDirty(form) {
+        if (form.dataset.section === 'user' && form.querySelector('#teamCardsWrap')) {
+            const initialCardCount = Number(form.dataset.initialCardCount || '0');
+            const currentCardCount = form.querySelectorAll('#teamCardsWrap .team-card').length;
+            if (initialCardCount !== currentCardCount) {
+                return true;
+            }
+        }
+
         const fields = getFormFields(form);
         for (const field of fields) {
             const current = field.type === 'checkbox' ? (field.checked ? '1' : '0') : field.value;
@@ -800,10 +1024,15 @@
 
     function bindDirtyEvents(form) {
         getFormFields(form).forEach(field => {
-            const eventName = field.tagName === 'TEXTAREA' || field.type === 'text' || field.type === 'password' ? 'input' : 'change';
-            field.addEventListener(eventName, () => updateSaveButtonState(form));
+            field.addEventListener('input', () => updateSaveButtonState(form));
             field.addEventListener('change', () => updateSaveButtonState(form));
         });
+    }
+
+    function syncUserFormCardCount(form) {
+        if (form && form.dataset.section === 'user' && form.querySelector('#teamCardsWrap')) {
+            form.dataset.initialCardCount = String(form.querySelectorAll('#teamCardsWrap .team-card').length);
+        }
     }
 
     async function saveForm(form, moveAfterSave = false) {
@@ -829,6 +1058,15 @@
             if (form.dataset.section === 'admin') {
                 const pwFields = form.querySelectorAll('input[type="password"]');
                 pwFields.forEach(field => field.value = '');
+                form.dataset.passwordVerified = '0';
+                adminVerifyRow.classList.remove('hidden');
+                verifyAdminPasswordBtn.classList.remove('hidden');
+                newPasswordFields.classList.remove('show');
+                clearVerifyStatus();
+            }
+
+            if (form.dataset.section === 'user' && form.querySelector('#teamCardsWrap')) {
+                syncUserFormCardCount(form);
             }
 
             markFormClean(form);
@@ -887,6 +1125,10 @@
     });
 
     forms.forEach(form => {
+        if (form.dataset.section === 'user' && form.querySelector('#teamCardsWrap')) {
+            syncUserFormCardCount(form);
+        }
+
         bindDirtyEvents(form);
         markFormClean(form);
 
@@ -974,7 +1216,7 @@
         wrap.className = 'team-card';
         wrap.innerHTML = `
             <button type="button" class="team-card-remove" title="카드 삭제">×</button>
-            <h4>조 카드</h4>
+            <h4>조</h4>
             <div class="form-group">
                 <label>조 이름</label>
                 <input type="text" name="team_name" value="${teamName}">
@@ -1006,12 +1248,14 @@
             card.remove();
             refreshAllCardRemoveButtons();
             const form = document.querySelector('#panel-user .settings-form');
-            bindDirtyEvents(form);
             updateSaveButtonState(form);
         });
 
         card.querySelectorAll('input, textarea').forEach(field => {
             field.addEventListener('input', () => {
+                updateSaveButtonState(document.querySelector('#panel-user .settings-form'));
+            });
+            field.addEventListener('change', () => {
                 updateSaveButtonState(document.querySelector('#panel-user .settings-form'));
             });
         });
@@ -1028,8 +1272,44 @@
         refreshAllCardRemoveButtons();
 
         const form = document.querySelector('#panel-user .settings-form');
-        bindDirtyEvents(form);
         updateSaveButtonState(form);
+    });
+
+    verifyAdminPasswordBtn.addEventListener('click', async () => {
+        clearVerifyStatus();
+
+        const currentPasswordInput = document.getElementById('current_admin_password');
+        const currentPassword = currentPasswordInput.value.trim();
+
+        if (!currentPassword) {
+            showVerifyStatus('error', '현재 관리자 비밀번호를 입력해 주십시오.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('current_admin_password', currentPassword);
+
+        try {
+            const response = await fetch('/admin/settings/verify-password', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                showVerifyStatus('error', result.message || '비밀번호 확인에 실패했습니다.');
+                return;
+            }
+
+            showVerifyStatus('success', result.message || '비밀번호가 확인되었습니다.');
+            adminPasswordForm.dataset.passwordVerified = '1';
+            verifyAdminPasswordBtn.classList.add('hidden');
+            newPasswordFields.classList.add('show');
+            updateSaveButtonState(adminPasswordForm);
+        } catch (error) {
+            showVerifyStatus('error', '서버 통신 중 오류가 발생했습니다.');
+        }
     });
 
     syncReturnAddressState();
