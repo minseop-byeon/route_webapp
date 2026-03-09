@@ -264,6 +264,30 @@ def minutes_to_str(m: int) -> str:
     return f"{m // 60:02d}:{m % 60:02d}"
 
 
+def str_to_minutes(value):
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    s = str(value).strip()
+    if not s:
+        return None
+    if ':' not in s:
+        try:
+            return int(float(s))
+        except Exception:
+            return None
+    parts = s.split(':')
+    if len(parts) < 2:
+        return None
+    try:
+        hh = int(parts[0])
+        mm = int(parts[1])
+    except Exception:
+        return None
+    return hh * 60 + mm
+
+
 def parse_appointment_minute(hour_str: str, minute_str: str):
     hour_str = (hour_str or "").strip()
     minute_str = (minute_str or "").strip()
