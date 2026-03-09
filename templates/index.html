@@ -10,94 +10,99 @@
 <style>
 *{box-sizing:border-box;}
 
+html, body{
+  margin:0;
+  padding:0;
+}
+
 body{
   font-family:Pretendard,sans-serif;
   background:#f4f6fa;
-  margin:0;
   color:#111827;
+  min-height:100vh;
 }
 
 .container{
-  max-width:900px;
-  margin:40px auto;
-  padding:0 18px 32px;
+  max-width:420px;
+  margin:34px auto;
+  padding:0 18px 28px;
 }
 
-.header-row{
+.top-actions{
   display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:16px;
-  margin-bottom:18px;
-  padding-left:0;
+  justify-content:flex-end;
+  margin-bottom:10px;
+  padding-right:2px;
 }
 
-.header-left{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  min-width:0;
-  margin-left:-4px;
+.admin-btn{
+  font-size:12px;
+  font-weight:600;
+  color:#94a3b8;
+  text-decoration:none;
+  line-height:1;
 }
 
-.header-logo{
-  width:64px;
-  height:64px;
-  object-fit:contain;
-  flex:0 0 auto;
-  display:block;
-}
-
-.header-text{
-  min-width:0;
-}
-
-.header-title{
-  font-size:24px;
-  font-weight:850;
-  letter-spacing:-0.25px;
-  line-height:1.1;
-}
-
-.header-sub{
-  font-size:13px;
-  color:#6b7280;
-  margin-top:4px;
-  font-weight:700;
-  line-height:1.15;
-}
-
-.trip-inline{
-  font-size:14px;
-  color:#475569;
-  font-weight:700;
-  white-space:nowrap;
-  text-align:right;
-  padding-top:6px;
+.admin-btn:hover{
+  color:#64748b;
+  text-decoration:underline;
 }
 
 .card{
-  position:relative;
-  background:white;
-  border-radius:14px;
-  padding:18px;
-  margin-bottom:14px;
+  background:#ffffff;
   border:1px solid #e2e8f0;
-  box-shadow:0 6px 14px rgba(15,23,42,0.05);
+  border-radius:20px;
+  padding:34px 24px 22px;
+  box-shadow:0 10px 24px rgba(15,23,42,0.045);
 }
 
-.card h3{
-  margin:0 0 12px 0;
-  font-size:14px;
+.logo-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.logo-circle{
+  width:126px;
+  height:126px;
+  border-radius:50%;
+  background:#ffffff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.logo-circle img{
+  width:112px;
+  height:112px;
+  object-fit:contain;
+  display:block;
+}
+
+.title-wrap{
+  text-align:center;
+  margin-bottom:26px;
+}
+
+.main-title{
+  font-size:24px;
   font-weight:850;
-  color:#0f172a;
+  letter-spacing:-0.45px;
+  color:#111827;
+  line-height:1.2;
 }
 
-.grid-main{
-  display:grid;
-  grid-template-columns:1fr 2fr 150px;
-  gap:12px;
-  align-items:end;
+.sub-title{
+  margin-top:7px;
+  font-size:13px;
+  color:#64748b;
+  font-weight:700;
+  letter-spacing:0.25px;
+}
+
+.form-group{
+  margin-bottom:15px;
 }
 
 .field{
@@ -108,7 +113,8 @@ body{
 label{
   font-size:12px;
   color:#6b7280;
-  margin-bottom:6px;
+  margin-bottom:7px;
+  font-weight:700;
 }
 
 .required::after{
@@ -116,240 +122,153 @@ label{
   color:#ef4444;
 }
 
-input,select{
-  padding:10px 12px;
-  border:1px solid #e5e7eb;
-  border-radius:10px;
-  font-size:14px;
-  transition:0.15s;
-  background:#fff;
-  min-height:42px;
-  font-family:Pretendard,sans-serif;
+.select-wrap,
+.date-wrap{
+  position:relative;
 }
 
-input:focus,select:focus{
+select,
+input[type="date"]{
+  width:100%;
+  height:48px;
+  padding:0 44px 0 14px;
+  border:1px solid #dbe2ea;
+  border-radius:13px;
+  background:#ffffff;
+  font-size:14px;
+  color:#0f172a;
+  font-family:Pretendard,sans-serif;
+  font-weight:600;
+  line-height:48px;
+  transition:border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+}
+
+select:focus,
+input[type="date"]:focus{
   outline:none;
   border-color:#1d4ed8;
+  box-shadow:0 0 0 3px rgba(29,78,216,0.08);
 }
 
-input.error, select.error{
-  border-color:#ef4444 !important;
-}
-
-.address-row{
-  display:flex;
-  gap:6px;
-}
-
-.address-row input{
-  flex:1;
+.select-wrap::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  right:16px;
+  width:9px;
+  height:9px;
+  border-right:2px solid #94a3b8;
+  border-bottom:2px solid #94a3b8;
+  transform:translateY(-65%) rotate(45deg);
   pointer-events:none;
-  background:#f9fafb;
 }
 
-button{
-  border:none;
-  border-radius:10px;
-  padding:10px 14px;
+.date-wrap::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  right:14px;
+  width:16px;
+  height:16px;
+  transform:translateY(-50%);
+  border:2px solid #94a3b8;
+  border-radius:4px;
+  pointer-events:none;
+}
+
+.date-wrap::before{
+  content:"";
+  position:absolute;
+  top:calc(50% - 5px);
+  right:18px;
+  width:8px;
+  height:2px;
+  background:#94a3b8;
+  pointer-events:none;
+  z-index:1;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator{
+  position:absolute;
+  right:10px;
+  width:24px;
+  height:24px;
+  opacity:0;
   cursor:pointer;
-  font-size:14px;
-  font-weight:800;
-  font-family:Pretendard,sans-serif;
 }
 
-.btn-secondary{
-  background:#eef0f4;
-  color:#0f172a;
-}
-
-.btn-primary{
-  background:#1d4ed8;
-  color:#fff;
-}
-
-.add-btn{
-  width:100%;
-  margin-top:10px;
+.hidden{
+  display:none;
 }
 
 .submit-btn{
   width:100%;
-  margin-top:18px;
-  padding:13px;
-}
-
-.delete-icon{
-  position:absolute;
-  top:12px;
-  right:14px;
-  font-size:18px;
-  color:#9ca3af;
-  cursor:pointer;
-  transition:0.2s;
-  user-select:none;
-}
-
-.delete-icon:hover{
-  color:#ef4444;
-  transform:scale(1.2);
-}
-
-.appointment-box{
-  margin-top:14px;
-  font-size:13px;
-  color:#374151;
-}
-
-.appointment-check{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-weight:700;
-  color:#475569;
-  margin:0;
-}
-
-.appointment-check input[type="checkbox"]{
-  width:auto;
-  min-height:auto;
-  padding:0;
-  margin:0;
-}
-
-.time-select-area{
   margin-top:10px;
-  display:none;
-}
-
-.time-row{
-  display:flex;
-  gap:8px;
-}
-
-.warning{
-  margin-top:12px;
-  font-size:13px;
-  color:#ef4444;
-  display:none;
-  font-weight:800;
-}
-
-.bottom-actions{
-  margin-top:18px;
-  display:flex;
-  justify-content:flex-start;
-}
-
-.back-link{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  border:1px solid #dbe2ea;
-  background:#fff;
-  border-radius:10px;
-  padding:10px 14px;
+  border:none;
+  border-radius:13px;
+  padding:14px 16px;
   cursor:pointer;
-  font-size:13px;
+  font-size:14px;
   font-weight:800;
-  color:#0f172a;
+  font-family:Pretendard,sans-serif;
+  background:#1d4ed8;
+  color:#ffffff;
+  transition:background 0.15s, transform 0.15s;
 }
 
-.back-link svg{
-  width:15px;
-  height:15px;
-  flex:0 0 auto;
+.submit-btn:hover:enabled{
+  background:#1e40af;
 }
 
-.loading-overlay{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(255,255,255,0.92);
-  z-index:9999;
-  display:none;
-  align-items:center;
-  justify-content:center;
+.submit-btn:disabled{
+  background:#94a3b8;
+  cursor:not-allowed;
 }
 
-.loading-box{
-  text-align:center;
-}
-
-.spinner{
-  width:44px;
-  height:44px;
-  border:4px solid #e5e7eb;
-  border-top:4px solid #1d4ed8;
-  border-radius:50%;
-  animation:spin 0.8s linear infinite;
-  margin:0 auto 16px;
-}
-
-@keyframes spin{
-  to{transform:rotate(360deg);}
-}
-
-.loading-text{
-  font-size:16px;
-  font-weight:800;
-  color:#0f172a;
-}
-
-@media (max-width:760px){
+@media (max-width:560px){
   .container{
-    margin:24px auto;
-    padding:0 14px 26px;
+    margin:22px auto;
+    padding:0 14px 22px;
   }
 
-  .header-row{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:8px;
+  .card{
+    padding:28px 18px 18px;
+    border-radius:18px;
   }
 
-  .header-left{
-    align-items:center;
-    gap:6px;
-    margin-left:0;
+  .logo-wrap{
+    margin-bottom:16px;
   }
 
-  .header-logo{
-    width:56px;
-    height:56px;
+  .logo-circle{
+    width:112px;
+    height:112px;
   }
 
-  .header-title{
+  .logo-circle img{
+    width:100px;
+    height:100px;
+  }
+
+  .title-wrap{
+    margin-bottom:22px;
+  }
+
+  .main-title{
     font-size:22px;
   }
 
-  .header-sub{
+  .sub-title{
     font-size:12px;
-    margin-top:3px;
   }
 
-  .trip-inline{
-    white-space:normal;
-    text-align:left;
-    padding-top:0;
-    font-size:13px;
-  }
-
-  .grid-main{
-    grid-template-columns:1fr;
-  }
-
-  .address-row{
-    flex-direction:column;
-  }
-
-  .address-row button{
-    width:100%;
-  }
-
-  .time-row{
-    flex-direction:column;
+  select,
+  input[type="date"]{
+    height:46px;
+    line-height:46px;
   }
 }
 </style>
@@ -358,367 +277,117 @@ button{
 <body>
 <div class="container">
 
-  <div class="header-row">
-    <div class="header-left">
-      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
-      <div class="header-text">
-        <div class="header-title">국세청 체납관리단</div>
-        <div class="header-sub">SMART 경로탐색</div>
+  <div class="top-actions">
+    <a href="{{ url_for('admin_login') }}" class="admin-btn">관리자 설정</a>
+  </div>
+
+  <div class="card">
+    <div class="logo-wrap">
+      <div class="logo-circle">
+        <img src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
       </div>
     </div>
 
-    <div class="trip-inline">
-      {{ team_no }}({{ user_name }}) - {{ trip_date|replace('-', '.') }}
+    <div class="title-wrap">
+      <div class="main-title">국세청 체납관리단</div>
+      <div class="sub-title">SMART 경로탐색</div>
     </div>
+
+    <form id="startForm" method="POST">
+      <div class="form-group">
+        <div class="field">
+          <label class="required" for="teamSelect">조 선택</label>
+          <div class="select-wrap">
+            <select name="team_no" id="teamSelect" required>
+              <option value="">선택</option>
+              {% for team in team_options %}
+              <option value="{{ team }}">{{ team }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group hidden" id="userField">
+        <div class="field">
+          <label class="required" for="userSelect">사용자명</label>
+          <div class="select-wrap">
+            <select name="user_name" id="userSelect" required>
+              <option value="">선택</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group hidden" id="dateField">
+        <div class="field">
+          <label class="required" for="tripDate">방문 날짜</label>
+          <div class="date-wrap">
+            <input type="date" name="trip_date" id="tripDate" required>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn" disabled>경로 최적화 시작하기</button>
+    </form>
   </div>
 
-  <form id="routeForm" method="POST" action="/planner">
-    <div id="visits"></div>
-
-    <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 체납자 추가</button>
-    <button type="submit" class="btn-primary submit-btn" id="submitBtn">최적 경로 계산</button>
-  </form>
-
-  <div class="bottom-actions">
-    <button type="button" class="back-link" onclick="location.href='/'">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-      시작화면으로 이동
-    </button>
-  </div>
 </div>
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-box">
-    <div class="spinner"></div>
-    <div class="loading-text">최적 경로를 계산하고 있습니다.</div>
-  </div>
-</div>
-
-<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
 <script>
-let visitContainer = document.getElementById("visits");
-let form = document.getElementById("routeForm");
-let count = 0;
-const DRAFT_KEY = "route_visit_draft_v5";
+const teamUsers = {{ team_users | tojson }};
 
-function generateServiceOptions(){
-  let options = "";
-  for(let i=5;i<=60;i+=5){
-    options += `<option value="${i}">${i}분</option>`;
-  }
-  return options;
+const teamSelect = document.getElementById("teamSelect");
+const userSelect = document.getElementById("userSelect");
+const tripDate = document.getElementById("tripDate");
+const userField = document.getElementById("userField");
+const dateField = document.getElementById("dateField");
+const submitBtn = document.getElementById("submitBtn");
+
+function updateSubmitState(){
+  const isReady = !!(teamSelect.value && userSelect.value && tripDate.value);
+  submitBtn.disabled = !isReady;
 }
 
-function generateHourOptions(){
-  let options = `<option value="">시</option>`;
-  for(let i=10;i<=17;i++){
-    options += `<option value="${i}">${i}시</option>`;
-  }
-  return options;
-}
+teamSelect.addEventListener("change", function(){
+  const team = this.value;
 
-function generateMinuteOptions(){
-  let options = `<option value="">분</option>`;
-  for(let i=0;i<60;i+=5){
-    const v = i.toString().padStart(2, "0");
-    options += `<option value="${v}">${v}분</option>`;
-  }
-  return options;
-}
+  userSelect.innerHTML = '<option value="">선택</option>';
+  userField.classList.add("hidden");
+  dateField.classList.add("hidden");
+  userSelect.value = "";
+  tripDate.value = "";
 
-function addVisit(){
-  count = visitContainer.children.length + 1;
-
-  const div = document.createElement("div");
-  div.className = "card";
-
-  div.innerHTML = `
-    <div class="delete-icon" onclick="removeVisit(this)">✕</div>
-
-    <h3>체납자 ${count}</h3>
-
-    <div class="grid-main">
-      <div class="field">
-        <label class="required">성명</label>
-        <input type="text" name="name">
-      </div>
-
-      <div class="field">
-        <label class="required">주소</label>
-        <div class="address-row">
-          <input type="text" name="address" readonly>
-          <button type="button" class="btn-secondary" onclick="openAddress(this)">검색</button>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>방문 소요 시간</label>
-        <select name="service_time">
-          ${generateServiceOptions()}
-        </select>
-      </div>
-    </div>
-
-    <div class="appointment-box">
-      <input type="hidden" name="has_appointment_flag" value="0">
-
-      <label class="appointment-check">
-        <input type="checkbox" class="appointment-toggle" onchange="toggleTime(this)">
-        체납자와 방문 약속 시간 지정하기
-      </label>
-
-      <div class="time-select-area">
-        <div class="time-row">
-          <select name="visit_hour">${generateHourOptions()}</select>
-          <select name="visit_minute">${generateMinuteOptions()}</select>
-        </div>
-      </div>
-    </div>
-
-    <div class="warning">입력되지 않은 항목이 있습니다</div>
-  `;
-
-  visitContainer.appendChild(div);
-  bindDraftEvents(div);
-  updateDeleteButtons();
-  saveDraft();
-}
-
-function removeVisit(el){
-  el.closest(".card").remove();
-  renumber();
-  updateDeleteButtons();
-  saveDraft();
-}
-
-function renumber(){
-  const cards = document.querySelectorAll(".card");
-  count = cards.length;
-  cards.forEach((card, idx) => {
-    card.querySelector("h3").innerText = "체납자 " + (idx + 1);
-  });
-}
-
-function updateDeleteButtons(){
-  const cards = document.querySelectorAll(".card");
-  cards.forEach(card => {
-    const btn = card.querySelector(".delete-icon");
-    btn.style.display = (cards.length === 1) ? "none" : "block";
-  });
-}
-
-function toggleTime(cb){
-  const card = cb.closest(".card");
-  const box = cb.closest(".appointment-box");
-  const timeArea = box.querySelector(".time-select-area");
-  const hiddenFlag = box.querySelector('input[name="has_appointment_flag"]');
-  const hourEl = box.querySelector('select[name="visit_hour"]');
-  const minuteEl = box.querySelector('select[name="visit_minute"]');
-
-  if(cb.checked){
-    timeArea.style.display = "block";
-    hiddenFlag.value = "1";
-  }else{
-    timeArea.style.display = "none";
-    hiddenFlag.value = "0";
-    hourEl.value = "";
-    minuteEl.value = "";
-    hourEl.classList.remove("error");
-    minuteEl.classList.remove("error");
-    clearWarning(card);
+  if(!team || !teamUsers[team] || teamUsers[team].length === 0){
+    updateSubmitState();
+    return;
   }
 
-  saveDraft();
-}
-
-function openAddress(button){
-  const input = button.parentElement.querySelector('input[name="address"]');
-
-  new daum.Postcode({
-    oncomplete: function(data){
-      input.value = data.address;
-      input.classList.remove("error");
-      clearWarning(input.closest(".card"));
-      saveDraft();
-    }
-  }).open();
-}
-
-function showWarning(card){
-  const warning = card.querySelector(".warning");
-  if(warning) warning.style.display = "block";
-}
-
-function clearWarning(card){
-  const name = card.querySelector('input[name="name"]');
-  const address = card.querySelector('input[name="address"]');
-  const hiddenFlag = card.querySelector('input[name="has_appointment_flag"]');
-  const hourEl = card.querySelector('select[name="visit_hour"]');
-  const minuteEl = card.querySelector('select[name="visit_minute"]');
-  const warning = card.querySelector(".warning");
-
-  const hasAppointment = hiddenFlag && hiddenFlag.value === "1";
-  const baseOk = name.value.trim() && address.value.trim();
-  const timeOk = !hasAppointment || (hourEl.value && minuteEl.value);
-
-  if(baseOk && timeOk){
-    warning.style.display = "none";
-    name.classList.remove("error");
-    address.classList.remove("error");
-    hourEl.classList.remove("error");
-    minuteEl.classList.remove("error");
-  }
-}
-
-function validateForm(e){
-  let hasError = false;
-
-  document.querySelectorAll(".card").forEach(card => {
-    const name = card.querySelector('input[name="name"]');
-    const address = card.querySelector('input[name="address"]');
-    const hiddenFlag = card.querySelector('input[name="has_appointment_flag"]');
-    const hourEl = card.querySelector('select[name="visit_hour"]');
-    const minuteEl = card.querySelector('select[name="visit_minute"]');
-
-    let localError = false;
-
-    name.classList.remove("error");
-    address.classList.remove("error");
-    hourEl.classList.remove("error");
-    minuteEl.classList.remove("error");
-
-    if(!name.value.trim()){
-      name.classList.add("error");
-      localError = true;
-    }
-
-    if(!address.value.trim()){
-      address.classList.add("error");
-      localError = true;
-    }
-
-    const hasAppointment = hiddenFlag.value === "1";
-    if(hasAppointment){
-      if(!hourEl.value){
-        hourEl.classList.add("error");
-        localError = true;
-      }
-      if(!minuteEl.value){
-        minuteEl.classList.add("error");
-        localError = true;
-      }
-    }
-
-    if(localError){
-      showWarning(card);
-      hasError = true;
-    }else{
-      clearWarning(card);
-    }
+  teamUsers[team].forEach(user => {
+    const opt = document.createElement("option");
+    opt.value = user;
+    opt.textContent = user;
+    userSelect.appendChild(opt);
   });
 
-  if(hasError){
-    e.preventDefault();
-    return false;
-  }
-
-  saveDraft();
-  return true;
-}
-
-function bindDraftEvents(scope){
-  scope.querySelectorAll('input[name="name"], select[name="service_time"], select[name="visit_hour"], select[name="visit_minute"]').forEach(el => {
-    el.addEventListener("input", saveDraft);
-    el.addEventListener("change", saveDraft);
-  });
-
-  const checkbox = scope.querySelector(".appointment-toggle");
-  if(checkbox){
-    checkbox.addEventListener("change", saveDraft);
-  }
-}
-
-function saveDraft(){
-  const cards = document.querySelectorAll(".card");
-  const draft = [];
-
-  cards.forEach(card => {
-    const name = card.querySelector('input[name="name"]')?.value || "";
-    const address = card.querySelector('input[name="address"]')?.value || "";
-    const service = card.querySelector('select[name="service_time"]')?.value || "5";
-    const checkbox = card.querySelector('.appointment-toggle');
-    const hasAppt = checkbox ? checkbox.checked : false;
-    const hour = card.querySelector('select[name="visit_hour"]')?.value || "";
-    const minute = card.querySelector('select[name="visit_minute"]')?.value || "";
-
-    draft.push({ name, address, service, hasAppt, hour, minute });
-  });
-
-  sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-}
-
-function restoreDraft(){
-  const raw = sessionStorage.getItem(DRAFT_KEY);
-  if(!raw) return false;
-
-  let draft;
-  try{
-    draft = JSON.parse(raw);
-  }catch{
-    return false;
-  }
-
-  if(!Array.isArray(draft) || draft.length === 0) return false;
-
-  visitContainer.innerHTML = "";
-  count = 0;
-
-  draft.forEach(item => {
-    addVisit();
-    const card = visitContainer.lastElementChild;
-
-    const nameEl = card.querySelector('input[name="name"]');
-    const addrEl = card.querySelector('input[name="address"]');
-    const svcEl = card.querySelector('select[name="service_time"]');
-    const checkbox = card.querySelector('.appointment-toggle');
-    const hiddenFlag = card.querySelector('input[name="has_appointment_flag"]');
-    const timeArea = card.querySelector(".time-select-area");
-    const hourEl = card.querySelector('select[name="visit_hour"]');
-    const minEl = card.querySelector('select[name="visit_minute"]');
-
-    if(nameEl) nameEl.value = item.name || "";
-    if(addrEl) addrEl.value = item.address || "";
-    if(svcEl) svcEl.value = item.service || "5";
-
-    if(checkbox) checkbox.checked = !!item.hasAppt;
-    if(hiddenFlag) hiddenFlag.value = item.hasAppt ? "1" : "0";
-    if(timeArea) timeArea.style.display = item.hasAppt ? "block" : "none";
-
-    if(hourEl) hourEl.value = item.hour || "";
-    if(minEl) minEl.value = item.minute || "";
-  });
-
-  updateDeleteButtons();
-  return true;
-}
-
-form.addEventListener("submit", function(e){
-  if(!validateForm(e)){
-    return false;
-  }
-
-  document.getElementById("loadingOverlay").style.display = "flex";
-  document.getElementById("submitBtn").disabled = true;
+  userField.classList.remove("hidden");
+  updateSubmitState();
 });
 
-window.addEventListener("DOMContentLoaded", () => {
-  const restored = restoreDraft();
-  if(!restored){
-    addVisit();
+userSelect.addEventListener("change", function(){
+  tripDate.value = "";
+
+  if(this.value){
+    dateField.classList.remove("hidden");
+  }else{
+    dateField.classList.add("hidden");
   }
+
+  updateSubmitState();
+});
+
+tripDate.addEventListener("change", function(){
+  updateSubmitState();
 });
 </script>
 </body>
