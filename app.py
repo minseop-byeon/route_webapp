@@ -20,14 +20,11 @@ START_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 RETURN_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 
 ADMIN_PASSWORD = "cpskqrhksfleks12#"
-TMAP_DEFAULT_APP_KEY = "DBAKOdGMlm8X0TANyuGFI3GP7aMYWmb77v2JfnAA"
 SETTINGS_FILE = "admin_settings.json"
 GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
 
 DEFAULT_TEAM_USERS = {"1조": []}
-GUEST_TEAM_NAME = "게스트"
-GUEST_USER_NAME = "게스트"
 
 DEFAULT_SETTINGS = {
     "mail": {
@@ -43,14 +40,13 @@ DEFAULT_SETTINGS = {
     "api": {
         "client_id": "",
         "client_secret": "",
-        "tmap_app_key": TMAP_DEFAULT_APP_KEY
+        "tmap_app_key": ""
     },
     "user": {
         "start_address": START_ADDRESS,
         "return_address": RETURN_ADDRESS,
         "return_same_as_start": True,
-        "team_users": DEFAULT_TEAM_USERS,
-        "enable_guest_user": True
+        "team_users": DEFAULT_TEAM_USERS
     },
     "admin": {
         "admin_password": ADMIN_PASSWORD
@@ -60,7 +56,7 @@ DEFAULT_SETTINGS = {
 DAY_START = 10 * 60
 NO_LUNCH_IF_DONE_BY = 12 * 60
 LUNCH_START_MIN = 11 * 60 + 30
-LUNCH_START_MAX = 12 * 60 + 30
+LUNCH_START_MAX = 13 * 60 + 30
 LUNCH_DURATION = 60
 RETURN_LIMIT = 16 * 60 + 30
 
@@ -101,40 +97,6 @@ def normalize_team_users(team_users):
     return normalized
 
 
-
-
-def build_effective_team_users(team_users, enable_guest_user=True):
-    normalized = normalize_team_users(team_users)
-    cleaned = {}
-
-    for team_name, users in normalized.items():
-        if str(team_name).strip() == GUEST_TEAM_NAME:
-            continue
-        filtered_users = [u for u in users if str(u).strip() and str(u).strip() != GUEST_USER_NAME]
-        cleaned[str(team_name).strip()] = filtered_users
-
-    if enable_guest_user:
-        cleaned[GUEST_TEAM_NAME] = [GUEST_USER_NAME]
-
-    return cleaned
-
-
-def get_effective_team_users(settings=None):
-    settings = settings or load_settings()
-    user_settings = settings.get("user", {})
-    return build_effective_team_users(
-        user_settings.get("team_users", {}),
-        user_settings.get("enable_guest_user", True)
-    )
-
-
-def is_valid_team_user_selection(team_users, team_no, user_name):
-    team_no = (team_no or "").strip()
-    user_name = (user_name or "").strip()
-    if not team_no or not user_name:
-        return False
-    return user_name in team_users.get(team_no, [])
-
 def deep_copy_default_settings():
     return json.loads(json.dumps(DEFAULT_SETTINGS, ensure_ascii=False))
 
@@ -166,9 +128,6 @@ def migrate_legacy_settings(data):
         merged["user"]["return_same_as_start"] = True
 
     merged["user"]["team_users"] = normalize_team_users(merged["user"].get("team_users", {}))
-    if "enable_guest_user" not in merged["user"]:
-        merged["user"]["enable_guest_user"] = True
-    merged["user"]["enable_guest_user"] = bool(merged["user"].get("enable_guest_user"))
 
     if not merged["user"].get("start_address"):
         merged["user"]["start_address"] = START_ADDRESS
@@ -180,8 +139,6 @@ def migrate_legacy_settings(data):
         merged["admin"]["admin_password"] = ADMIN_PASSWORD
     if not merged["mail"].get("smtp_host"):
         merged["mail"]["smtp_host"] = "smtp.gmail.com"
-    if not merged["api"].get("tmap_app_key"):
-        merged["api"]["tmap_app_key"] = TMAP_DEFAULT_APP_KEY
     if not merged["mail"].get("smtp_port"):
         merged["mail"]["smtp_port"] = 587
 
@@ -471,41 +428,70 @@ def greedy_appointment_seed(visits, dist_matrix, time_matrix):
     return order
 
 
-def partial_path_score(path, visits, dist_matrix, time_matrix):
+def estimate_order_metrics(path, visits, dist_matrix, time_matrix):
     if not path:
-        return 0
+        return {
+            "appointment_violations": 0,
+            "appointment_late_total": 0,
+            "finish_time": DAY_START,
+            "total_distance": 0,
+            "locality_penalty": 0,
+            "wait_total": 0,
+        }
 
     current_time = DAY_START
     last = 0
     total_dist = 0
-    lateness_penalty = 0
-    early_wait_penalty = 0
     locality_penalty = 0
+    appointment_violations = 0
+    appointment_late_total = 0
+    wait_total = 0
 
     for idx, node in enumerate(path):
-        total_dist += dist_matrix[last][node]
         travel = time_matrix[last][node]
+        total_dist += dist_matrix[last][node]
         arrival = current_time + travel
         visit = visits[node - 1]
 
         if visit["has_appointment"]:
             target = visit["appointment_minute"]
             if arrival > target:
-                lateness_penalty += (arrival - target) * 5000
-            else:
-                wait = target - arrival
-                if wait > 30:
-                    early_wait_penalty += (wait - 30) * 15
+                appointment_violations += 1
+                appointment_late_total += arrival - target
+            elif arrival < target:
+                wait_total += target - arrival
                 arrival = target
 
         current_time = arrival + visit["service_time"]
 
         if idx >= 1:
-            locality_penalty += dist_matrix[path[idx - 1]][node] * 0.03
+            locality_penalty += int(dist_matrix[path[idx - 1]][node] * 0.03)
 
         last = node
 
-    return total_dist + lateness_penalty + early_wait_penalty + locality_penalty
+    finish_time = current_time + time_matrix[last][0]
+    total_dist += dist_matrix[last][0]
+
+    return {
+        "appointment_violations": appointment_violations,
+        "appointment_late_total": appointment_late_total,
+        "finish_time": finish_time,
+        "total_distance": total_dist,
+        "locality_penalty": locality_penalty,
+        "wait_total": wait_total,
+    }
+
+
+def partial_path_score(path, visits, dist_matrix, time_matrix):
+    metrics = estimate_order_metrics(path, visits, dist_matrix, time_matrix)
+    return (
+        metrics["appointment_violations"] * 10**9
+        + metrics["appointment_late_total"] * 10**6
+        + metrics["finish_time"] * 10**3
+        + metrics["total_distance"]
+        + metrics["locality_penalty"]
+        + metrics["wait_total"] * 5
+    )
 
 
 def beam_search_route(visits, dist_matrix, time_matrix):
@@ -634,10 +620,51 @@ def relocate_improve(order, dist_matrix, time_matrix, visits, max_iter=LOCAL_IMP
     return best
 
 
+def or_opt_improve(order, dist_matrix, time_matrix, visits, max_iter=LOCAL_IMPROVE_ITER):
+    if len(order) <= 3:
+        return order[:]
+
+    def score(candidate):
+        return partial_path_score(candidate, visits, dist_matrix, time_matrix) + route_distance_with_return(candidate, dist_matrix)
+
+    best = order[:]
+    best_score = score(best)
+    improved = True
+    iter_count = 0
+
+    while improved and iter_count < max_iter:
+        improved = False
+        iter_count += 1
+
+        for seg_len in (1, 2, 3):
+            if seg_len >= len(best):
+                continue
+            for i in range(len(best) - seg_len + 1):
+                segment = best[i:i + seg_len]
+                reduced = best[:i] + best[i + seg_len:]
+                for j in range(len(reduced) + 1):
+                    if j == i:
+                        continue
+                    candidate = reduced[:j] + segment + reduced[j:]
+                    cand_score = score(candidate)
+                    if cand_score < best_score:
+                        best = candidate
+                        best_score = cand_score
+                        improved = True
+                        break
+                if improved:
+                    break
+            if improved:
+                break
+
+    return best
+
+
 def optimize_route(visits, dist_matrix, time_matrix):
     order = beam_search_route(visits, dist_matrix, time_matrix)
     order = two_opt(order, dist_matrix, time_matrix, visits)
     order = relocate_improve(order, dist_matrix, time_matrix, visits)
+    order = or_opt_improve(order, dist_matrix, time_matrix, visits)
     order = two_opt(order, dist_matrix, time_matrix, visits)
     return order
 
@@ -697,7 +724,7 @@ def add_visit_block(route_view, visit_no, visit, arrival_min, travel_m, travel_m
         "arrival": minutes_to_str(arrival_min),
         "end_time": minutes_to_str(arrival_min + visit["service_time"]),
         "service_time": visit["service_time"],
-        "travel_km": round(travel_m / 1000, 2),
+        "travel_km": round(travel_m / 1000, 1),
         "travel_min": int(travel_min),
         "appointment_time": minutes_to_str(visit["appointment_minute"]) if visit["has_appointment"] else None,
     })
@@ -712,7 +739,7 @@ def add_return_block(route_view, arrival_min, travel_m, travel_min):
         "arrival": minutes_to_str(arrival_min),
         "end_time": minutes_to_str(arrival_min),
         "service_time": 0,
-        "travel_km": round(travel_m / 1000, 2),
+        "travel_km": round(travel_m / 1000, 1),
         "travel_min": int(travel_min),
     })
 
@@ -878,24 +905,73 @@ def compress_route_view(route_view):
     return compressed
 
 
+def normalize_pre_lunch_wait(route_view):
+    if not route_view:
+        return route_view
+
+    normalized = [dict(item) for item in route_view]
+    start_idx = next((i for i, item in enumerate(normalized) if item.get("type") == "start"), None)
+    if start_idx is None:
+        return normalized
+
+    movable_wait = 0
+    remove_indexes = []
+
+    for idx in range(1, len(normalized) - 1):
+        item = normalized[idx]
+        if item.get("type") != "wait":
+            continue
+        prev_item = normalized[idx - 1]
+        next_item = normalized[idx + 1]
+        wait_start = str_to_minutes(item.get("arrival"))
+        wait_end = str_to_minutes(item.get("end_time"))
+        if wait_start >= LUNCH_START_MAX:
+            continue
+        if next_item.get("type") == "visit" and next_item.get("appointment_time"):
+            continue
+        if prev_item.get("type") in ("visit", "wait") and next_item.get("type") in ("visit", "lunch", "return"):
+            movable_wait += max(0, wait_end - wait_start)
+            remove_indexes.append(idx)
+
+    if not movable_wait:
+        return normalized
+
+    normalized = [item for i, item in enumerate(normalized) if i not in remove_indexes]
+    start_item = normalized[start_idx]
+    start_time = str_to_minutes(start_item.get("arrival"))
+    insert_wait = {
+        "type": "wait",
+        "label": "W",
+        "name": "출발지 대기",
+        "address": "",
+        "arrival": minutes_to_str(start_time),
+        "end_time": minutes_to_str(start_time + movable_wait),
+        "service_time": movable_wait,
+        "travel_km": None,
+        "travel_min": None,
+    }
+
+    normalized.insert(start_idx + 1, insert_wait)
+    return compress_route_view(normalized)
+
+
 def simulate_order(order, visits, time_matrix, distance_matrix):
     best_result = None
 
     def consider_result(result):
         nonlocal best_result
-        result["route_view"] = compress_route_view(result["route_view"])
+        result["route_view"] = normalize_pre_lunch_wait(compress_route_view(result["route_view"]))
         result["intra_wait_count"] = count_intra_wait_blocks(result["route_view"])
+        result["locality_penalty"] = int(result["total_distance_m"] * 0.03) + (result["intra_wait_count"] * 500)
 
         score = (
             result["appointment_violation_count"],
-            1 if result["return_late"] > 0 else 0,
             result["appointment_late_total"],
-            result["intra_wait_count"],
+            result["return_time"],
+            result["total_distance_m"],
+            result["locality_penalty"],
             result["wait_total"],
             result["wait_count"],
-            result["total_distance_m"],
-            result["total_travel_min"],
-            result["return_time"],
         )
 
         result["score"] = score
@@ -1329,7 +1405,7 @@ def save_admin_settings_section():
             settings["user"]["start_address"] = start_address or START_ADDRESS
             settings["user"]["return_same_as_start"] = return_same_as_start
             settings["user"]["return_address"] = settings["user"]["start_address"] if return_same_as_start else (return_address or settings["user"]["start_address"])
-            settings["user"]["enable_guest_user"] = (request.form.get("enable_guest_user") or "1").strip() == "1"
+            settings["user"]["enable_guest_user"] = (request.form.get("enable_guest_user") or "1") == "1"
 
             team_names = request.form.getlist("team_name")
             team_user_blocks = request.form.getlist("team_users_block")
