@@ -1,4 +1,4 @@
-Flask
-requests
-reportlab
-gunicorn
+Flask>=3.0,<4
+requests>=2.31,<3
+reportlab>=4.0,<5
+gunicorn>=21,<24
