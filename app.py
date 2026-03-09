@@ -25,6 +25,9 @@ GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
 
 DEFAULT_TEAM_USERS = {"1조": []}
+GUEST_TEAM_NAME = "게스트"
+GUEST_USER_NAME = "게스트"
+TMAP_DEFAULT_APP_KEY = "DBAKOdGMlm8X0TANyuGFI3GP7aMYWmb77v2JfnAA"
 
 DEFAULT_SETTINGS = {
     "mail": {
@@ -40,13 +43,14 @@ DEFAULT_SETTINGS = {
     "api": {
         "client_id": "",
         "client_secret": "",
-        "tmap_app_key": ""
+        "tmap_app_key": TMAP_DEFAULT_APP_KEY
     },
     "user": {
         "start_address": START_ADDRESS,
         "return_address": RETURN_ADDRESS,
         "return_same_as_start": True,
-        "team_users": DEFAULT_TEAM_USERS
+        "team_users": DEFAULT_TEAM_USERS,
+        "enable_guest_user": True
     },
     "admin": {
         "admin_password": ADMIN_PASSWORD
@@ -86,15 +90,44 @@ def normalize_team_users(team_users):
     if isinstance(team_users, dict):
         for team_name, users in team_users.items():
             key = str(team_name).strip()
-            if not key:
+            if not key or key == GUEST_TEAM_NAME:
                 continue
             if isinstance(users, list):
-                normalized[key] = [str(x).strip() for x in users if str(x).strip()]
+                clean_users = []
+                for x in users:
+                    v = str(x).strip()
+                    if not v or v == GUEST_USER_NAME:
+                        continue
+                    clean_users.append(v)
+                normalized[key] = clean_users
 
     if not normalized:
         normalized = {"1조": []}
 
     return normalized
+
+
+def is_guest_enabled(settings):
+    return bool((settings or {}).get("user", {}).get("enable_guest_user", True))
+
+
+def get_effective_team_users(settings=None):
+    settings = settings or load_settings()
+    base = normalize_team_users((settings.get("user") or {}).get("team_users", {}))
+    if is_guest_enabled(settings):
+        effective = {GUEST_TEAM_NAME: [GUEST_USER_NAME]}
+        effective.update(base)
+        return effective
+    return base
+
+
+def is_valid_team_user_selection(team_users, team_no, user_name):
+    team_no = (team_no or "").strip()
+    user_name = (user_name or "").strip()
+    if not team_no or not user_name:
+        return False
+    users = team_users.get(team_no)
+    return isinstance(users, list) and user_name in users
 
 
 def deep_copy_default_settings():
@@ -128,6 +161,8 @@ def migrate_legacy_settings(data):
         merged["user"]["return_same_as_start"] = True
 
     merged["user"]["team_users"] = normalize_team_users(merged["user"].get("team_users", {}))
+    if "enable_guest_user" not in merged["user"]:
+        merged["user"]["enable_guest_user"] = True
 
     if not merged["user"].get("start_address"):
         merged["user"]["start_address"] = START_ADDRESS
@@ -135,6 +170,8 @@ def migrate_legacy_settings(data):
         merged["user"]["return_address"] = merged["user"].get("start_address", START_ADDRESS)
     if "return_same_as_start" not in merged["user"]:
         merged["user"]["return_same_as_start"] = True
+    if not merged["api"].get("tmap_app_key"):
+        merged["api"]["tmap_app_key"] = TMAP_DEFAULT_APP_KEY
     if not merged["admin"].get("admin_password"):
         merged["admin"]["admin_password"] = ADMIN_PASSWORD
     if not merged["mail"].get("smtp_host"):
@@ -199,7 +236,7 @@ def get_mail_config():
 
 def get_tmap_app_key():
     settings = load_settings()
-    return (settings.get("api", {}).get("tmap_app_key") or "").strip()
+    return (settings.get("api", {}).get("tmap_app_key") or TMAP_DEFAULT_APP_KEY).strip()
 
 
 def get_admin_password():
@@ -1395,7 +1432,7 @@ def save_admin_settings_section():
         elif section == "api":
             settings["api"]["client_id"] = (request.form.get("client_id") or "").strip()
             settings["api"]["client_secret"] = (request.form.get("client_secret") or "").strip()
-            settings["api"]["tmap_app_key"] = (request.form.get("tmap_app_key") or "").strip()
+            settings["api"]["tmap_app_key"] = (request.form.get("tmap_app_key") or TMAP_DEFAULT_APP_KEY).strip()
 
         elif section == "user":
             start_address = (request.form.get("start_address") or "").strip()
