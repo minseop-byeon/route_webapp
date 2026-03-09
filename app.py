@@ -20,11 +20,14 @@ START_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 RETURN_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 
 ADMIN_PASSWORD = "cpskqrhksfleks12#"
+TMAP_DEFAULT_APP_KEY = "DBAKOdGMlm8X0TANyuGFI3GP7aMYWmb77v2JfnAA"
 SETTINGS_FILE = "admin_settings.json"
 GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
 
 DEFAULT_TEAM_USERS = {"1조": []}
+GUEST_TEAM_NAME = "게스트"
+GUEST_USER_NAME = "게스트"
 
 DEFAULT_SETTINGS = {
     "mail": {
@@ -40,13 +43,14 @@ DEFAULT_SETTINGS = {
     "api": {
         "client_id": "",
         "client_secret": "",
-        "tmap_app_key": ""
+        "tmap_app_key": TMAP_DEFAULT_APP_KEY
     },
     "user": {
         "start_address": START_ADDRESS,
         "return_address": RETURN_ADDRESS,
         "return_same_as_start": True,
-        "team_users": DEFAULT_TEAM_USERS
+        "team_users": DEFAULT_TEAM_USERS,
+        "enable_guest_user": True
     },
     "admin": {
         "admin_password": ADMIN_PASSWORD
@@ -97,6 +101,40 @@ def normalize_team_users(team_users):
     return normalized
 
 
+
+
+def build_effective_team_users(team_users, enable_guest_user=True):
+    normalized = normalize_team_users(team_users)
+    cleaned = {}
+
+    for team_name, users in normalized.items():
+        if str(team_name).strip() == GUEST_TEAM_NAME:
+            continue
+        filtered_users = [u for u in users if str(u).strip() and str(u).strip() != GUEST_USER_NAME]
+        cleaned[str(team_name).strip()] = filtered_users
+
+    if enable_guest_user:
+        cleaned[GUEST_TEAM_NAME] = [GUEST_USER_NAME]
+
+    return cleaned
+
+
+def get_effective_team_users(settings=None):
+    settings = settings or load_settings()
+    user_settings = settings.get("user", {})
+    return build_effective_team_users(
+        user_settings.get("team_users", {}),
+        user_settings.get("enable_guest_user", True)
+    )
+
+
+def is_valid_team_user_selection(team_users, team_no, user_name):
+    team_no = (team_no or "").strip()
+    user_name = (user_name or "").strip()
+    if not team_no or not user_name:
+        return False
+    return user_name in team_users.get(team_no, [])
+
 def deep_copy_default_settings():
     return json.loads(json.dumps(DEFAULT_SETTINGS, ensure_ascii=False))
 
@@ -128,6 +166,9 @@ def migrate_legacy_settings(data):
         merged["user"]["return_same_as_start"] = True
 
     merged["user"]["team_users"] = normalize_team_users(merged["user"].get("team_users", {}))
+    if "enable_guest_user" not in merged["user"]:
+        merged["user"]["enable_guest_user"] = True
+    merged["user"]["enable_guest_user"] = bool(merged["user"].get("enable_guest_user"))
 
     if not merged["user"].get("start_address"):
         merged["user"]["start_address"] = START_ADDRESS
@@ -139,6 +180,8 @@ def migrate_legacy_settings(data):
         merged["admin"]["admin_password"] = ADMIN_PASSWORD
     if not merged["mail"].get("smtp_host"):
         merged["mail"]["smtp_host"] = "smtp.gmail.com"
+    if not merged["api"].get("tmap_app_key"):
+        merged["api"]["tmap_app_key"] = TMAP_DEFAULT_APP_KEY
     if not merged["mail"].get("smtp_port"):
         merged["mail"]["smtp_port"] = 587
 
@@ -1170,7 +1213,7 @@ def send_result_email(recipient, payload):
 @app.route("/", methods=["GET", "POST"])
 def start():
     settings = load_settings()
-    team_users = settings.get("user", {}).get("team_users", {"1조": []})
+    team_users = get_effective_team_users(settings)
     team_options = list(team_users.keys())
 
     if request.method == "POST":
@@ -1178,7 +1221,7 @@ def start():
         team_no = request.form.get("team_no", "").strip()
         trip_date = request.form.get("trip_date", "").strip()
 
-        if not user_name or not team_no or not trip_date:
+        if not user_name or not team_no or not trip_date or not is_valid_team_user_selection(team_users, team_no, user_name):
             return render_template(
                 "start.html",
                 user_name="",
@@ -1286,6 +1329,7 @@ def save_admin_settings_section():
             settings["user"]["start_address"] = start_address or START_ADDRESS
             settings["user"]["return_same_as_start"] = return_same_as_start
             settings["user"]["return_address"] = settings["user"]["start_address"] if return_same_as_start else (return_address or settings["user"]["start_address"])
+            settings["user"]["enable_guest_user"] = (request.form.get("enable_guest_user") or "1").strip() == "1"
 
             team_names = request.form.getlist("team_name")
             team_user_blocks = request.form.getlist("team_users_block")
@@ -1293,11 +1337,11 @@ def save_admin_settings_section():
             team_users = {}
             for idx, raw_name in enumerate(team_names):
                 team_name = (raw_name or "").strip()
-                if not team_name:
+                if not team_name or team_name == GUEST_TEAM_NAME:
                     continue
 
                 raw_users = team_user_blocks[idx] if idx < len(team_user_blocks) else ""
-                users = [x.strip() for x in raw_users.splitlines() if x.strip()]
+                users = [x.strip() for x in raw_users.splitlines() if x.strip() and x.strip() != GUEST_USER_NAME]
                 team_users[team_name] = users
 
             settings["user"]["team_users"] = normalize_team_users(team_users)
