@@ -1625,12 +1625,19 @@ def save_admin_settings_section():
             team_users = {}
             for idx, raw_name in enumerate(team_names):
                 team_name = (raw_name or "").strip()
-                if not team_name or team_name == GUEST_TEAM_NAME:
-                    continue
+                if not team_name:
+                    return jsonify({"success": False, "message": "조 이름은 필수 입력 항목입니다."})
+                if team_name == GUEST_TEAM_NAME:
+                    return jsonify({"success": False, "message": "게스트는 카드 목록에서 수정할 수 없습니다."})
 
                 raw_users = team_user_blocks[idx] if idx < len(team_user_blocks) else ""
                 users = [x.strip() for x in raw_users.splitlines() if x.strip() and x.strip() != GUEST_USER_NAME]
+                if not users:
+                    return jsonify({"success": False, "message": "사용자 목록은 필수 입력 항목입니다."})
                 team_users[team_name] = users
+
+            if not team_users:
+                return jsonify({"success": False, "message": "최소 1개의 카드를 유지해 주세요."})
 
             settings["user"]["team_users"] = normalize_team_users(team_users)
 

@@ -1076,6 +1076,28 @@
         };
     }
 
+    function validateUserSettingsForm(form) {
+        if (form.id !== 'userSettingsForm') return null;
+
+        const cards = Array.from(form.querySelectorAll('#teamCardsWrap .team-card'));
+        if (!cards.length) {
+            return '최소 1개의 카드를 유지해 주세요.';
+        }
+
+        for (const card of cards) {
+            const teamName = (card.querySelector('input[name="team_name"]')?.value || '').trim();
+            const usersText = (card.querySelector('textarea[name="team_users_block"]')?.value || '').trim();
+            if (!teamName) {
+                return '조 이름은 필수 입력 항목입니다.';
+            }
+            if (!usersText) {
+                return '사용자 목록은 필수 입력 항목입니다.';
+            }
+        }
+
+        return null;
+    }
+
     function updateSaveButtonState(form) {
         const saveBtn = form.querySelector('.save-btn');
         const dirty = isFormDirty(form);
@@ -1168,6 +1190,12 @@
 
     async function saveForm(form, moveAfterSave = false) {
         clearStatus(form);
+        const validationMessage = validateUserSettingsForm(form);
+        if (validationMessage) {
+            showStatus(form, 'error', validationMessage);
+            updateSaveButtonState(form);
+            return false;
+        }
         const formData = new FormData(form);
         formData.append('section', form.dataset.section);
 
@@ -1364,7 +1392,9 @@
         const cards = document.querySelectorAll('#teamCardsWrap .team-card');
         cards.forEach(btnCard => {
             const btn = btnCard.querySelector('.team-card-remove');
-            btn.disabled = false;
+            const isOnlyCard = cards.length === 1;
+            btn.disabled = isOnlyCard;
+            btn.classList.toggle('hidden', isOnlyCard);
         });
     }
 
