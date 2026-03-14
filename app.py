@@ -444,6 +444,68 @@ def save_route_cache(cache):
     save_persistent_json("route_cache", ROUTE_CACHE_FILE, cache)
 
 
+def extract_building_name(geocode_item):
+    if not isinstance(geocode_item, dict):
+        return ""
+
+    for element in geocode_item.get("addressElements") or []:
+        types = element.get("types") or element.get("type") or []
+        if isinstance(types, str):
+            types = [types]
+        if "BUILDING_NAME" in types:
+            name = str(element.get("longName") or element.get("shortName") or "").strip()
+            if name:
+                return name
+    return ""
+
+
+def format_display_address(address, building_name=""):
+    address = (address or "").strip()
+    building_name = (building_name or "").strip()
+    if not address or not building_name:
+        return address
+    if building_name in address:
+        return address
+    return f"{address} ({building_name})"
+
+
+def geocode_with_meta(address: str):
+    query = (address or "").strip()
+    coord, err = geocode(query)
+    if not coord:
+        return None, None, err
+
+    cache = get_geocode_cache()
+    item = cache.get(query) or {}
+    building_name = (item.get("building_name") or "").strip()
+    if building_name:
+        return coord, {"building_name": building_name, "display_address": format_display_address(query, building_name)}, None
+
+    url = "https://maps.apigw.ntruss.com/map-geocode/v2/geocode"
+    headers = get_api_headers()
+    if headers["X-NCP-APIGW-API-KEY-ID"] and headers["X-NCP-APIGW-API-KEY"]:
+        try:
+            resp = requests.get(url, headers=headers, params={"query": query}, timeout=10)
+            if resp.status_code == 200:
+                data = resp.json()
+                addresses = data.get("addresses") or []
+                if addresses:
+                    building_name = extract_building_name(addresses[0])
+                    if building_name:
+                        item.update({
+                            "x": coord[0],
+                            "y": coord[1],
+                            "building_name": building_name,
+                            "updated_at": datetime.now().isoformat(),
+                        })
+                        cache[query] = item
+                        save_geocode_cache(cache)
+        except Exception:
+            pass
+
+    return coord, {"building_name": building_name, "display_address": format_display_address(query, building_name)}, None
+
+
 def geocode(address: str):
     url = "https://maps.apigw.ntruss.com/map-geocode/v2/geocode"
     query = (address or "").strip()
@@ -908,7 +970,7 @@ def add_visit_block(route_view, visit_no, visit, arrival_min, travel_m, travel_m
         "type": "visit",
         "label": str(visit_no),
         "name": visit["name"],
-        "address": visit["address"],
+        "address": visit.get("display_address") or visit["address"],
         "arrival": minutes_to_str(arrival_min),
         "end_time": minutes_to_str(arrival_min + visit["service_time"]),
         "service_time": visit["service_time"],
@@ -918,12 +980,12 @@ def add_visit_block(route_view, visit_no, visit, arrival_min, travel_m, travel_m
     })
 
 
-def add_return_block(route_view, arrival_min, travel_m, travel_min):
+def add_return_block(route_view, arrival_min, travel_m, travel_min, return_address=None):
     route_view.append({
         "type": "return",
         "label": "R",
         "name": "복귀",
-        "address": get_return_address(),
+        "address": return_address or get_return_address(),
         "arrival": minutes_to_str(arrival_min),
         "end_time": minutes_to_str(arrival_min),
         "service_time": 0,
@@ -1143,7 +1205,7 @@ def normalize_pre_lunch_wait(route_view):
     return compress_route_view(normalized)
 
 
-def simulate_order(order, visits, time_matrix, distance_matrix):
+def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None):
     best_result = None
 
     def consider_result(result):
@@ -1200,7 +1262,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
                 travel_back = 0
 
             return_time = effective_end + travel_back
-            add_return_block(end_route, return_time, dist_back, travel_back)
+            add_return_block(end_route, return_time, dist_back, travel_back, return_display_address)
 
             consider_result({
                 "route_view": end_route,
@@ -1281,7 +1343,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
         "type": "start",
         "label": "S",
         "name": "출발",
-        "address": get_start_address(),
+        "address": start_display_address or get_start_address(),
         "arrival": minutes_to_str(DAY_START),
         "end_time": minutes_to_str(DAY_START),
         "service_time": 0,
@@ -1293,12 +1355,12 @@ def simulate_order(order, visits, time_matrix, distance_matrix):
     return best_result
 
 
-def choose_best_schedule(visits, distance_matrix, time_matrix):
+def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_address=None, return_display_address=None):
     if not visits:
-        return [], simulate_order([], visits, time_matrix, distance_matrix)
+        return [], simulate_order([], visits, time_matrix, distance_matrix, start_display_address, return_display_address)
 
     order = optimize_route(visits, distance_matrix, time_matrix)
-    best = simulate_order(order, visits, time_matrix, distance_matrix)
+    best = simulate_order(order, visits, time_matrix, distance_matrix, start_display_address, return_display_address)
     return order, best
 
 
@@ -1731,7 +1793,7 @@ def planner():
             session["last_result_payload"] = payload
             return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
 
-        start_coord, start_err = geocode(get_start_address())
+        start_coord, start_meta, start_err = geocode_with_meta(get_start_address())
         if not start_coord:
             payload = {
                 "route": [],
@@ -1747,14 +1809,20 @@ def planner():
             session["last_result_payload"] = payload
             return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
 
+        start_display_address = (start_meta or {}).get("display_address") or get_start_address()
+        _, return_meta, _ = geocode_with_meta(get_return_address())
+        return_display_address = (return_meta or {}).get("display_address") or get_return_address()
+
         coords = [start_coord]
         failed_addresses = []
 
         for visit in visits:
-            coord, err = geocode(visit["address"])
+            coord, meta, err = geocode_with_meta(visit["address"])
             coords.append(coord)
             if coord is None:
                 failed_addresses.append(f"{visit['name']} / {visit['address']} / {err}")
+            else:
+                visit["display_address"] = (meta or {}).get("display_address") or visit["address"]
 
         if failed_addresses:
             payload = {
@@ -1782,7 +1850,13 @@ def planner():
                     dist_matrix[i][j] = d
                     time_matrix[i][j] = t
 
-        _, best = choose_best_schedule(visits, dist_matrix, time_matrix)
+        _, best = choose_best_schedule(
+            visits,
+            dist_matrix,
+            time_matrix,
+            start_display_address=start_display_address,
+            return_display_address=return_display_address,
+        )
 
         if best is None:
             payload = {
