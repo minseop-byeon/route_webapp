@@ -278,7 +278,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 <div class="container">
 
   <div class="top-actions">
-    <a href="{{ url_for('admin_login') }}" class="admin-btn">관리자 설정</a>
+    <a href="{{ url_for('admin_settings_page') if session.get('is_admin') else url_for('admin_login') }}" class="admin-btn">관리자 설정</a>
   </div>
 
   <div class="card">

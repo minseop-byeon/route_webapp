@@ -1527,6 +1527,9 @@ def reset():
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
+    if session.get("is_admin"):
+        return redirect(url_for("admin_settings_page"))
+
     if is_mobile_request():
         return render_template("admin_login.html", mobile_blocked=True)
 
