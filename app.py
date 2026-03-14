@@ -1555,6 +1555,24 @@ def admin_settings_page():
     return render_template("admin_settings.html", settings=settings)
 
 
+@app.route("/admin/settings/verify-password", methods=["POST"])
+def verify_admin_password():
+    if not session.get("is_admin"):
+        return jsonify({"success": False, "message": "관리자 로그인이 필요합니다."}), 401
+
+    if is_mobile_request():
+        return jsonify({"success": False, "message": "모바일에서는 관리자 설정을 변경할 수 없습니다."}), 403
+
+    current_password = (request.form.get("current_admin_password") or "").strip()
+    if not current_password:
+        return jsonify({"success": False, "message": "현재 관리자 비밀번호를 입력해 주세요."}), 400
+
+    if current_password != get_admin_password():
+        return jsonify({"success": False, "message": "현재 관리자 비밀번호가 올바르지 않습니다."}), 400
+
+    return jsonify({"success": True, "message": "비밀번호가 확인되었습니다."})
+
+
 @app.route("/admin/settings/save-section", methods=["POST"])
 def save_admin_settings_section():
     if not session.get("is_admin"):
