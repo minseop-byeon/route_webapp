@@ -359,10 +359,10 @@
 
         .cards-toolbar {
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
             align-items: center;
             gap: 12px;
-            margin-bottom: 14px;
+            margin: 8px 0 14px;
             flex-wrap: wrap;
         }
 
@@ -532,22 +532,6 @@
 
         .toggle-switch input:checked + .toggle-slider::after {
             transform: translateX(22px);
-        }
-
-        .guest-fixed-note {
-            margin-top: 14px;
-            padding: 12px 14px;
-            border-radius: 12px;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1d4ed8;
-            font-size: 12px;
-            line-height: 1.6;
-            font-weight: 700;
-        }
-
-        .guest-fixed-note strong {
-            color: #1e3a8a;
         }
 
         .password-step-box {
@@ -861,13 +845,13 @@
 
                 <section id="panel-user" class="panel">
                     <h3 class="panel-title">사용자 설정</h3>
-                    <p class="panel-desc">조 및 사용자를 등록하거나 삭제할 수 있습니다.</p>
+                    <p class="panel-desc">사용자를 등록하거나 삭제할 수 있습니다.</p>
 
-                    <form class="settings-form" data-section="user">
+                    <form class="settings-form" data-section="user" id="userSettingsForm">
                         <div class="guest-toggle-box">
                             <div class="guest-toggle-text">
                                 <div class="guest-toggle-title">게스트 사용자 사용하기</div>
-                                <div class="guest-toggle-desc">기본 ON 상태로 유지되며, 시작화면에서 별도 사용자 등록 없이 항상 게스트(게스트)를 선택할 수 있습니다.</div>
+                                <div class="guest-toggle-desc">시작화면에서 게스트를 선택할 수 있습니다. 게스트는 시작화면에서 제공되며, 카드 목록에서는 표시되지 않습니다.</div>
                             </div>
                             <label class="toggle-switch" for="enableGuestUserSwitch">
                                 <input type="checkbox" id="enableGuestUserSwitch" {% if settings.user.enable_guest_user %}checked{% endif %}>
@@ -875,7 +859,6 @@
                             </label>
                         </div>
                         <input type="hidden" name="enable_guest_user" id="enableGuestUserHidden" value="{{ 1 if settings.user.enable_guest_user else 0 }}">
-                        <div class="guest-fixed-note"><strong>게스트 조/사용자</strong>는 시작화면에서만 제공되며, 아래 카드 목록에는 표시되지 않습니다.</div>
 
                         <div class="cards-toolbar">
                             <button type="button" class="add-card-btn" id="addTeamCardBtn">+ 카드 추가</button>
@@ -913,7 +896,7 @@
                     <h3 class="panel-title">출발/복귀지 설정</h3>
                     <p class="panel-desc">경로 계산 시 사용하는 출발지와 복귀지 주소를 설정합니다.</p>
 
-                    <form class="settings-form" data-section="user">
+                    <form class="settings-form" data-section="user" id="locationSettingsForm">
                         <div class="form-grid">
                             <div class="form-group full">
                                 <label for="start_address">출발지 주소</label>
@@ -1074,11 +1057,31 @@
         }
     }
 
+    function isAdminFormReadyToSave(form) {
+        if (form.id !== 'adminPasswordForm') return true;
+        if (form.dataset.passwordVerified !== '1') return false;
+
+        const newPassword = (document.getElementById('new_admin_password')?.value || '').trim();
+        const confirmPassword = (document.getElementById('confirm_admin_password')?.value || '').trim();
+        return Boolean(newPassword && confirmPassword);
+    }
+
+    function getLocationFormSnapshot(form) {
+        const startValue = (form.querySelector('#start_address')?.value || '').trim();
+        const returnValue = (form.querySelector('#return_address')?.value || '').trim();
+        const sameAsStart = Boolean(form.querySelector('#return_same_as_start_checkbox')?.checked);
+        return {
+            start_address: startValue,
+            return_address: sameAsStart ? startValue : returnValue,
+        };
+    }
+
     function updateSaveButtonState(form) {
         const saveBtn = form.querySelector('.save-btn');
         const dirty = isFormDirty(form);
-        saveBtn.disabled = !dirty;
-        saveBtn.classList.toggle('enabled', dirty);
+        const enabled = dirty && isAdminFormReadyToSave(form);
+        saveBtn.disabled = !enabled;
+        saveBtn.classList.toggle('enabled', enabled);
     }
 
     function markFormClean(form) {
@@ -1093,6 +1096,10 @@
         if (form.dataset.section === 'admin') {
             form.dataset.passwordVerified = form.dataset.passwordVerified || '0';
             form.dataset.initialCardCount = form.dataset.initialCardCount || '0';
+        }
+
+        if (form.id === 'locationSettingsForm') {
+            form.dataset.initialLocationSnapshot = JSON.stringify(getLocationFormSnapshot(form));
         }
 
         updateSaveButtonState(form);
@@ -1124,6 +1131,10 @@
     }
 
     function isFormDirty(form) {
+        if (form.id === 'locationSettingsForm') {
+            return (form.dataset.initialLocationSnapshot || '') !== JSON.stringify(getLocationFormSnapshot(form));
+        }
+
         if (form.dataset.section === 'user' && form.querySelector('#teamCardsWrap')) {
             const initialCardCount = Number(form.dataset.initialCardCount || '0');
             const currentCardCount = form.querySelectorAll('#teamCardsWrap .team-card').length;
