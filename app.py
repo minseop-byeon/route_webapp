@@ -5,7 +5,15 @@ import smtplib
 from email.message import EmailMessage
 import os
 import json
+import logging
 from datetime import datetime
+from zoneinfo import ZoneInfo
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+try:
+    import psycopg2
+except Exception:
+    psycopg2 = None
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
@@ -14,12 +22,13 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
 app = Flask(__name__)
-app.secret_key = "replace-this-with-your-secure-secret-key"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "replace-this-with-your-secure-secret-key")
+app.logger.setLevel(logging.INFO)
 
 START_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 RETURN_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 
-ADMIN_PASSWORD = "cpskqrhksfleks12#"
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "cpskqrhksfleks12#")
 SETTINGS_FILE = "admin_settings.json"
 GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
@@ -27,7 +36,8 @@ ROUTE_CACHE_FILE = "route_cache.json"
 DEFAULT_TEAM_USERS = {"1조": []}
 GUEST_TEAM_NAME = "게스트"
 GUEST_USER_NAME = "게스트"
-TMAP_DEFAULT_APP_KEY = "DBAKOdGMlm8X0TANyuGFI3GP7aMYWmb77v2JfnAA"
+TMAP_DEFAULT_APP_KEY = os.getenv("TMAP_APP_KEY", "DBAKOdGMlm8X0TANyuGFI3GP7aMYWmb77v2JfnAA")
+DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
 
 DEFAULT_SETTINGS = {
     "mail": {
@@ -67,6 +77,7 @@ RETURN_LIMIT = 16 * 60 + 30
 BEAM_WIDTH = 24
 LOCAL_IMPROVE_ITER = 80
 MAX_PARTIAL_CANDIDATES = 1200
+APP_STATE_TABLE = "app_state"
 
 
 def load_json_file(path, default_value):
@@ -82,6 +93,127 @@ def load_json_file(path, default_value):
 def save_json_file(path, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def has_database_storage():
+    if not DATABASE_URL:
+        return False
+    if "://" not in DATABASE_URL:
+        app.logger.warning("DATABASE_URL format is invalid; falling back to file storage.")
+        return False
+    if psycopg2 is None:
+        app.logger.warning("psycopg2 is unavailable; falling back to file storage.")
+        return False
+    return True
+
+
+def _remove_query_param(url, param_name):
+    parts = urlsplit(url)
+    query_pairs = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k != param_name]
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query_pairs), parts.fragment))
+
+
+def _database_url_candidates():
+    if not has_database_storage():
+        return []
+    candidates = [DATABASE_URL]
+    if "channel_binding=" in DATABASE_URL:
+        candidates.append(_remove_query_param(DATABASE_URL, "channel_binding"))
+    return candidates
+
+
+def _connect_postgres():
+    last_error = None
+    for index, candidate in enumerate(_database_url_candidates()):
+        try:
+            conn = psycopg2.connect(candidate)
+            conn.autocommit = True
+            if index > 0:
+                app.logger.warning("Connected to Postgres after removing unsupported DATABASE_URL options.")
+            return conn
+        except Exception as exc:
+            last_error = exc
+    if last_error:
+        raise last_error
+    raise RuntimeError("Database storage is not configured.")
+
+
+def _ensure_postgres_state_table():
+    with _connect_postgres() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS {APP_STATE_TABLE} (
+                    state_key TEXT PRIMARY KEY,
+                    state_value JSONB NOT NULL,
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+                """
+            )
+
+
+def load_persistent_json(state_key, file_path, default_value):
+    if has_database_storage():
+        try:
+            _ensure_postgres_state_table()
+            with _connect_postgres() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        f"SELECT state_value FROM {APP_STATE_TABLE} WHERE state_key = %s",
+                        (state_key,),
+                    )
+                    row = cur.fetchone()
+            if row:
+                value = row[0]
+                if isinstance(value, str):
+                    return json.loads(value)
+                return value
+
+            file_value = load_json_file(file_path, None)
+            if file_value is not None:
+                save_persistent_json(state_key, file_path, file_value)
+                return file_value
+            return default_value
+        except Exception:
+            app.logger.exception("Failed to load '%s' from Postgres. Falling back to file storage.", state_key)
+            return load_json_file(file_path, default_value)
+
+    return load_json_file(file_path, default_value)
+
+
+def save_persistent_json(state_key, file_path, data):
+    if has_database_storage():
+        try:
+            _ensure_postgres_state_table()
+            with _connect_postgres() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        f"""
+                        INSERT INTO {APP_STATE_TABLE} (state_key, state_value, updated_at)
+                        VALUES (%s, %s::jsonb, NOW())
+                        ON CONFLICT (state_key)
+                        DO UPDATE SET
+                            state_value = EXCLUDED.state_value,
+                            updated_at = NOW()
+                        """,
+                        (state_key, json.dumps(data, ensure_ascii=False)),
+                    )
+            return
+        except Exception:
+            app.logger.exception("Failed to save '%s' to Postgres. Falling back to file storage.", state_key)
+
+    save_json_file(file_path, data)
+
+
+def initialize_storage():
+    if not has_database_storage():
+        app.logger.warning("Using file storage because DATABASE_URL Postgres storage is unavailable.")
+        return
+    try:
+        _ensure_postgres_state_table()
+        app.logger.info("Postgres storage is active.")
+    except Exception:
+        app.logger.exception("Postgres storage initialization failed. Falling back to file storage.")
 
 
 def normalize_team_users(team_users):
@@ -189,23 +321,18 @@ def migrate_legacy_settings(data):
 
 
 def load_settings():
-    if not os.path.exists(SETTINGS_FILE):
+    data = load_persistent_json("settings", SETTINGS_FILE, None)
+    if data is None:
         settings = deep_copy_default_settings()
         save_settings(settings)
         return settings
-
-    try:
-        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except Exception:
-        data = {}
 
     return migrate_legacy_settings(data)
 
 
 def save_settings(data):
     merged = migrate_legacy_settings(data)
-    save_json_file(SETTINGS_FILE, merged)
+    save_persistent_json("settings", SETTINGS_FILE, merged)
 
 
 def get_start_address():
@@ -302,19 +429,19 @@ def parse_appointment_minute(hour_str: str, minute_str: str):
 
 
 def get_geocode_cache():
-    return load_json_file(GEOCODE_CACHE_FILE, {})
+    return load_persistent_json("geocode_cache", GEOCODE_CACHE_FILE, {})
 
 
 def save_geocode_cache(cache):
-    save_json_file(GEOCODE_CACHE_FILE, cache)
+    save_persistent_json("geocode_cache", GEOCODE_CACHE_FILE, cache)
 
 
 def get_route_cache():
-    return load_json_file(ROUTE_CACHE_FILE, {})
+    return load_persistent_json("route_cache", ROUTE_CACHE_FILE, {})
 
 
 def save_route_cache(cache):
-    save_json_file(ROUTE_CACHE_FILE, cache)
+    save_persistent_json("route_cache", ROUTE_CACHE_FILE, cache)
 
 
 def geocode(address: str):
@@ -1345,6 +1472,9 @@ def send_result_email(recipient, payload):
         return True
     except Exception:
         return False
+
+
+initialize_storage()
 
 
 @app.route("/", methods=["GET", "POST"])
