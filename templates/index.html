@@ -531,7 +531,8 @@ button{
   <form id="routeForm" method="POST" action="/planner">
     <div id="visits"></div>
 
-    <button type="button" class="btn-secondary add-btn ocr-page-btn" id="ocrPageBtn">사진으로 주소 목록 읽기</button>
+    <button type="button" class="btn-secondary add-btn ocr-page-btn" id="ocrPageBtn">카메라로 주소 목록 읽기</button>
+    <button type="button" class="btn-secondary add-btn ocr-page-btn" id="ocrGalleryBtn">사진첩에서 주소 목록 읽기</button>
     <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 체납자 추가</button>
     <button type="submit" class="btn-primary submit-btn" id="submitBtn">최적 경로 계산</button>
   </form>
@@ -554,6 +555,7 @@ button{
 </div>
 
 <input type="file" id="ocrCameraInput" accept="image/*" capture="environment" hidden style="display:none" tabindex="-1" aria-hidden="true">
+<input type="file" id="ocrGalleryInput" accept="image/*" hidden style="display:none" tabindex="-1" aria-hidden="true">
 
 <div class="ocr-modal" id="ocrConfirmModal">
   <div class="ocr-modal-card">
@@ -578,7 +580,9 @@ let form = document.getElementById("routeForm");
 let count = 0;
 const DRAFT_KEY = "route_visit_draft_v5";
 const ocrPageBtn = document.getElementById("ocrPageBtn");
+const ocrGalleryBtn = document.getElementById("ocrGalleryBtn");
 const ocrCameraInput = document.getElementById("ocrCameraInput");
+const ocrGalleryInput = document.getElementById("ocrGalleryInput");
 const ocrConfirmModal = document.getElementById("ocrConfirmModal");
 const ocrAddressList = document.getElementById("ocrAddressList");
 const ocrCancelBtn = document.getElementById("ocrCancelBtn");
@@ -801,9 +805,19 @@ function openOcrCapture(){
   ocrCameraInput.click();
 }
 
+function openOcrGallery(){
+  if(!isMobileClient){
+    return;
+  }
+  ocrGalleryInput.value = "";
+  ocrGalleryInput.click();
+}
+
 function refreshOcrButtons(){
   ocrPageBtn.classList.toggle("show", isMobileClient);
+  ocrGalleryBtn.classList.toggle("show", isMobileClient);
   ocrCameraInput.disabled = !isMobileClient;
+  ocrGalleryInput.disabled = !isMobileClient;
 }
 
 function generateServiceOptions(){
@@ -963,8 +977,8 @@ function openAddress(button){
   openAddressField(input);
 }
 
-ocrCameraInput.addEventListener("change", async () => {
-  const file = ocrCameraInput.files && ocrCameraInput.files[0];
+async function handleOcrFileSelection(fileInput){
+  const file = fileInput.files && fileInput.files[0];
   if(!file){
     return;
   }
@@ -983,8 +997,16 @@ ocrCameraInput.addEventListener("change", async () => {
   }catch(error){
     alert(error.message || "사진에서 주소 목록을 읽지 못했습니다.");
   }finally{
-    ocrCameraInput.value = "";
+    fileInput.value = "";
   }
+}
+
+ocrCameraInput.addEventListener("change", async () => {
+  await handleOcrFileSelection(ocrCameraInput);
+});
+
+ocrGalleryInput.addEventListener("change", async () => {
+  await handleOcrFileSelection(ocrGalleryInput);
 });
 
 ocrCancelBtn.addEventListener("click", () => {
@@ -1009,6 +1031,7 @@ ocrConfirmModal.addEventListener("click", (event) => {
 });
 
 ocrPageBtn.addEventListener("click", openOcrCapture);
+ocrGalleryBtn.addEventListener("click", openOcrGallery);
 
 function showWarning(card){
   const warning = card.querySelector(".warning");
