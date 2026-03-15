@@ -721,6 +721,7 @@ function closeOcrModal(){
   ocrCandidateList.innerHTML = "";
   ocrManualAddress.value = "";
   setOcrStatus();
+  activeOcrAddressInput = null;
 }
 
 async function runOcrForFile(file){
@@ -740,6 +741,10 @@ function openOcrCapture(button){
   if(!activeOcrAddressInput){
     return;
   }
+  activeOcrAddressInput.value = "";
+  activeOcrAddressInput.classList.remove("error");
+  clearWarning(activeOcrAddressInput.closest(".card"));
+  saveDraft();
   ocrCameraInput.value = "";
   ocrCameraInput.click();
 }
@@ -904,7 +909,12 @@ ocrCameraInput.addEventListener("change", async () => {
   try{
     const ocrText = await runOcrForFile(file);
     const candidates = collectAddressCandidates(ocrText);
-    openOcrModal(candidates, normalizeOcrText(ocrText).slice(0, 120));
+    const resolvedText = candidates[0] || normalizeOcrText(ocrText).slice(0, 120);
+    activeOcrAddressInput.value = resolvedText;
+    activeOcrAddressInput.classList.remove("error");
+    clearWarning(activeOcrAddressInput.closest(".card"));
+    saveDraft();
+    openOcrModal(candidates, resolvedText);
   }catch(error){
     alert(error.message || "사진에서 주소를 읽지 못했습니다.");
   }finally{
@@ -913,6 +923,10 @@ ocrCameraInput.addEventListener("change", async () => {
 });
 
 ocrCancelBtn.addEventListener("click", () => {
+  if(activeOcrAddressInput){
+    activeOcrAddressInput.value = "";
+    saveDraft();
+  }
   closeOcrModal();
 });
 
@@ -935,6 +949,10 @@ ocrApplyBtn.addEventListener("click", () => {
 
 ocrConfirmModal.addEventListener("click", (event) => {
   if(event.target === ocrConfirmModal){
+    if(activeOcrAddressInput){
+      activeOcrAddressInput.value = "";
+      saveDraft();
+    }
     closeOcrModal();
   }
 });
