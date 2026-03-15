@@ -797,6 +797,29 @@ async function runBestOcrForFile(file){
   return attempts[0] || scoreOcrText("");
 }
 
+async function requestServerOcr(file){
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch("/planner/ocr-addresses", {
+    method: "POST",
+    body: formData
+  });
+
+  let payload = {};
+  try{
+    payload = await response.json();
+  }catch(error){
+    payload = {};
+  }
+
+  if(!response.ok || !payload.success){
+    throw new Error(payload.message || "서버 OCR 처리 중 오류가 발생했습니다.");
+  }
+
+  return payload;
+}
+
 function openOcrCapture(){
   if(!isMobileClient){
     return;
@@ -984,10 +1007,23 @@ async function handleOcrFileSelection(fileInput){
   }
 
   try{
-    const bestAttempt = await runBestOcrForFile(file);
-    const resolvedList = bestAttempt.candidates.length
-      ? bestAttempt.candidates
-      : (bestAttempt.addressLikeLines.length ? bestAttempt.addressLikeLines : bestAttempt.lines);
+    let resolvedList = [];
+
+    try{
+      const payload = await requestServerOcr(file);
+      resolvedList = Array.isArray(payload.addresses) ? payload.addresses.filter(Boolean) : [];
+      if(!resolvedList.length && payload.raw_text){
+        resolvedList = parseAddressList(payload.raw_text);
+      }
+    }catch(serverError){
+      const bestAttempt = await runBestOcrForFile(file);
+      resolvedList = bestAttempt.candidates.length
+        ? bestAttempt.candidates
+        : (bestAttempt.addressLikeLines.length ? bestAttempt.addressLikeLines : bestAttempt.lines);
+      if(!resolvedList.length){
+        throw serverError;
+      }
+    }
     if(!resolvedList.length){
       alert("사진에서 주소 목록을 읽지 못했습니다.");
       return;
