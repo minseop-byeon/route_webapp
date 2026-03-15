@@ -6,6 +6,7 @@ from email.message import EmailMessage
 import os
 import json
 import logging
+import math
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -558,21 +559,88 @@ def geocode(address: str):
         return None, f"지오코딩 결과 파싱 실패: {query}"
 
 
-def get_route_info(start, goal):
-    url = "https://maps.apigw.ntruss.com/map-direction/v1/driving"
-    headers = get_api_headers()
+def build_prediction_time(trip_date, departure_min, bucket_minutes=10):
+    trip_date = (trip_date or "").strip()
+    if not trip_date:
+        return None
+    try:
+        base = datetime.strptime(trip_date, "%Y-%m-%d").replace(tzinfo=ZoneInfo("Asia/Seoul"))
+    except Exception:
+        return None
 
-    if not headers["X-NCP-APIGW-API-KEY-ID"] or not headers["X-NCP-APIGW-API-KEY"]:
-        return 99999999, 9999
+    rounded_minute = max(0, int(departure_min // bucket_minutes) * bucket_minutes)
+    dt = base.replace(hour=0, minute=0, second=0, microsecond=0)
+    dt = dt.replace(hour=rounded_minute // 60, minute=rounded_minute % 60)
+    return dt.strftime("%Y-%m-%dT%H:%M:%S%z")
 
+
+def get_route_info(start, goal, prediction_time=None):
     start_key = f"{round(start[0], 6)},{round(start[1], 6)}"
     goal_key = f"{round(goal[0], 6)},{round(goal[1], 6)}"
-    cache_key = f"{start_key}|{goal_key}"
+    time_key = prediction_time or "realtime"
+    cache_key = f"{start_key}|{goal_key}|{time_key}"
 
     route_cache = get_route_cache()
     if cache_key in route_cache:
         item = route_cache[cache_key]
         return int(item["distance_m"]), int(item["duration_min"])
+
+    tmap_app_key = get_tmap_app_key()
+    if tmap_app_key and prediction_time:
+        url = "https://apis.openapi.sk.com/tmap/routes/prediction?version=1&format=json"
+        headers = {
+            "appKey": tmap_app_key,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        payload = {
+            "routesInfo": {
+                "departure": {
+                    "name": "출발지",
+                    "lon": str(start[0]),
+                    "lat": str(start[1]),
+                    "type": "s",
+                },
+                "destination": {
+                    "name": "도착지",
+                    "lon": str(goal[0]),
+                    "lat": str(goal[1]),
+                    "type": "e",
+                },
+                "predictionType": "departure",
+                "predictionTime": prediction_time,
+                "searchOption": "00",
+                "trafficInfo": "Y",
+            }
+        }
+
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=20)
+            if resp.status_code == 200:
+                data = resp.json()
+                features = data.get("features") or []
+                properties = (features[0] or {}).get("properties") if features else {}
+                if properties:
+                    distance_m = int(properties.get("totalDistance", 99999999))
+                    total_seconds = int(properties.get("totalTime", 999999))
+                    duration_min = max(1, int(math.ceil(total_seconds / 60)))
+                    route_cache[cache_key] = {
+                        "distance_m": distance_m,
+                        "duration_min": duration_min,
+                        "prediction_time": prediction_time,
+                        "updated_at": datetime.now().isoformat(),
+                    }
+                    save_route_cache(route_cache)
+                    return distance_m, duration_min
+        except requests.RequestException:
+            pass
+        except Exception:
+            pass
+
+    url = "https://maps.apigw.ntruss.com/map-direction/v1/driving"
+    headers = get_api_headers()
+    if not headers["X-NCP-APIGW-API-KEY-ID"] or not headers["X-NCP-APIGW-API-KEY"]:
+        return 99999999, 9999
 
     params = {
         "start": f"{start[0]},{start[1]}",
@@ -593,14 +661,13 @@ def get_route_info(start, goal):
         summary = data["route"]["trafast"][0]["summary"]
         distance_m = int(summary["distance"])
         duration_min = int(summary["duration"]) // 60000
-
         route_cache[cache_key] = {
             "distance_m": distance_m,
             "duration_min": duration_min,
-            "updated_at": datetime.now().isoformat()
+            "prediction_time": prediction_time,
+            "updated_at": datetime.now().isoformat(),
         }
         save_route_cache(route_cache)
-
         return distance_m, duration_min
     except Exception:
         return 99999999, 9999
@@ -1205,7 +1272,7 @@ def normalize_pre_lunch_wait(route_view):
     return compress_route_view(normalized)
 
 
-def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None):
+def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None):
     best_result = None
 
     def consider_result(result):
@@ -1255,8 +1322,12 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
                 wait_total += added_wait_total
 
             if order:
-                dist_back = distance_matrix[last_node][0]
-                travel_back = time_matrix[last_node][0]
+                prediction_time = build_prediction_time(trip_date, effective_end)
+                if coords and prediction_time:
+                    dist_back, travel_back = get_route_info(coords[last_node], coords[0], prediction_time)
+                else:
+                    dist_back = distance_matrix[last_node][0]
+                    travel_back = time_matrix[last_node][0]
             else:
                 dist_back = 0
                 travel_back = 0
@@ -1280,8 +1351,12 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
 
         node = order[idx]
         visit = visits[node - 1]
-        travel_min = time_matrix[last_node][node]
-        travel_m = distance_matrix[last_node][node]
+        prediction_time = build_prediction_time(trip_date, current_time)
+        if coords and prediction_time:
+            travel_m, travel_min = get_route_info(coords[last_node], coords[node], prediction_time)
+        else:
+            travel_min = time_matrix[last_node][node]
+            travel_m = distance_matrix[last_node][node]
         wait_label = "출발지 대기" if idx == 0 and last_node == 0 else "대기"
 
         pre_options = [{
@@ -1355,12 +1430,12 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
     return best_result
 
 
-def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_address=None, return_display_address=None):
+def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None):
     if not visits:
-        return [], simulate_order([], visits, time_matrix, distance_matrix, start_display_address, return_display_address)
+        return [], simulate_order([], visits, time_matrix, distance_matrix, start_display_address, return_display_address, coords, trip_date)
 
     order = optimize_route(visits, distance_matrix, time_matrix)
-    best = simulate_order(order, visits, time_matrix, distance_matrix, start_display_address, return_display_address)
+    best = simulate_order(order, visits, time_matrix, distance_matrix, start_display_address, return_display_address, coords, trip_date)
     return order, best
 
 
@@ -1843,10 +1918,12 @@ def planner():
         dist_matrix = [[0] * size for _ in range(size)]
         time_matrix = [[0] * size for _ in range(size)]
 
+        initial_prediction_time = build_prediction_time(trip_meta["trip_date"], DAY_START)
+
         for i in range(size):
             for j in range(size):
                 if i != j:
-                    d, t = get_route_info(coords[i], coords[j])
+                    d, t = get_route_info(coords[i], coords[j], initial_prediction_time)
                     dist_matrix[i][j] = d
                     time_matrix[i][j] = t
 
@@ -1856,6 +1933,8 @@ def planner():
             time_matrix,
             start_display_address=start_display_address,
             return_display_address=return_display_address,
+            coords=coords,
+            trip_date=trip_meta["trip_date"],
         )
 
         if best is None:
