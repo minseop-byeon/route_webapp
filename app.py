@@ -1284,7 +1284,46 @@ def is_lunch_required(departure_time, return_time):
     return True
 
 
-def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None):
+def build_departure_candidates(order, visits, time_matrix):
+    candidates = {DAY_START}
+    if not order:
+        return [DAY_START]
+
+    has_appointment = any(visits[node - 1]["has_appointment"] for node in order)
+    if not has_appointment:
+        return [DAY_START]
+
+    cumulative_min = 0
+    for idx, node in enumerate(order):
+        prev_node = 0 if idx == 0 else order[idx - 1]
+        cumulative_min += time_matrix[prev_node][node]
+        visit = visits[node - 1]
+        if visit["has_appointment"]:
+            latest_departure = visit["appointment_minute"] - cumulative_min
+            for offset in (0, -15, -30, -45, -60):
+                shifted = latest_departure + offset
+                if shifted >= DAY_START:
+                    candidates.add(shifted)
+        cumulative_min += visit["service_time"]
+
+    total_route_min = cumulative_min + time_matrix[order[-1]][0]
+    latest_by_return = RETURN_LIMIT - total_route_min
+    for offset in (0, -15, -30):
+        shifted = latest_by_return + offset
+        if shifted >= DAY_START:
+            candidates.add(shifted)
+
+    if any(candidate >= LUNCH_SKIP_IF_DEPART_AFTER for candidate in candidates):
+        candidates.add(LUNCH_SKIP_IF_DEPART_AFTER)
+
+    bounded = {
+        min(RETURN_LIMIT, max(DAY_START, int(candidate)))
+        for candidate in candidates
+    }
+    return sorted(bounded)
+
+
+def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None, start_time=DAY_START):
     best_result = None
 
     def consider_result(result):
@@ -1292,7 +1331,8 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
         result["route_view"] = compress_route_view(result["route_view"])
         result["intra_wait_count"] = count_intra_wait_blocks(result["route_view"])
         result["locality_penalty"] = int(result["total_distance_m"] * 0.03) + (result["intra_wait_count"] * 500)
-        result["lunch_required"] = is_lunch_required(DAY_START, result["return_time"])
+        result["departure_time"] = start_time
+        result["lunch_required"] = is_lunch_required(start_time, result["return_time"])
         result["lunch_used"] = any(item.get("type") == "lunch" for item in result["route_view"])
         result["lunch_penalty"] = 0 if (not result["lunch_required"] and not result["lunch_used"]) else 1
 
@@ -1300,6 +1340,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
             result["appointment_violation_count"],
             result["appointment_late_total"],
             result["lunch_penalty"],
+            -result["departure_time"],
             result["return_time"],
             result["total_distance_m"],
             result["locality_penalty"],
@@ -1328,7 +1369,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
                 travel_back_preview = 0
 
             preview_return_time = effective_end + travel_back_preview
-            lunch_optional = not is_lunch_required(DAY_START, preview_return_time)
+            lunch_optional = not is_lunch_required(start_time, preview_return_time)
 
             if not lunch_used and not lunch_optional:
                 if current_time > LUNCH_START_MAX:
@@ -1447,14 +1488,14 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
         "label": "S",
         "name": "출발",
         "address": start_display_address or get_start_address(),
-        "arrival": minutes_to_str(DAY_START),
-        "end_time": minutes_to_str(DAY_START),
+        "arrival": minutes_to_str(start_time),
+        "end_time": minutes_to_str(start_time),
         "service_time": 0,
         "travel_km": None,
         "travel_min": None
     }]
 
-    dfs(0, 0, DAY_START, False, initial_route, 0, 0, 0, 0, 0, 0, 0)
+    dfs(0, 0, start_time, False, initial_route, 0, 0, 0, 0, 0, 0, 0)
     return best_result
 
 
@@ -1463,7 +1504,23 @@ def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_add
         return [], simulate_order([], visits, time_matrix, distance_matrix, start_display_address, return_display_address, coords, trip_date)
 
     order = optimize_route(visits, distance_matrix, time_matrix)
-    best = simulate_order(order, visits, time_matrix, distance_matrix, start_display_address, return_display_address, coords, trip_date)
+    best = None
+    for start_time in build_departure_candidates(order, visits, time_matrix):
+        candidate = simulate_order(
+            order,
+            visits,
+            time_matrix,
+            distance_matrix,
+            start_display_address,
+            return_display_address,
+            coords,
+            trip_date,
+            start_time=start_time,
+        )
+        if candidate is None:
+            continue
+        if best is None or candidate["score"] < best["score"]:
+            best = candidate
     return order, best
 
 
