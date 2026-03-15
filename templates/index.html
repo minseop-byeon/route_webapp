@@ -189,6 +189,21 @@ input.error, select.error{
   background:#f9fafb;
 }
 
+.address-actions{
+  display:flex;
+  gap:6px;
+}
+
+.ocr-btn{
+  display:none;
+}
+
+.ocr-btn.show{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
 button{
   border:none;
   border-radius:10px;
@@ -341,6 +356,126 @@ button{
   color:#0f172a;
 }
 
+.ocr-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,0.46);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  padding:18px;
+}
+
+.ocr-modal.show{
+  display:flex;
+}
+
+.ocr-modal-card{
+  width:min(100%, 560px);
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  border:1px solid #dbe2ea;
+  box-shadow:0 24px 50px rgba(15,23,42,0.18);
+}
+
+.ocr-modal-title{
+  margin:0;
+  font-size:18px;
+  font-weight:850;
+  color:#0f172a;
+}
+
+.ocr-modal-desc{
+  margin:8px 0 14px;
+  font-size:13px;
+  color:#64748b;
+  font-weight:600;
+  line-height:1.5;
+}
+
+.ocr-status{
+  display:none;
+  margin-bottom:12px;
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:700;
+}
+
+.ocr-status.show{
+  display:block;
+}
+
+.ocr-status.error{
+  background:#fef2f2;
+  color:#b91c1c;
+  border:1px solid #fecaca;
+}
+
+.ocr-candidate-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:12px;
+  max-height:220px;
+  overflow:auto;
+}
+
+.ocr-candidate{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:12px;
+  border:1px solid #dbe2ea;
+  border-radius:12px;
+  background:#f8fafc;
+}
+
+.ocr-candidate input[type="radio"]{
+  margin-top:2px;
+  min-height:auto;
+  padding:0;
+}
+
+.ocr-candidate-text{
+  font-size:14px;
+  line-height:1.45;
+  color:#0f172a;
+  font-weight:700;
+}
+
+.ocr-manual-label{
+  display:block;
+  margin:0 0 6px;
+  font-size:12px;
+  color:#6b7280;
+  font-weight:700;
+}
+
+.ocr-manual-input{
+  width:100%;
+  min-height:46px;
+  padding:10px 12px;
+  border:1px solid #dbe2ea;
+  border-radius:12px;
+  font-size:14px;
+  font-family:Pretendard,sans-serif;
+}
+
+.ocr-manual-input:focus{
+  outline:none;
+  border-color:#1d4ed8;
+}
+
+.ocr-modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:14px;
+}
+
 @media (max-width:760px){
   .container{
     margin:24px auto;
@@ -397,7 +532,12 @@ button{
     flex-direction:column;
   }
 
-  .address-row button{
+  .address-actions{
+    width:100%;
+    flex-direction:column;
+  }
+
+  .address-actions button{
     width:100%;
   }
 
@@ -458,13 +598,157 @@ button{
   </div>
 </div>
 
+<input type="file" id="ocrCameraInput" accept="image/*" capture="environment" class="hidden">
+
+<div class="ocr-modal" id="ocrConfirmModal">
+  <div class="ocr-modal-card">
+    <h3 class="ocr-modal-title">주소 확인</h3>
+    <p class="ocr-modal-desc">문서 사진에서 읽은 주소 후보입니다. 내용을 확인한 뒤 입력해 주세요.</p>
+    <div class="ocr-status" id="ocrStatusBox"></div>
+    <div class="ocr-candidate-list" id="ocrCandidateList"></div>
+    <label class="ocr-manual-label" for="ocrManualAddress">직접 수정</label>
+    <input type="text" id="ocrManualAddress" class="ocr-manual-input" placeholder="주소를 수정하거나 직접 입력하세요.">
+    <div class="ocr-modal-actions">
+      <button type="button" class="btn-secondary" id="ocrCancelBtn">취소</button>
+      <button type="button" class="btn-primary" id="ocrApplyBtn">주소 입력</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
 let visitContainer = document.getElementById("visits");
 let form = document.getElementById("routeForm");
 let count = 0;
 const DRAFT_KEY = "route_visit_draft_v5";
+const ocrCameraInput = document.getElementById("ocrCameraInput");
+const ocrConfirmModal = document.getElementById("ocrConfirmModal");
+const ocrCandidateList = document.getElementById("ocrCandidateList");
+const ocrManualAddress = document.getElementById("ocrManualAddress");
+const ocrStatusBox = document.getElementById("ocrStatusBox");
+const ocrCancelBtn = document.getElementById("ocrCancelBtn");
+const ocrApplyBtn = document.getElementById("ocrApplyBtn");
+const isMobileClient = window.matchMedia("(max-width: 760px)").matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+let activeOcrAddressInput = null;
+
+function setOcrStatus(message = "", type = ""){
+  ocrStatusBox.className = "ocr-status";
+  ocrStatusBox.textContent = message;
+  if(message){
+    ocrStatusBox.classList.add("show");
+    if(type){
+      ocrStatusBox.classList.add(type);
+    }
+  }
+}
+
+function normalizeOcrText(text){
+  return (text || "")
+    .replace(/\r/g, "\n")
+    .replace(/[|]/g, " ")
+    .replace(/[()\[\]{}]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function collectAddressCandidates(text){
+  const normalized = normalizeOcrText(text);
+  if(!normalized){
+    return [];
+  }
+
+  const lines = text
+    .split(/\n+/)
+    .map(line => normalizeOcrText(line))
+    .filter(Boolean);
+
+  const source = Array.from(new Set([normalized, ...lines]));
+  const patterns = [
+    /(?:서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)[^,\n]{4,80}?(?:로|길|대로)\s*\d[\d\-]*/g,
+    /(?:[가-힣]+(?:시|도)\s+)?[가-힣]+(?:시|군|구)\s+[가-힣0-9]+(?:로|길|대로)\s*\d[\d\-]*/g,
+    /[가-힣0-9]+(?:로|길|대로)\s*\d[\d\-]*(?:\s*[가-힣A-Za-z0-9]+){0,3}/g
+  ];
+
+  const candidates = [];
+  source.forEach(item => {
+    patterns.forEach(pattern => {
+      const matches = item.match(pattern) || [];
+      matches.forEach(match => {
+        const candidate = match.replace(/\s+/g, " ").trim();
+        if(candidate.length >= 6){
+          candidates.push(candidate);
+        }
+      });
+    });
+  });
+
+  return Array.from(new Set(candidates)).slice(0, 8);
+}
+
+function renderOcrCandidates(candidates){
+  ocrCandidateList.innerHTML = "";
+  candidates.forEach((candidate, index) => {
+    const label = document.createElement("label");
+    label.className = "ocr-candidate";
+    label.innerHTML = `
+      <input type="radio" name="ocr_candidate" value="${candidate.replace(/"/g, "&quot;")}" ${index === 0 ? "checked" : ""}>
+      <span class="ocr-candidate-text">${candidate}</span>
+    `;
+    const radio = label.querySelector('input[type="radio"]');
+    radio.addEventListener("change", () => {
+      ocrManualAddress.value = radio.value;
+    });
+    ocrCandidateList.appendChild(label);
+  });
+  ocrManualAddress.value = candidates[0] || "";
+}
+
+function openOcrModal(candidates, fallbackText = ""){
+  renderOcrCandidates(candidates);
+  setOcrStatus(candidates.length ? "" : "주소 후보를 찾지 못했습니다. 아래에서 직접 수정해 주세요.", candidates.length ? "" : "error");
+  if(!candidates.length){
+    ocrManualAddress.value = fallbackText;
+  }
+  ocrConfirmModal.classList.add("show");
+  ocrManualAddress.focus();
+  ocrManualAddress.select();
+}
+
+function closeOcrModal(){
+  ocrConfirmModal.classList.remove("show");
+  ocrCandidateList.innerHTML = "";
+  ocrManualAddress.value = "";
+  setOcrStatus();
+}
+
+async function runOcrForFile(file){
+  if(typeof Tesseract === "undefined"){
+    throw new Error("OCR 라이브러리를 불러오지 못했습니다.");
+  }
+
+  setOcrStatus("문서 사진에서 텍스트를 읽는 중입니다.");
+  const result = await Tesseract.recognize(file, "kor+eng", {
+    logger: () => {}
+  });
+  return (result?.data?.text || "").trim();
+}
+
+function openOcrCapture(button){
+  activeOcrAddressInput = button.closest(".address-row")?.querySelector('input[name="address"]') || null;
+  if(!activeOcrAddressInput){
+    return;
+  }
+  ocrCameraInput.value = "";
+  ocrCameraInput.click();
+}
+
+function refreshOcrButtons(scope = document){
+  scope.querySelectorAll(".ocr-btn").forEach(btn => {
+    btn.classList.toggle("show", isMobileClient);
+  });
+}
 
 function generateServiceOptions(){
   let options = "";
@@ -512,6 +796,7 @@ function addVisit(){
         <label class="required">주소</label>
         <div class="address-row">
           <input type="text" name="address" readonly>
+          <button type="button" class="btn-secondary ocr-btn" onclick="openOcrCapture(this)">사진으로 주소 읽기</button>
           <button type="button" class="btn-secondary" onclick="openAddress(this)">검색</button>
         </div>
       </div>
@@ -545,6 +830,7 @@ function addVisit(){
 
   visitContainer.appendChild(div);
   bindDraftEvents(div);
+  refreshOcrButtons(div);
   updateDeleteButtons();
   saveDraft();
 }
@@ -608,6 +894,50 @@ function openAddress(button){
     }
   }).open();
 }
+
+ocrCameraInput.addEventListener("change", async () => {
+  const file = ocrCameraInput.files && ocrCameraInput.files[0];
+  if(!file || !activeOcrAddressInput){
+    return;
+  }
+
+  try{
+    const ocrText = await runOcrForFile(file);
+    const candidates = collectAddressCandidates(ocrText);
+    openOcrModal(candidates, normalizeOcrText(ocrText).slice(0, 120));
+  }catch(error){
+    alert(error.message || "사진에서 주소를 읽지 못했습니다.");
+  }finally{
+    ocrCameraInput.value = "";
+  }
+});
+
+ocrCancelBtn.addEventListener("click", () => {
+  closeOcrModal();
+});
+
+ocrApplyBtn.addEventListener("click", () => {
+  const value = ocrManualAddress.value.trim();
+  if(!activeOcrAddressInput){
+    closeOcrModal();
+    return;
+  }
+  if(!value){
+    setOcrStatus("확인할 주소를 입력해 주세요.", "error");
+    return;
+  }
+  activeOcrAddressInput.value = value;
+  activeOcrAddressInput.classList.remove("error");
+  clearWarning(activeOcrAddressInput.closest(".card"));
+  saveDraft();
+  closeOcrModal();
+});
+
+ocrConfirmModal.addEventListener("click", (event) => {
+  if(event.target === ocrConfirmModal){
+    closeOcrModal();
+  }
+});
 
 function showWarning(card){
   const warning = card.querySelector(".warning");
@@ -781,6 +1111,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if(!restored){
     addVisit();
   }
+  refreshOcrButtons();
 });
 </script>
 </body>
