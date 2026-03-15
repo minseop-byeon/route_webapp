@@ -1298,7 +1298,7 @@ def build_departure_candidates(order, visits, time_matrix):
         prev_node = 0 if idx == 0 else order[idx - 1]
         cumulative_min += time_matrix[prev_node][node]
         visit = visits[node - 1]
-        if visit["has_appointment"]:
+        if visit["has_appointment"] and visit.get("appointment_minute") is not None:
             latest_departure = visit["appointment_minute"] - cumulative_min
             for offset in (0, -15, -30, -45, -60):
                 shifted = latest_departure + offset
@@ -1521,6 +1521,18 @@ def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_add
             continue
         if best is None or candidate["score"] < best["score"]:
             best = candidate
+    if best is None:
+        best = simulate_order(
+            order,
+            visits,
+            time_matrix,
+            distance_matrix,
+            start_display_address,
+            return_display_address,
+            coords,
+            trip_date,
+            start_time=DAY_START,
+        )
     return order, best
 
 
@@ -2041,7 +2053,7 @@ def planner():
         if best["return_late"] > 0:
             warning_message = f"복귀시간이 16:30보다 {best['return_late']}분 늦습니다."
 
-        total_time_min = int(best["return_time"] - DAY_START)
+        total_time_min = int(best["return_time"] - best.get("departure_time", DAY_START))
         total_distance_km = round(best["total_distance_m"] / 1000, 2)
 
         payload = {
