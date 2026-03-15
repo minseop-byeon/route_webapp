@@ -657,6 +657,19 @@ function ensureVisitCount(requiredCount){
   }
 }
 
+function applyOcrAddresses(addresses){
+  ensureVisitCount(addresses.length);
+
+  const addressInputs = getAddressInputs();
+  addressInputs.forEach((input, index) => {
+    input.value = addresses[index] || "";
+    input.classList.remove("error");
+    clearWarning(input.closest(".card"));
+  });
+
+  saveDraft();
+}
+
 function openOcrModal(addresses){
   ocrAddressList.value = addresses.join("\n");
   ocrConfirmModal.classList.add("show");
@@ -965,6 +978,7 @@ ocrCameraInput.addEventListener("change", async () => {
       alert("사진에서 주소 목록을 읽지 못했습니다.");
       return;
     }
+    applyOcrAddresses(resolvedList);
     openOcrModal(resolvedList);
   }catch(error){
     alert(error.message || "사진에서 주소 목록을 읽지 못했습니다.");
@@ -984,16 +998,7 @@ ocrApplyBtn.addEventListener("click", () => {
     return;
   }
 
-  ensureVisitCount(addresses.length);
-
-  const addressInputs = getAddressInputs();
-  addressInputs.forEach((input, index) => {
-    input.value = addresses[index] || "";
-    input.classList.remove("error");
-    clearWarning(input.closest(".card"));
-  });
-
-  saveDraft();
+  applyOcrAddresses(addresses);
   closeOcrModal();
 });
 
