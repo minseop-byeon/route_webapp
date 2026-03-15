@@ -1894,7 +1894,7 @@ def planner():
                 "trip_date": trip_meta["trip_date"]
             }
             session["last_result_payload"] = payload
-            return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+            return redirect(url_for("result_page"))
 
         start_coord, start_meta, start_err = geocode_with_meta(get_start_address())
         if not start_coord:
@@ -1910,7 +1910,7 @@ def planner():
                 "trip_date": trip_meta["trip_date"]
             }
             session["last_result_payload"] = payload
-            return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+            return redirect(url_for("result_page"))
 
         start_display_address = (start_meta or {}).get("display_address") or get_start_address()
         _, return_meta, _ = geocode_with_meta(get_return_address())
@@ -1940,7 +1940,7 @@ def planner():
                 "trip_date": trip_meta["trip_date"]
             }
             session["last_result_payload"] = payload
-            return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+            return redirect(url_for("result_page"))
 
         size = len(coords)
         dist_matrix = [[0] * size for _ in range(size)]
@@ -1978,7 +1978,7 @@ def planner():
                 "trip_date": trip_meta["trip_date"]
             }
             session["last_result_payload"] = payload
-            return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+            return redirect(url_for("result_page"))
 
         warning_message = ""
         if best["return_late"] > 0:
@@ -2000,9 +2000,18 @@ def planner():
         }
         session["last_result_payload"] = payload
 
-        return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+        return redirect(url_for("result_page"))
 
     return render_template("index.html", team_no=trip_meta["team_no"], user_name=trip_meta["user_name"], trip_date=trip_meta["trip_date"])
+
+
+@app.route("/result", methods=["GET"])
+def result_page():
+    trip_meta = get_trip_meta()
+    payload = session.get("last_result_payload")
+    if not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"] or not payload:
+        return redirect(url_for("start"))
+    return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
 
 
 @app.route("/send-result-email", methods=["POST"])
