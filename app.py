@@ -726,8 +726,6 @@ def greedy_appointment_seed(visits, dist_matrix, time_matrix):
                 target = visit["appointment_minute"]
                 if arrival > target:
                     penalty += (arrival - target) * 1000
-                else:
-                    penalty += max(0, (target - arrival - 20)) * 2
 
             score = dist_matrix[current][node] + penalty
             scored.append((score, node))
@@ -736,8 +734,6 @@ def greedy_appointment_seed(visits, dist_matrix, time_matrix):
         nxt = scored[0][1]
         visit = visits[nxt - 1]
         arrival = current_time + time_matrix[current][nxt]
-        if visit["has_appointment"] and arrival < visit["appointment_minute"]:
-            arrival = visit["appointment_minute"]
 
         current_time = arrival + visit["service_time"]
         order.append(nxt)
@@ -777,9 +773,6 @@ def estimate_order_metrics(path, visits, dist_matrix, time_matrix):
             if arrival > target:
                 appointment_violations += 1
                 appointment_late_total += arrival - target
-            elif arrival < target:
-                wait_total += target - arrival
-                arrival = target
 
         current_time = arrival + visit["service_time"]
 
@@ -1436,26 +1429,16 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
             "wait_total": 0
         }]
 
-        if visit["has_appointment"]:
-            depart_target = visit["appointment_minute"] - travel_min
-            pre_options = best_depart_with_lunch(
-                route_view=route_view,
-                current_time=current_time,
-                depart_time=depart_target,
-                lunch_used=lunch_used,
-                wait_label=wait_label
-            )
-        else:
-            expanded = []
-            for pre in pre_options:
-                expanded.append(pre)
-                expanded.extend(maybe_insert_lunch(
-                    pre["route"],
-                    pre["time_after_pre"],
-                    pre["lunch_used"],
-                    wait_label
-                ))
-            pre_options = expanded
+        expanded = []
+        for pre in pre_options:
+            expanded.append(pre)
+            expanded.extend(maybe_insert_lunch(
+                pre["route"],
+                pre["time_after_pre"],
+                pre["lunch_used"],
+                wait_label
+            ))
+        pre_options = expanded
 
         for pre in pre_options:
             depart_time = pre["time_after_pre"]
@@ -1469,8 +1452,6 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
                 if arrival_time > target:
                     appt_violation += 1
                     appt_late += arrival_time - target
-                elif arrival_time < target:
-                    arrival_time = target
 
             new_route = clone_route(pre["route"])
             add_visit_block(new_route, visit_no + 1, visit, arrival_time, travel_m, travel_min)
