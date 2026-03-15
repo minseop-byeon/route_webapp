@@ -678,6 +678,7 @@ function openOcrCapture(){
 
 function refreshOcrButtons(){
   ocrPageBtn.classList.toggle("show", isMobileClient);
+  ocrCameraInput.disabled = !isMobileClient;
 }
 
 function generateServiceOptions(){
@@ -725,7 +726,7 @@ function addVisit(){
       <div class="field">
         <label class="required">주소</label>
         <div class="address-row">
-          <input type="text" name="address" readonly>
+          <input type="text" name="address" readonly tabindex="0">
           <button type="button" class="btn-secondary" onclick="openAddress(this)">검색</button>
         </div>
       </div>
@@ -810,8 +811,12 @@ function toggleTime(cb){
   saveDraft();
 }
 
-function openAddress(button){
-  const input = button.parentElement.querySelector('input[name="address"]');
+function openAddressField(input){
+  if(!input || input.dataset.addressPopupOpen === "1"){
+    return;
+  }
+
+  input.dataset.addressPopupOpen = "1";
 
   new daum.Postcode({
     oncomplete: function(data){
@@ -819,8 +824,18 @@ function openAddress(button){
       input.classList.remove("error");
       clearWarning(input.closest(".card"));
       saveDraft();
+      input.dataset.addressPopupOpen = "0";
+      input.blur();
+    },
+    onclose: function(){
+      input.dataset.addressPopupOpen = "0";
     }
   }).open();
+}
+
+function openAddress(button){
+  const input = button.parentElement.querySelector('input[name="address"]');
+  openAddressField(input);
 }
 
 ocrCameraInput.addEventListener("change", async () => {
@@ -963,6 +978,14 @@ function bindDraftEvents(scope){
   scope.querySelectorAll('input[name="name"], select[name="service_time"], select[name="visit_hour"], select[name="visit_minute"]').forEach(el => {
     el.addEventListener("input", saveDraft);
     el.addEventListener("change", saveDraft);
+  });
+
+  scope.querySelectorAll('input[name="address"]').forEach(input => {
+    input.addEventListener("focus", () => openAddressField(input));
+    input.addEventListener("click", (event) => {
+      event.preventDefault();
+      openAddressField(input);
+    });
   });
 
   const checkbox = scope.querySelector(".appointment-toggle");
