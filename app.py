@@ -73,6 +73,8 @@ NO_LUNCH_IF_DONE_BY = 12 * 60
 LUNCH_START_MIN = 11 * 60 + 30
 LUNCH_START_MAX = 13 * 60 + 30
 LUNCH_DURATION = 60
+LUNCH_SKIP_IF_RETURN_BY = 13 * 60
+LUNCH_SKIP_IF_DEPART_AFTER = 12 * 60 + 30
 RETURN_LIMIT = 16 * 60 + 30
 
 BEAM_WIDTH = 24
@@ -1272,18 +1274,32 @@ def normalize_pre_lunch_wait(route_view):
     return compress_route_view(normalized)
 
 
+def is_lunch_required(departure_time, return_time):
+    departure_time = int(departure_time)
+    return_time = int(return_time)
+    if return_time <= LUNCH_SKIP_IF_RETURN_BY:
+        return False
+    if departure_time >= LUNCH_SKIP_IF_DEPART_AFTER:
+        return False
+    return True
+
+
 def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None):
     best_result = None
 
     def consider_result(result):
         nonlocal best_result
-        result["route_view"] = normalize_pre_lunch_wait(compress_route_view(result["route_view"]))
+        result["route_view"] = compress_route_view(result["route_view"])
         result["intra_wait_count"] = count_intra_wait_blocks(result["route_view"])
         result["locality_penalty"] = int(result["total_distance_m"] * 0.03) + (result["intra_wait_count"] * 500)
+        result["lunch_required"] = is_lunch_required(DAY_START, result["return_time"])
+        result["lunch_used"] = any(item.get("type") == "lunch" for item in result["route_view"])
+        result["lunch_penalty"] = 0 if (not result["lunch_required"] and not result["lunch_used"]) else 1
 
         score = (
             result["appointment_violation_count"],
             result["appointment_late_total"],
+            result["lunch_penalty"],
             result["return_time"],
             result["total_distance_m"],
             result["locality_penalty"],
@@ -1300,7 +1316,19 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
         if idx == len(order):
             end_route = clone_route(route_view)
             effective_end = current_time
-            lunch_optional = current_time <= NO_LUNCH_IF_DONE_BY
+            if order:
+                prediction_time = build_prediction_time(trip_date, effective_end)
+                if coords and prediction_time:
+                    dist_back_preview, travel_back_preview = get_route_info(coords[last_node], coords[0], prediction_time)
+                else:
+                    dist_back_preview = distance_matrix[last_node][0]
+                    travel_back_preview = time_matrix[last_node][0]
+            else:
+                dist_back_preview = 0
+                travel_back_preview = 0
+
+            preview_return_time = effective_end + travel_back_preview
+            lunch_optional = not is_lunch_required(DAY_START, preview_return_time)
 
             if not lunch_used and not lunch_optional:
                 if current_time > LUNCH_START_MAX:
