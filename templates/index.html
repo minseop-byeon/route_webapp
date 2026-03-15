@@ -635,6 +635,18 @@ function parseAddressList(text){
     .filter(Boolean);
 }
 
+function collectAddressLikeLines(text){
+  return parseAddressList(text).filter(line => {
+    if(!/[\uAC00-\uD7A3]/.test(line) || !/\d/.test(line)){
+      return false;
+    }
+    if(/(?:\uB85C|\uAE38|\uB300\uB85C)\s*\d/.test(line)){
+      return true;
+    }
+    return /^[\uAC00-\uD7A3\s\d-]{6,}$/.test(line);
+  });
+}
+
 function getAddressInputs(){
   return Array.from(document.querySelectorAll('input[name="address"]'));
 }
@@ -666,6 +678,87 @@ async function runOcrForFile(file){
     logger: () => {}
   });
   return (result?.data?.text || "").trim();
+}
+
+function loadImageFromFile(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("촬영 이미지를 불러오지 못했습니다."));
+    };
+    image.src = url;
+  });
+}
+
+function rotateImageToBlob(image, angle){
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if(!ctx){
+      reject(new Error("이미지 회전을 준비하지 못했습니다."));
+      return;
+    }
+
+    const normalized = ((angle % 360) + 360) % 360;
+    const swapAxis = normalized === 90 || normalized === 270;
+    canvas.width = swapAxis ? image.height : image.width;
+    canvas.height = swapAxis ? image.width : image.height;
+
+    ctx.save();
+    if(normalized === 90){
+      ctx.translate(canvas.width, 0);
+      ctx.rotate(Math.PI / 2);
+    }else if(normalized === 180){
+      ctx.translate(canvas.width, canvas.height);
+      ctx.rotate(Math.PI);
+    }else if(normalized === 270){
+      ctx.translate(0, canvas.height);
+      ctx.rotate(-Math.PI / 2);
+    }
+    ctx.drawImage(image, 0, 0);
+    ctx.restore();
+
+    canvas.toBlob((blob) => {
+      if(blob){
+        resolve(blob);
+      }else{
+        reject(new Error("회전 이미지를 만들지 못했습니다."));
+      }
+    }, "image/jpeg", 0.92);
+  });
+}
+
+function scoreOcrText(text){
+  const candidates = collectAddressCandidates(text);
+  const lines = parseAddressList(text);
+  const addressLikeLines = collectAddressLikeLines(text);
+  return {
+    text,
+    candidates,
+    lines,
+    addressLikeLines,
+    score: (candidates.length * 1000) + (addressLikeLines.length * 200) + (lines.length * 10) + text.length
+  };
+}
+
+async function runBestOcrForFile(file){
+  const image = await loadImageFromFile(file);
+  const attempts = [];
+
+  for(const angle of [0, 90, 270]){
+    const source = angle === 0 ? file : await rotateImageToBlob(image, angle);
+    const text = await runOcrForFile(source);
+    attempts.push(scoreOcrText(text));
+  }
+
+  attempts.sort((a, b) => b.score - a.score);
+  return attempts[0] || scoreOcrText("");
 }
 
 function openOcrCapture(){
@@ -845,9 +938,10 @@ ocrCameraInput.addEventListener("change", async () => {
   }
 
   try{
-    const ocrText = await runOcrForFile(file);
-    const candidates = collectAddressCandidates(ocrText);
-    const resolvedList = candidates.length ? candidates : parseAddressList(ocrText);
+    const bestAttempt = await runBestOcrForFile(file);
+    const resolvedList = bestAttempt.candidates.length
+      ? bestAttempt.candidates
+      : (bestAttempt.addressLikeLines.length ? bestAttempt.addressLikeLines : bestAttempt.lines);
     if(!resolvedList.length){
       alert("사진에서 주소 목록을 읽지 못했습니다.");
       return;
