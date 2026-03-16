@@ -600,6 +600,8 @@ button{
   </div>
 </div>
 
+<input type="file" id="qrImageInput" accept="image/*" capture="environment" hidden style="display:none">
+
 <input type="file" id="ocrCameraInput" accept="image/*" capture="environment" hidden style="display:none" tabindex="-1" aria-hidden="true">
 <input type="file" id="ocrGalleryInput" accept="image/*" hidden style="display:none" tabindex="-1" aria-hidden="true">
 
@@ -630,6 +632,7 @@ const qrScanBtn = document.getElementById("qrScanBtn");
 const qrScanModal = document.getElementById("qrScanModal");
 const qrScanCloseBtn = document.getElementById("qrScanCloseBtn");
 const qrReader = document.getElementById("qrReader");
+const qrImageInput = document.getElementById("qrImageInput");
 const ocrPageBtn = document.getElementById("ocrPageBtn");
 const ocrGalleryBtn = document.getElementById("ocrGalleryBtn");
 const ocrCameraInput = document.getElementById("ocrCameraInput");
@@ -642,6 +645,11 @@ const isMobileClient = window.matchMedia("(max-width: 760px)").matches || /Andro
 let qrScanner = null;
 let qrScannerRunning = false;
 let qrProcessing = false;
+
+function isIosDevice(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
 
 function normalizeOcrText(text){
   return (text || "")
@@ -1162,8 +1170,39 @@ async function handleQrDecoded(decodedText){
     qrScanModal.classList.remove("show");
   }catch(error){
     alert(error.message || "QR 코드 처리 중 오류가 발생했습니다.");
+    if(qrScanModal.classList.contains("show")){
+      try{
+        await startQrScanner();
+      }catch(restartError){
+      }
+    }
   }finally{
     qrProcessing = false;
+  }
+}
+
+async function handleQrImageFile(fileInput){
+  const file = fileInput.files && fileInput.files[0];
+  fileInput.value = "";
+  if(!file){
+    return;
+  }
+  if(typeof Html5Qrcode === "undefined"){
+    alert("QR 스캔 라이브러리를 불러오지 못했습니다.");
+    return;
+  }
+
+  const fileScanner = new Html5Qrcode("qrReader");
+  try{
+    const decodedText = await fileScanner.scanFile(file, false);
+    await handleQrDecoded(decodedText);
+  }catch(error){
+    alert("지원하지 않는 QR 형식입니다.");
+  }finally{
+    try{
+      await fileScanner.clear();
+    }catch(clearError){
+    }
   }
 }
 
@@ -1203,6 +1242,10 @@ async function stopQrScanner(){
 }
 
 async function openQrScanModal(){
+  if(isIosDevice()){
+    qrImageInput.click();
+    return;
+  }
   qrScanModal.classList.add("show");
   try{
     await startQrScanner();
@@ -1286,6 +1329,11 @@ if(ocrGalleryBtn){
 }
 if(qrScanBtn){
   qrScanBtn.addEventListener("click", openQrScanModal);
+}
+if(qrImageInput){
+  qrImageInput.addEventListener("change", async () => {
+    await handleQrImageFile(qrImageInput);
+  });
 }
 if(qrScanCloseBtn){
   qrScanCloseBtn.addEventListener("click", async () => {
