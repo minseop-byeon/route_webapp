@@ -1447,11 +1447,38 @@ def build_departure_candidates(order, visits, time_matrix):
         min(RETURN_LIMIT, max(DAY_START, int(candidate)))
         for candidate in candidates
     }
-    return sorted(bounded)
+    ordered = sorted(bounded)
+    if len(ordered) <= 4:
+        return ordered
+
+    reduced = []
+    for candidate in reversed(ordered):
+        if all(abs(candidate - existing) >= 15 for existing in reduced):
+            reduced.append(candidate)
+        if len(reduced) >= 4:
+            break
+
+    reduced.append(DAY_START)
+    return sorted(set(reduced))
 
 
 def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None, start_time=DAY_START):
     best_result = None
+    leg_cache = {}
+
+    def resolve_leg(from_node, to_node, departure_min):
+        cache_key = (from_node, to_node, int(departure_min))
+        if cache_key in leg_cache:
+            return leg_cache[cache_key]
+
+        prediction_time = build_prediction_time(trip_date, departure_min)
+        if coords and prediction_time:
+            resolved = get_route_info(coords[from_node], coords[to_node], prediction_time)
+        else:
+            resolved = (distance_matrix[from_node][to_node], time_matrix[from_node][to_node])
+
+        leg_cache[cache_key] = resolved
+        return resolved
 
     def consider_result(result):
         nonlocal best_result
@@ -1485,12 +1512,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
             end_route = clone_route(route_view)
             effective_end = current_time
             if order:
-                prediction_time = build_prediction_time(trip_date, effective_end)
-                if coords and prediction_time:
-                    dist_back_preview, travel_back_preview = get_route_info(coords[last_node], coords[0], prediction_time)
-                else:
-                    dist_back_preview = distance_matrix[last_node][0]
-                    travel_back_preview = time_matrix[last_node][0]
+                dist_back_preview, travel_back_preview = resolve_leg(last_node, 0, effective_end)
             else:
                 dist_back_preview = 0
                 travel_back_preview = 0
@@ -1518,12 +1540,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
                 wait_total += added_wait_total
 
             if order:
-                prediction_time = build_prediction_time(trip_date, effective_end)
-                if coords and prediction_time:
-                    dist_back, travel_back = get_route_info(coords[last_node], coords[0], prediction_time)
-                else:
-                    dist_back = distance_matrix[last_node][0]
-                    travel_back = time_matrix[last_node][0]
+                dist_back, travel_back = resolve_leg(last_node, 0, effective_end)
             else:
                 dist_back = 0
                 travel_back = 0
@@ -1547,12 +1564,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
 
         node = order[idx]
         visit = visits[node - 1]
-        prediction_time = build_prediction_time(trip_date, current_time)
-        if coords and prediction_time:
-            travel_m, travel_min = get_route_info(coords[last_node], coords[node], prediction_time)
-        else:
-            travel_min = time_matrix[last_node][node]
-            travel_m = distance_matrix[last_node][node]
+        travel_m, travel_min = resolve_leg(last_node, node, current_time)
         wait_label = "출발지 대기" if idx == 0 and last_node == 0 else "대기"
 
         pre_options = [{
