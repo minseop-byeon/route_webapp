@@ -320,7 +320,8 @@ def migrate_legacy_settings(data):
                 "menu": str(item.get("menu", "") or "").strip(),
                 "price": str(item.get("price", "") or "").strip(),
                 "address": str(item.get("address", "") or "").strip(),
-                "parking": "1" if str(item.get("parking", "") or "") == "1" else "0",
+                "parking": str(item.get("parking", "") or "unknown").strip() if str(item.get("parking", "") or "").strip() in {"1", "0", "unknown"} else "unknown",
+                "note": str(item.get("note", "") or "").strip(),
             })
     merged["restaurant"]["items"] = normalized_restaurants
     if not merged["mail"].get("smtp_host"):
@@ -1884,6 +1885,7 @@ def save_admin_settings_section():
             prices = request.form.getlist("restaurant_price")
             addresses = request.form.getlist("restaurant_address")
             parkings = request.form.getlist("restaurant_parking")
+            notes = request.form.getlist("restaurant_note")
 
             items = []
             for idx, raw_name in enumerate(names):
@@ -1891,7 +1893,9 @@ def save_admin_settings_section():
                 menu = (menus[idx] if idx < len(menus) else "").strip()
                 price = (prices[idx] if idx < len(prices) else "").strip()
                 address = (addresses[idx] if idx < len(addresses) else "").strip()
-                parking = "1" if (parkings[idx] if idx < len(parkings) else "0") == "1" else "0"
+                raw_parking = (parkings[idx] if idx < len(parkings) else "unknown").strip()
+                parking = raw_parking if raw_parking in {"1", "0", "unknown"} else "unknown"
+                note = (notes[idx] if idx < len(notes) else "").strip()
 
                 if not any([name, menu, price, address]):
                     continue
@@ -1904,6 +1908,7 @@ def save_admin_settings_section():
                     "price": price,
                     "address": address,
                     "parking": parking,
+                    "note": note,
                 })
 
             settings["restaurant"]["items"] = items
