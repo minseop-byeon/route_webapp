@@ -76,6 +76,8 @@ BEAM_WIDTH = 24
 LOCAL_IMPROVE_ITER = 80
 MAX_PARTIAL_CANDIDATES = 1200
 APP_STATE_TABLE = "app_state"
+ROUTE_CACHE_MEMORY = None
+ROUTE_CACHE_DIRTY = False
 
 
 def load_json_file(path, default_value):
@@ -441,11 +443,31 @@ def save_geocode_cache(cache):
 
 
 def get_route_cache():
-    return load_persistent_json("route_cache", ROUTE_CACHE_FILE, {})
+    global ROUTE_CACHE_MEMORY
+    if ROUTE_CACHE_MEMORY is None:
+        ROUTE_CACHE_MEMORY = load_persistent_json("route_cache", ROUTE_CACHE_FILE, {})
+    return ROUTE_CACHE_MEMORY
 
 
-def save_route_cache(cache):
-    save_persistent_json("route_cache", ROUTE_CACHE_FILE, cache)
+def save_route_cache(cache=None, force=False):
+    global ROUTE_CACHE_MEMORY, ROUTE_CACHE_DIRTY
+    if cache is not None:
+        ROUTE_CACHE_MEMORY = cache
+        ROUTE_CACHE_DIRTY = True
+    if force or ROUTE_CACHE_DIRTY:
+        save_persistent_json("route_cache", ROUTE_CACHE_FILE, ROUTE_CACHE_MEMORY or {})
+        ROUTE_CACHE_DIRTY = False
+
+
+def cache_route_result(route_cache, cache_key, distance_m, duration_min, prediction_time):
+    global ROUTE_CACHE_DIRTY
+    route_cache[cache_key] = {
+        "distance_m": int(distance_m),
+        "duration_min": int(duration_min),
+        "prediction_time": prediction_time,
+        "updated_at": datetime.now().isoformat(),
+    }
+    ROUTE_CACHE_DIRTY = True
 
 
 def extract_building_name(geocode_item):
@@ -721,13 +743,13 @@ def build_prediction_time(trip_date, departure_min, bucket_minutes=10):
     return dt.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
-def get_route_info(start, goal, prediction_time=None):
+def get_route_info(start, goal, prediction_time=None, route_cache=None):
     start_key = f"{round(start[0], 6)},{round(start[1], 6)}"
     goal_key = f"{round(goal[0], 6)},{round(goal[1], 6)}"
     time_key = prediction_time or "realtime"
     cache_key = f"{start_key}|{goal_key}|{time_key}"
 
-    route_cache = get_route_cache()
+    route_cache = route_cache if route_cache is not None else get_route_cache()
     if cache_key in route_cache:
         item = route_cache[cache_key]
         return int(item["distance_m"]), int(item["duration_min"])
@@ -771,13 +793,7 @@ def get_route_info(start, goal, prediction_time=None):
                     distance_m = int(properties.get("totalDistance", 99999999))
                     total_seconds = int(properties.get("totalTime", 999999))
                     duration_min = max(1, int(math.ceil(total_seconds / 60)))
-                    route_cache[cache_key] = {
-                        "distance_m": distance_m,
-                        "duration_min": duration_min,
-                        "prediction_time": prediction_time,
-                        "updated_at": datetime.now().isoformat(),
-                    }
-                    save_route_cache(route_cache)
+                    cache_route_result(route_cache, cache_key, distance_m, duration_min, prediction_time)
                     return distance_m, duration_min
         except requests.RequestException:
             pass
@@ -808,13 +824,7 @@ def get_route_info(start, goal, prediction_time=None):
         summary = data["route"]["trafast"][0]["summary"]
         distance_m = int(summary["distance"])
         duration_min = int(summary["duration"]) // 60000
-        route_cache[cache_key] = {
-            "distance_m": distance_m,
-            "duration_min": duration_min,
-            "prediction_time": prediction_time,
-            "updated_at": datetime.now().isoformat(),
-        }
-        save_route_cache(route_cache)
+        cache_route_result(route_cache, cache_key, distance_m, duration_min, prediction_time)
         return distance_m, duration_min
     except Exception:
         return fallback_route_info(start, goal)
@@ -1473,9 +1483,10 @@ def build_departure_candidates(order, visits, time_matrix):
     return sorted(set(reduced))
 
 
-def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None, start_time=DAY_START):
+def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None, start_time=DAY_START, leg_cache=None, route_cache=None):
     best_result = None
-    leg_cache = {}
+    leg_cache = leg_cache if leg_cache is not None else {}
+    route_cache = route_cache if route_cache is not None else get_route_cache()
 
     def resolve_leg(from_node, to_node, departure_min):
         cache_key = (from_node, to_node, int(departure_min))
@@ -1484,7 +1495,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
 
         prediction_time = build_prediction_time(trip_date, departure_min)
         if coords and prediction_time:
-            resolved = get_route_info(coords[from_node], coords[to_node], prediction_time)
+            resolved = get_route_info(coords[from_node], coords[to_node], prediction_time, route_cache=route_cache)
         else:
             resolved = (distance_matrix[from_node][to_node], time_matrix[from_node][to_node])
 
@@ -1638,8 +1649,12 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
 
 
 def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None):
+    route_cache = get_route_cache()
+    shared_leg_cache = {}
     if not visits:
-        return [], simulate_order([], visits, time_matrix, distance_matrix, start_display_address, return_display_address, coords, trip_date)
+        result = simulate_order([], visits, time_matrix, distance_matrix, start_display_address, return_display_address, coords, trip_date, leg_cache=shared_leg_cache, route_cache=route_cache)
+        save_route_cache(force=True)
+        return [], result
 
     order = optimize_route(visits, distance_matrix, time_matrix)
     best = None
@@ -1654,6 +1669,8 @@ def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_add
             coords,
             trip_date,
             start_time=start_time,
+            leg_cache=shared_leg_cache,
+            route_cache=route_cache,
         )
         if candidate is None:
             continue
@@ -1670,7 +1687,10 @@ def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_add
             coords,
             trip_date,
             start_time=DAY_START,
+            leg_cache=shared_leg_cache,
+            route_cache=route_cache,
         )
+    save_route_cache(force=True)
     return order, best
 
 

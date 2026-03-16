@@ -560,7 +560,7 @@ button{
 
   <form id="routeForm" method="POST" action="/planner">
     <div id="visits"></div>
-    <button type="button" class="btn-secondary add-btn action-btn" id="qrScanBtn">
+    <button type="button" class="btn-secondary add-btn action-btn" id="qrScanBtn" style="display:none">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4M8 8h8v8H8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
       </svg>
@@ -1509,6 +1509,9 @@ form.addEventListener("submit", function(e){
 });
 
 window.addEventListener("DOMContentLoaded", () => {
+  if(qrScanBtn){
+    qrScanBtn.style.display = isMobileClient ? "inline-flex" : "none";
+  }
   const restored = restoreDraft();
   if(!restored){
     addVisit();
