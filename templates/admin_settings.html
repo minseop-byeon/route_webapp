@@ -1171,6 +1171,17 @@
     </div>
 </div>
 
+<div class="modal-backdrop" id="restaurantDeleteModal">
+    <div class="modal">
+        <h3 class="modal-title">식당 삭제</h3>
+        <p class="modal-text" id="restaurantDeleteMessage"></p>
+        <div class="modal-buttons">
+            <button type="button" class="modal-btn primary" id="restaurantDeleteConfirmBtn">삭제</button>
+            <button type="button" class="modal-btn secondary" id="restaurantDeleteCancelBtn">취소</button>
+        </div>
+    </div>
+</div>
+
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
     const menuItems = document.querySelectorAll('.menu-item');
@@ -1201,12 +1212,17 @@
     const restaurantModalParking = document.getElementById('restaurantModalParking');
     const restaurantModalNote = document.getElementById('restaurantModalNote');
     const restaurantEmptyRow = document.getElementById('restaurantEmptyRow');
+    const restaurantDeleteModal = document.getElementById('restaurantDeleteModal');
+    const restaurantDeleteMessage = document.getElementById('restaurantDeleteMessage');
+    const restaurantDeleteConfirmBtn = document.getElementById('restaurantDeleteConfirmBtn');
+    const restaurantDeleteCancelBtn = document.getElementById('restaurantDeleteCancelBtn');
 
     let currentPanelId = 'panel-user';
     let pendingPanelId = null;
     let pendingMenuButton = null;
     let dirtyForm = null;
     let editingRestaurantRow = null;
+    let pendingRestaurantDeleteRow = null;
 
     function setActivePanel(panelId, menuButton = null) {
         panels.forEach(panel => panel.classList.remove('active'));
@@ -1729,9 +1745,10 @@
         });
 
         removeBtn.addEventListener('click', () => {
-            row.remove();
-            refreshRestaurantTable();
-            updateSaveButtonState(restaurantSettingsForm);
+            pendingRestaurantDeleteRow = row;
+            const restaurantName = (row.dataset.name || '').trim() || '이 식당';
+            restaurantDeleteMessage.textContent = `${restaurantName}을/를 삭제하시겠습니까?`;
+            restaurantDeleteModal.classList.add('show');
         });
     }
 
@@ -1788,6 +1805,34 @@
             if (event.target === restaurantModal) {
                 clearRestaurantModal();
                 restaurantModal.classList.remove('show');
+            }
+        });
+    }
+
+    if (restaurantDeleteCancelBtn) {
+        restaurantDeleteCancelBtn.addEventListener('click', () => {
+            pendingRestaurantDeleteRow = null;
+            restaurantDeleteModal.classList.remove('show');
+        });
+    }
+
+    if (restaurantDeleteConfirmBtn) {
+        restaurantDeleteConfirmBtn.addEventListener('click', () => {
+            if (pendingRestaurantDeleteRow) {
+                pendingRestaurantDeleteRow.remove();
+                refreshRestaurantTable();
+                updateSaveButtonState(restaurantSettingsForm);
+            }
+            pendingRestaurantDeleteRow = null;
+            restaurantDeleteModal.classList.remove('show');
+        });
+    }
+
+    if (restaurantDeleteModal) {
+        restaurantDeleteModal.addEventListener('click', (event) => {
+            if (event.target === restaurantDeleteModal) {
+                pendingRestaurantDeleteRow = null;
+                restaurantDeleteModal.classList.remove('show');
             }
         });
     }
