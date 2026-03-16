@@ -790,6 +790,11 @@ function addResolvedQrItems(items){
       .map((input) => normalizeAddressKey(input.value))
       .filter(Boolean)
   );
+  const reusableCards = Array.from(document.querySelectorAll(".card")).filter((card) => {
+    const nameEl = card.querySelector('input[name="name"]');
+    const addressEl = card.querySelector('input[name="address"]');
+    return nameEl && addressEl && !nameEl.value.trim() && !addressEl.value.trim();
+  });
 
   items.forEach((item) => {
     const resolvedAddress = item.display_address || item.address || "";
@@ -798,8 +803,10 @@ function addResolvedQrItems(items){
       return;
     }
 
-    addVisit();
-    const card = visitContainer.lastElementChild;
+    const card = reusableCards.shift() || (() => {
+      addVisit();
+      return visitContainer.lastElementChild;
+    })();
     const nameEl = card.querySelector('input[name="name"]');
     const addressEl = card.querySelector('input[name="address"]');
 
