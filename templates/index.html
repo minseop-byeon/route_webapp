@@ -595,6 +595,7 @@ button{
     <div id="qrReader" class="qr-reader"></div>
     <p class="qr-help">· 이미 목록에 추가된 주소는 중복 추가되지 않습니다.<br>· 주소가 올바르지 않은 경우 추가되지 않습니다.</p>
     <div class="ocr-modal-actions">
+      <button type="button" class="btn-primary" id="qrScanStartBtn" style="display:none">촬영 시작</button>
       <button type="button" class="btn-secondary" id="qrScanCloseBtn">닫기</button>
     </div>
   </div>
@@ -631,6 +632,7 @@ const DRAFT_KEY = "route_visit_draft_v5";
 const qrScanBtn = document.getElementById("qrScanBtn");
 const qrScanModal = document.getElementById("qrScanModal");
 const qrScanCloseBtn = document.getElementById("qrScanCloseBtn");
+const qrScanStartBtn = document.getElementById("qrScanStartBtn");
 const qrReader = document.getElementById("qrReader");
 const qrImageInput = document.getElementById("qrImageInput");
 const ocrPageBtn = document.getElementById("ocrPageBtn");
@@ -1167,6 +1169,7 @@ async function handleQrDecoded(decodedText){
     const resolvedItems = await requestQrResolution(parsedItems);
     addResolvedQrItems(resolvedItems);
     await stopQrScanner();
+    resetQrModalState();
     qrScanModal.classList.remove("show");
   }catch(error){
     alert(error.message || "QR 코드 처리 중 오류가 발생했습니다.");
@@ -1241,12 +1244,21 @@ async function stopQrScanner(){
   }
 }
 
-async function openQrScanModal(){
+function resetQrModalState(){
+  qrScanStartBtn.style.display = "none";
   if(isIosDevice()){
-    qrImageInput.click();
+    qrReader.innerHTML = "";
+  }
+}
+
+async function openQrScanModal(){
+  qrScanModal.classList.add("show");
+  if(isIosDevice()){
+    qrReader.innerHTML = "<div style=\"display:flex;height:100%;align-items:center;justify-content:center;color:#6b7280;font-size:14px;text-align:center;padding:12px;\">촬영 시작 버튼을 누르면 QR코드 촬영 화면이 열립니다.</div>";
+    qrScanStartBtn.style.display = "inline-flex";
     return;
   }
-  qrScanModal.classList.add("show");
+  qrScanStartBtn.style.display = "none";
   try{
     await startQrScanner();
   }catch(error){
@@ -1330,6 +1342,11 @@ if(ocrGalleryBtn){
 if(qrScanBtn){
   qrScanBtn.addEventListener("click", openQrScanModal);
 }
+if(qrScanStartBtn){
+  qrScanStartBtn.addEventListener("click", () => {
+    qrImageInput.click();
+  });
+}
 if(qrImageInput){
   qrImageInput.addEventListener("change", async () => {
     await handleQrImageFile(qrImageInput);
@@ -1338,6 +1355,7 @@ if(qrImageInput){
 if(qrScanCloseBtn){
   qrScanCloseBtn.addEventListener("click", async () => {
     await stopQrScanner();
+    resetQrModalState();
     qrScanModal.classList.remove("show");
   });
 }
@@ -1345,6 +1363,7 @@ if(qrScanModal){
   qrScanModal.addEventListener("click", async (event) => {
     if(event.target === qrScanModal){
       await stopQrScanner();
+      resetQrModalState();
       qrScanModal.classList.remove("show");
     }
   });
