@@ -695,6 +695,22 @@ def extract_valid_ocr_addresses(text):
     return fallback
 
 
+def estimate_matrix_leg(start, goal):
+    lon1, lat1 = start
+    lon2, lat2 = goal
+    rad = math.pi / 180.0
+    d_lat = (lat2 - lat1) * rad
+    d_lon = (lon2 - lon1) * rad
+    a = (
+        math.sin(d_lat / 2) ** 2
+        + math.cos(lat1 * rad) * math.cos(lat2 * rad) * (math.sin(d_lon / 2) ** 2)
+    )
+    surface_m = 6371000 * 2 * math.asin(min(1, math.sqrt(a)))
+    road_m = max(500, int(surface_m * 1.28))
+    duration_min = max(3, int(math.ceil((road_m / 1000) / 28 * 60)))
+    return road_m, duration_min
+
+
 def build_prediction_time(trip_date, departure_min, bucket_minutes=10):
     trip_date = (trip_date or "").strip()
     if not trip_date:
@@ -2171,12 +2187,10 @@ def planner():
         dist_matrix = [[0] * size for _ in range(size)]
         time_matrix = [[0] * size for _ in range(size)]
 
-        initial_prediction_time = build_prediction_time(trip_meta["trip_date"], DAY_START)
-
         for i in range(size):
             for j in range(size):
                 if i != j:
-                    d, t = get_route_info(coords[i], coords[j], initial_prediction_time)
+                    d, t = estimate_matrix_leg(coords[i], coords[j])
                     dist_matrix[i][j] = d
                     time_matrix[i][j] = t
 

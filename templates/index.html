@@ -531,8 +531,6 @@ button{
   <form id="routeForm" method="POST" action="/planner">
     <div id="visits"></div>
 
-    <button type="button" class="btn-secondary add-btn ocr-page-btn" id="ocrPageBtn">카메라로 주소 목록 읽기</button>
-    <button type="button" class="btn-secondary add-btn ocr-page-btn" id="ocrGalleryBtn">사진첩에서 주소 목록 읽기</button>
     <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 체납자 추가</button>
     <button type="submit" class="btn-primary submit-btn" id="submitBtn">최적 경로 계산</button>
   </form>
@@ -837,10 +835,18 @@ function openOcrGallery(){
 }
 
 function refreshOcrButtons(){
-  ocrPageBtn.classList.toggle("show", isMobileClient);
-  ocrGalleryBtn.classList.toggle("show", isMobileClient);
-  ocrCameraInput.disabled = !isMobileClient;
-  ocrGalleryInput.disabled = !isMobileClient;
+  if(ocrPageBtn){
+    ocrPageBtn.classList.toggle("show", isMobileClient);
+  }
+  if(ocrGalleryBtn){
+    ocrGalleryBtn.classList.toggle("show", isMobileClient);
+  }
+  if(ocrCameraInput){
+    ocrCameraInput.disabled = !isMobileClient;
+  }
+  if(ocrGalleryInput){
+    ocrGalleryInput.disabled = !isMobileClient;
+  }
 }
 
 function generateServiceOptions(){
@@ -1066,8 +1072,12 @@ ocrConfirmModal.addEventListener("click", (event) => {
   }
 });
 
-ocrPageBtn.addEventListener("click", openOcrCapture);
-ocrGalleryBtn.addEventListener("click", openOcrGallery);
+if(ocrPageBtn){
+  ocrPageBtn.addEventListener("click", openOcrCapture);
+}
+if(ocrGalleryBtn){
+  ocrGalleryBtn.addEventListener("click", openOcrGallery);
+}
 
 function showWarning(card){
   const warning = card.querySelector(".warning");
