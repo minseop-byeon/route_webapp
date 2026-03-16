@@ -747,6 +747,7 @@
             <div class="tabs-card">
                 <div class="menu">
                     <button type="button" class="menu-item active" data-target="panel-user">사용자 설정</button>
+                    <button type="button" class="menu-item" data-target="panel-restaurant">추천 식당 설정</button>
                     <button type="button" class="menu-item" data-target="panel-api">API설정</button>
                     <button type="button" class="menu-item" data-target="panel-location">출발/복귀지 설정</button>
                     <button type="button" class="menu-item" data-target="panel-admin">관리자 비밀번호 설정</button>
@@ -828,6 +829,86 @@
                         <input type="hidden" name="start_address" value="{{ settings.user.start_address }}">
                         <input type="hidden" name="return_address" value="{{ settings.user.return_address }}">
                         <input type="hidden" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
+
+                        <div class="button-row">
+                            <button type="button" class="save-btn">변경사항 저장</button>
+                        </div>
+                        <div class="section-status"></div>
+                    </form>
+                </section>
+
+                <section id="panel-restaurant" class="panel">
+                    <h3 class="panel-title">추천 식당 설정</h3>
+                    <p class="panel-desc">점심시간 추천 식당 목록을 관리합니다.</p>
+
+                    <form class="settings-form" data-section="restaurant" id="restaurantSettingsForm">
+                        <div class="cards-toolbar">
+                            <button type="button" class="add-card-btn" id="addRestaurantBtn">+ 식당 추가</button>
+                        </div>
+
+                        <div class="form-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 14px;">
+                            <div class="form-group">
+                                <label for="restaurantFilterName">식당명 필터</label>
+                                <input type="text" id="restaurantFilterName" placeholder="식당명">
+                            </div>
+                            <div class="form-group">
+                                <label for="restaurantFilterMenu">메뉴 필터</label>
+                                <input type="text" id="restaurantFilterMenu" placeholder="메뉴">
+                            </div>
+                            <div class="form-group">
+                                <label for="restaurantFilterPrice">가격 필터</label>
+                                <input type="text" id="restaurantFilterPrice" placeholder="가격">
+                            </div>
+                            <div class="form-group">
+                                <label for="restaurantFilterAddress">주소 필터</label>
+                                <input type="text" id="restaurantFilterAddress" placeholder="주소">
+                            </div>
+                            <div class="form-group">
+                                <label for="restaurantFilterParking">주차 필터</label>
+                                <select id="restaurantFilterParking">
+                                    <option value="">전체</option>
+                                    <option value="1">가능</option>
+                                    <option value="0">불가</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="team-cards" id="restaurantRows">
+                            {% for item in settings.restaurant["items"] %}
+                            <div class="team-card restaurant-row"
+                                 data-name="{{ item.name }}"
+                                 data-menu="{{ item.menu }}"
+                                 data-price="{{ item.price }}"
+                                 data-address="{{ item.address }}"
+                                 data-parking="{{ item.parking }}">
+                                <button type="button" class="team-card-remove restaurant-remove-btn" title="식당 삭제">×</button>
+                                <h4>식당</h4>
+                                <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                                    <div class="form-group">
+                                        <label>식당명</label>
+                                        <input type="text" name="restaurant_name" value="{{ item.name }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>메뉴</label>
+                                        <input type="text" name="restaurant_menu" value="{{ item.menu }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>가격</label>
+                                        <input type="text" name="restaurant_price" value="{{ item.price }}" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>주차가능여부</label>
+                                        <input type="text" value="{{ '가능' if item.parking == '1' else '불가' }}" readonly>
+                                        <input type="hidden" name="restaurant_parking" value="{{ item.parking }}">
+                                    </div>
+                                    <div class="form-group full">
+                                        <label>주소</label>
+                                        <input type="text" name="restaurant_address" value="{{ item.address }}" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
 
                         <div class="button-row">
                             <button type="button" class="save-btn">변경사항 저장</button>
@@ -930,6 +1011,44 @@
     </div>
 </div>
 
+<div class="modal-backdrop" id="restaurantModal">
+    <div class="modal" style="max-width: 680px;">
+        <h3 class="modal-title">추천 식당 추가</h3>
+        <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px;">
+            <div class="form-group">
+                <label for="restaurantModalName">식당명</label>
+                <input type="text" id="restaurantModalName">
+            </div>
+            <div class="form-group">
+                <label for="restaurantModalMenu">메뉴</label>
+                <input type="text" id="restaurantModalMenu">
+            </div>
+            <div class="form-group">
+                <label for="restaurantModalPrice">가격</label>
+                <input type="text" id="restaurantModalPrice">
+            </div>
+            <div class="form-group">
+                <label for="restaurantModalParking">주차가능여부</label>
+                <select id="restaurantModalParking">
+                    <option value="1">가능</option>
+                    <option value="0">불가</option>
+                </select>
+            </div>
+            <div class="form-group full">
+                <label for="restaurantModalAddress">주소</label>
+                <div class="address-row">
+                    <input type="text" id="restaurantModalAddress" readonly>
+                    <button type="button" class="search-btn" id="restaurantAddressSearchBtn" data-target-input="restaurantModalAddress">주소 검색</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-buttons" style="margin-top: 18px;">
+            <button type="button" class="modal-btn primary" id="restaurantModalSaveBtn">추가</button>
+            <button type="button" class="modal-btn secondary" id="restaurantModalCloseBtn">취소</button>
+        </div>
+    </div>
+</div>
+
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
     const menuItems = document.querySelectorAll('.menu-item');
@@ -946,6 +1065,22 @@
     const adminVerifyRow = document.getElementById('adminVerifyRow');
     const guestToggleSwitch = document.getElementById('enableGuestUserSwitch');
     const guestToggleHidden = document.getElementById('enableGuestUserHidden');
+    const restaurantSettingsForm = document.getElementById('restaurantSettingsForm');
+    const restaurantRows = document.getElementById('restaurantRows');
+    const addRestaurantBtn = document.getElementById('addRestaurantBtn');
+    const restaurantModal = document.getElementById('restaurantModal');
+    const restaurantModalSaveBtn = document.getElementById('restaurantModalSaveBtn');
+    const restaurantModalCloseBtn = document.getElementById('restaurantModalCloseBtn');
+    const restaurantModalName = document.getElementById('restaurantModalName');
+    const restaurantModalMenu = document.getElementById('restaurantModalMenu');
+    const restaurantModalPrice = document.getElementById('restaurantModalPrice');
+    const restaurantModalAddress = document.getElementById('restaurantModalAddress');
+    const restaurantModalParking = document.getElementById('restaurantModalParking');
+    const restaurantFilterName = document.getElementById('restaurantFilterName');
+    const restaurantFilterMenu = document.getElementById('restaurantFilterMenu');
+    const restaurantFilterPrice = document.getElementById('restaurantFilterPrice');
+    const restaurantFilterAddress = document.getElementById('restaurantFilterAddress');
+    const restaurantFilterParking = document.getElementById('restaurantFilterParking');
 
     let currentPanelId = 'panel-user';
     let pendingPanelId = null;
@@ -1109,6 +1244,14 @@
             }
         }
 
+        if (form.dataset.section === 'restaurant' && restaurantRows) {
+            const initialRestaurantCount = Number(form.dataset.initialRestaurantCount || '0');
+            const currentRestaurantCount = restaurantRows.querySelectorAll('.restaurant-row').length;
+            if (initialRestaurantCount !== currentRestaurantCount) {
+                return true;
+            }
+        }
+
         const fields = getFormFields(form);
         for (const field of fields) {
             const current = field.type === 'checkbox' ? (field.checked ? '1' : '0') : field.value;
@@ -1129,6 +1272,12 @@
     function syncUserFormCardCount(form) {
         if (form && form.dataset.section === 'user' && form.querySelector('#teamCardsWrap')) {
             form.dataset.initialCardCount = String(form.querySelectorAll('#teamCardsWrap .team-card').length);
+        }
+    }
+
+    function syncRestaurantCount(form) {
+        if (form && form.dataset.section === 'restaurant' && restaurantRows) {
+            form.dataset.initialRestaurantCount = String(restaurantRows.querySelectorAll('.restaurant-row').length);
         }
     }
 
@@ -1170,6 +1319,9 @@
 
             if (form.dataset.section === 'user' && form.querySelector('#teamCardsWrap')) {
                 syncUserFormCardCount(form);
+            }
+            if (form.dataset.section === 'restaurant') {
+                syncRestaurantCount(form);
             }
 
             markFormClean(form);
@@ -1230,6 +1382,9 @@
     forms.forEach(form => {
         if (form.dataset.section === 'user' && form.querySelector('#teamCardsWrap')) {
             syncUserFormCardCount(form);
+        }
+        if (form.dataset.section === 'restaurant') {
+            syncRestaurantCount(form);
         }
 
         bindDirtyEvents(form);
@@ -1382,6 +1537,139 @@
         const form = document.querySelector('#panel-user .settings-form');
         updateSaveButtonState(form);
     });
+
+    function createRestaurantRow(item = {}) {
+        const parkingValue = item.parking === '1' ? '1' : '0';
+        const parkingText = parkingValue === '1' ? '가능' : '불가';
+        const row = document.createElement('div');
+        row.className = 'team-card restaurant-row';
+        row.dataset.name = item.name || '';
+        row.dataset.menu = item.menu || '';
+        row.dataset.price = item.price || '';
+        row.dataset.address = item.address || '';
+        row.dataset.parking = parkingValue;
+        row.innerHTML = `
+            <button type="button" class="team-card-remove restaurant-remove-btn" title="식당 삭제">×</button>
+            <h4>식당</h4>
+            <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+                <div class="form-group">
+                    <label>식당명</label>
+                    <input type="text" name="restaurant_name" value="${item.name || ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>메뉴</label>
+                    <input type="text" name="restaurant_menu" value="${item.menu || ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>가격</label>
+                    <input type="text" name="restaurant_price" value="${item.price || ''}" readonly>
+                </div>
+                <div class="form-group">
+                    <label>주차가능여부</label>
+                    <input type="text" value="${parkingText}" readonly>
+                    <input type="hidden" name="restaurant_parking" value="${parkingValue}">
+                </div>
+                <div class="form-group full">
+                    <label>주소</label>
+                    <input type="text" name="restaurant_address" value="${item.address || ''}" readonly>
+                </div>
+            </div>
+        `;
+        return row;
+    }
+
+    function bindRestaurantRow(row) {
+        const removeBtn = row.querySelector('.restaurant-remove-btn');
+        removeBtn.addEventListener('click', () => {
+            row.remove();
+            applyRestaurantFilters();
+            updateSaveButtonState(restaurantSettingsForm);
+        });
+    }
+
+    function clearRestaurantModal() {
+        restaurantModalName.value = '';
+        restaurantModalMenu.value = '';
+        restaurantModalPrice.value = '';
+        restaurantModalAddress.value = '';
+        restaurantModalParking.value = '1';
+    }
+
+    function applyRestaurantFilters() {
+        const nameFilter = (restaurantFilterName?.value || '').trim().toLowerCase();
+        const menuFilter = (restaurantFilterMenu?.value || '').trim().toLowerCase();
+        const priceFilter = (restaurantFilterPrice?.value || '').trim().toLowerCase();
+        const addressFilter = (restaurantFilterAddress?.value || '').trim().toLowerCase();
+        const parkingFilter = (restaurantFilterParking?.value || '').trim();
+
+        restaurantRows.querySelectorAll('.restaurant-row').forEach((row) => {
+            const visible =
+                row.dataset.name.toLowerCase().includes(nameFilter) &&
+                row.dataset.menu.toLowerCase().includes(menuFilter) &&
+                row.dataset.price.toLowerCase().includes(priceFilter) &&
+                row.dataset.address.toLowerCase().includes(addressFilter) &&
+                (!parkingFilter || row.dataset.parking === parkingFilter);
+            row.style.display = visible ? '' : 'none';
+        });
+    }
+
+    if (restaurantRows) {
+        restaurantRows.querySelectorAll('.restaurant-row').forEach(row => bindRestaurantRow(row));
+        applyRestaurantFilters();
+    }
+
+    [restaurantFilterName, restaurantFilterMenu, restaurantFilterPrice, restaurantFilterAddress, restaurantFilterParking]
+        .filter(Boolean)
+        .forEach((field) => {
+            field.addEventListener('input', applyRestaurantFilters);
+            field.addEventListener('change', applyRestaurantFilters);
+        });
+
+    if (addRestaurantBtn) {
+        addRestaurantBtn.addEventListener('click', () => {
+            clearRestaurantModal();
+            restaurantModal.classList.add('show');
+        });
+    }
+
+    if (restaurantModalCloseBtn) {
+        restaurantModalCloseBtn.addEventListener('click', () => {
+            restaurantModal.classList.remove('show');
+        });
+    }
+
+    if (restaurantModal) {
+        restaurantModal.addEventListener('click', (event) => {
+            if (event.target === restaurantModal) {
+                restaurantModal.classList.remove('show');
+            }
+        });
+    }
+
+    if (restaurantModalSaveBtn) {
+        restaurantModalSaveBtn.addEventListener('click', () => {
+            const item = {
+                name: restaurantModalName.value.trim(),
+                menu: restaurantModalMenu.value.trim(),
+                price: restaurantModalPrice.value.trim(),
+                address: restaurantModalAddress.value.trim(),
+                parking: restaurantModalParking.value === '1' ? '1' : '0',
+            };
+
+            if (!item.name || !item.menu || !item.price || !item.address) {
+                showStatus(restaurantSettingsForm, 'error', '식당명, 메뉴, 가격, 주소를 모두 입력해 주세요.');
+                return;
+            }
+
+            clearStatus(restaurantSettingsForm);
+            const row = createRestaurantRow(item);
+            restaurantRows.appendChild(row);
+            bindRestaurantRow(row);
+            applyRestaurantFilters();
+            updateSaveButtonState(restaurantSettingsForm);
+            restaurantModal.classList.remove('show');
+        });
+    }
 
     verifyAdminPasswordBtn.addEventListener('click', async () => {
         clearVerifyStatus();

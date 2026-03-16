@@ -58,6 +58,9 @@ DEFAULT_SETTINGS = {
         "team_users": DEFAULT_TEAM_USERS,
         "enable_guest_user": True
     },
+    "restaurant": {
+        "items": []
+    },
     "admin": {
         "admin_password": ADMIN_PASSWORD
     }
@@ -272,9 +275,9 @@ def migrate_legacy_settings(data):
     if not isinstance(data, dict):
         return merged
 
-    has_new_structure = any(k in data for k in ["mail", "api", "user", "admin"])
+    has_new_structure = any(k in data for k in ["mail", "api", "user", "restaurant", "admin"])
     if has_new_structure:
-        for section in ["mail", "api", "user", "admin"]:
+        for section in ["mail", "api", "user", "restaurant", "admin"]:
             if isinstance(data.get(section), dict):
                 merged[section].update(data[section])
     else:
@@ -306,6 +309,20 @@ def migrate_legacy_settings(data):
         merged["api"]["tmap_app_key"] = TMAP_DEFAULT_APP_KEY
     if not merged["admin"].get("admin_password"):
         merged["admin"]["admin_password"] = ADMIN_PASSWORD
+    restaurant_items = merged.get("restaurant", {}).get("items", [])
+    normalized_restaurants = []
+    if isinstance(restaurant_items, list):
+        for item in restaurant_items:
+            if not isinstance(item, dict):
+                continue
+            normalized_restaurants.append({
+                "name": str(item.get("name", "") or "").strip(),
+                "menu": str(item.get("menu", "") or "").strip(),
+                "price": str(item.get("price", "") or "").strip(),
+                "address": str(item.get("address", "") or "").strip(),
+                "parking": "1" if str(item.get("parking", "") or "") == "1" else "0",
+            })
+    merged["restaurant"]["items"] = normalized_restaurants
     if not merged["mail"].get("smtp_host"):
         merged["mail"]["smtp_host"] = "smtp.gmail.com"
     if not merged["mail"].get("smtp_port"):
@@ -1860,6 +1877,36 @@ def save_admin_settings_section():
                 return jsonify({"success": False, "message": "최소 1개의 카드를 유지해 주세요."})
 
             settings["user"]["team_users"] = normalize_team_users(team_users)
+
+        elif section == "restaurant":
+            names = request.form.getlist("restaurant_name")
+            menus = request.form.getlist("restaurant_menu")
+            prices = request.form.getlist("restaurant_price")
+            addresses = request.form.getlist("restaurant_address")
+            parkings = request.form.getlist("restaurant_parking")
+
+            items = []
+            for idx, raw_name in enumerate(names):
+                name = (raw_name or "").strip()
+                menu = (menus[idx] if idx < len(menus) else "").strip()
+                price = (prices[idx] if idx < len(prices) else "").strip()
+                address = (addresses[idx] if idx < len(addresses) else "").strip()
+                parking = "1" if (parkings[idx] if idx < len(parkings) else "0") == "1" else "0"
+
+                if not any([name, menu, price, address]):
+                    continue
+                if not name or not menu or not price or not address:
+                    return jsonify({"success": False, "message": "식당명, 메뉴, 가격, 주소는 모두 입력해 주세요."})
+
+                items.append({
+                    "name": name,
+                    "menu": menu,
+                    "price": price,
+                    "address": address,
+                    "parking": parking,
+                })
+
+            settings["restaurant"]["items"] = items
 
         elif section == "admin":
             current_password = (request.form.get("current_admin_password") or "").strip()
