@@ -2082,6 +2082,44 @@ def planner_ocr_addresses():
     })
 
 
+@app.route("/planner/resolve-qr-items", methods=["POST"])
+def planner_resolve_qr_items():
+    payload = request.get_json(silent=True) or {}
+    items = payload.get("items") or []
+    if not isinstance(items, list) or not items:
+        return jsonify({"success": False, "message": "QR 항목이 없습니다."}), 400
+
+    resolved_items = []
+    for raw_item in items[:15]:
+        if not isinstance(raw_item, dict):
+            continue
+
+        name = str(raw_item.get("name") or "").strip()
+        address = str(raw_item.get("address") or "").strip()
+        if not name and not address:
+            continue
+
+        coord, meta, err = geocode_with_meta(address)
+        if coord:
+            resolved_items.append({
+                "name": name,
+                "address": address,
+                "display_address": (meta or {}).get("display_address") or address,
+                "ok": True,
+                "message": "",
+            })
+        else:
+            resolved_items.append({
+                "name": name,
+                "address": address,
+                "display_address": address,
+                "ok": False,
+                "message": err or "주소 확인에 실패했습니다.",
+            })
+
+    return jsonify({"success": True, "items": resolved_items})
+
+
 @app.route("/planner", methods=["GET", "POST"])
 def planner():
     trip_meta = get_trip_meta()

@@ -226,6 +226,19 @@ button{
   margin-top:10px;
 }
 
+.action-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.action-btn svg{
+  width:16px;
+  height:16px;
+  flex:0 0 auto;
+}
+
 .submit-btn{
   width:100%;
   margin-top:18px;
@@ -430,6 +443,23 @@ button{
   margin-top:14px;
 }
 
+.qr-reader{
+  width:100%;
+  min-height:260px;
+  border-radius:14px;
+  overflow:hidden;
+  background:#0f172a;
+  border:1px solid #dbe2ea;
+}
+
+.qr-help{
+  margin:10px 0 0;
+  font-size:12px;
+  color:#64748b;
+  line-height:1.5;
+  font-weight:600;
+}
+
 @media (max-width:760px){
   .container{
     margin:24px auto;
@@ -530,6 +560,12 @@ button{
 
   <form id="routeForm" method="POST" action="/planner">
     <div id="visits"></div>
+    <button type="button" class="btn-secondary add-btn action-btn" id="qrScanBtn">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4M8 8h8v8H8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      QR 스캔하여 추가
+    </button>
 
     <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 체납자 추가</button>
     <button type="submit" class="btn-primary submit-btn" id="submitBtn">최적 경로 계산</button>
@@ -552,6 +588,18 @@ button{
   </div>
 </div>
 
+<div class="ocr-modal" id="qrScanModal">
+  <div class="ocr-modal-card">
+    <h3 class="ocr-modal-title">QR 스캔</h3>
+    <p class="ocr-modal-desc">RT1 형식 QR 코드를 스캔해 이름과 주소를 한 번에 추가합니다.</p>
+    <div id="qrReader" class="qr-reader"></div>
+    <p class="qr-help">같은 주소가 이미 목록에 있으면 중복 추가하지 않습니다. 주소 확인에 실패한 항목은 카드에 오류로 표시됩니다.</p>
+    <div class="ocr-modal-actions">
+      <button type="button" class="btn-secondary" id="qrScanCloseBtn">닫기</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="ocrCameraInput" accept="image/*" capture="environment" hidden style="display:none" tabindex="-1" aria-hidden="true">
 <input type="file" id="ocrGalleryInput" accept="image/*" hidden style="display:none" tabindex="-1" aria-hidden="true">
 
@@ -571,12 +619,17 @@ button{
 
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
 let visitContainer = document.getElementById("visits");
 let form = document.getElementById("routeForm");
 let count = 0;
 const DRAFT_KEY = "route_visit_draft_v5";
+const qrScanBtn = document.getElementById("qrScanBtn");
+const qrScanModal = document.getElementById("qrScanModal");
+const qrScanCloseBtn = document.getElementById("qrScanCloseBtn");
+const qrReader = document.getElementById("qrReader");
 const ocrPageBtn = document.getElementById("ocrPageBtn");
 const ocrGalleryBtn = document.getElementById("ocrGalleryBtn");
 const ocrCameraInput = document.getElementById("ocrCameraInput");
@@ -586,6 +639,9 @@ const ocrAddressList = document.getElementById("ocrAddressList");
 const ocrCancelBtn = document.getElementById("ocrCancelBtn");
 const ocrApplyBtn = document.getElementById("ocrApplyBtn");
 const isMobileClient = window.matchMedia("(max-width: 760px)").matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+let qrScanner = null;
+let qrScannerRunning = false;
+let qrProcessing = false;
 
 function normalizeOcrText(text){
   return (text || "")
@@ -667,6 +723,92 @@ function applyOcrAddresses(addresses){
     input.value = addresses[index] || "";
     input.classList.remove("error");
     clearWarning(input.closest(".card"));
+  });
+
+  saveDraft();
+}
+
+function normalizeAddressKey(address){
+  return (address || "").replace(/\s+/g, " ").trim();
+}
+
+function parseQrPayload(rawText){
+  const text = (rawText || "").trim();
+  if(!text.startsWith("RT1|")){
+    throw new Error("지원하지 않는 QR 형식입니다.");
+  }
+
+  const pairs = text.split("|").slice(1).filter(Boolean);
+  if(!pairs.length){
+    throw new Error("QR 코드에 항목이 없습니다.");
+  }
+
+  return pairs.slice(0, 15).map((pair) => {
+    const separator = pair.indexOf("^");
+    if(separator <= 0){
+      throw new Error("QR 코드 항목 형식이 올바르지 않습니다.");
+    }
+    return {
+      name: pair.slice(0, separator).trim(),
+      address: pair.slice(separator + 1).trim(),
+    };
+  });
+}
+
+async function requestQrResolution(items){
+  const response = await fetch("/planner/resolve-qr-items", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({items})
+  });
+
+  const payload = await response.json();
+  if(!response.ok || !payload.success){
+    throw new Error(payload.message || "QR 데이터 확인 중 오류가 발생했습니다.");
+  }
+  return payload.items || [];
+}
+
+function setCardWarning(card, message){
+  const warning = card.querySelector(".warning");
+  if(warning){
+    warning.textContent = message || "입력되지 않은 항목이 있습니다";
+    warning.style.display = message ? "block" : "none";
+  }
+}
+
+function addResolvedQrItems(items){
+  const existingKeys = new Set(
+    Array.from(document.querySelectorAll('input[name="address"]'))
+      .map((input) => normalizeAddressKey(input.value))
+      .filter(Boolean)
+  );
+
+  items.forEach((item) => {
+    const resolvedAddress = item.display_address || item.address || "";
+    const addressKey = normalizeAddressKey(resolvedAddress || item.address);
+    if(item.ok && addressKey && existingKeys.has(addressKey)){
+      return;
+    }
+
+    addVisit();
+    const card = visitContainer.lastElementChild;
+    const nameEl = card.querySelector('input[name="name"]');
+    const addressEl = card.querySelector('input[name="address"]');
+
+    nameEl.value = item.name || "";
+    addressEl.value = resolvedAddress || item.address || "";
+
+    if(item.ok){
+      addressEl.classList.remove("error");
+      setCardWarning(card, "");
+      if(addressKey){
+        existingKeys.add(addressKey);
+      }
+    }else{
+      addressEl.classList.add("error");
+      setCardWarning(card, item.message || "주소 확인에 실패했습니다.");
+    }
   });
 
   saveDraft();
@@ -1006,6 +1148,69 @@ function openAddress(button){
   openAddressField(input);
 }
 
+async function handleQrDecoded(decodedText){
+  if(qrProcessing){
+    return;
+  }
+
+  qrProcessing = true;
+  try{
+    const parsedItems = parseQrPayload(decodedText);
+    const resolvedItems = await requestQrResolution(parsedItems);
+    addResolvedQrItems(resolvedItems);
+    await stopQrScanner();
+    qrScanModal.classList.remove("show");
+  }catch(error){
+    alert(error.message || "QR 코드 처리 중 오류가 발생했습니다.");
+  }finally{
+    qrProcessing = false;
+  }
+}
+
+async function startQrScanner(){
+  if(qrScannerRunning || typeof Html5Qrcode === "undefined"){
+    if(typeof Html5Qrcode === "undefined"){
+      alert("QR 스캔 라이브러리를 불러오지 못했습니다.");
+    }
+    return;
+  }
+
+  qrScanner = qrScanner || new Html5Qrcode("qrReader");
+  qrScannerRunning = true;
+
+  await qrScanner.start(
+    {facingMode: "environment"},
+    {fps: 10, qrbox: {width: 220, height: 220}},
+    async (decodedText) => {
+      await handleQrDecoded(decodedText);
+    },
+    () => {}
+  );
+}
+
+async function stopQrScanner(){
+  if(!qrScanner || !qrScannerRunning){
+    return;
+  }
+  try{
+    await qrScanner.stop();
+    await qrScanner.clear();
+  }catch(error){
+  }finally{
+    qrScannerRunning = false;
+  }
+}
+
+async function openQrScanModal(){
+  qrScanModal.classList.add("show");
+  try{
+    await startQrScanner();
+  }catch(error){
+    qrScanModal.classList.remove("show");
+    alert(error.message || "카메라를 시작하지 못했습니다.");
+  }
+}
+
 async function handleOcrFileSelection(fileInput){
   const file = fileInput.files && fileInput.files[0];
   if(!file){
@@ -1078,10 +1283,30 @@ if(ocrPageBtn){
 if(ocrGalleryBtn){
   ocrGalleryBtn.addEventListener("click", openOcrGallery);
 }
+if(qrScanBtn){
+  qrScanBtn.addEventListener("click", openQrScanModal);
+}
+if(qrScanCloseBtn){
+  qrScanCloseBtn.addEventListener("click", async () => {
+    await stopQrScanner();
+    qrScanModal.classList.remove("show");
+  });
+}
+if(qrScanModal){
+  qrScanModal.addEventListener("click", async (event) => {
+    if(event.target === qrScanModal){
+      await stopQrScanner();
+      qrScanModal.classList.remove("show");
+    }
+  });
+}
 
-function showWarning(card){
+function showWarning(card, message = ""){
   const warning = card.querySelector(".warning");
-  if(warning) warning.style.display = "block";
+  if(warning){
+    warning.textContent = message || "입력되지 않은 항목이 있습니다";
+    warning.style.display = "block";
+  }
 }
 
 function clearWarning(card){
@@ -1097,6 +1322,7 @@ function clearWarning(card){
   const timeOk = !hasAppointment || (hourEl.value && minuteEl.value);
 
   if(baseOk && timeOk){
+    warning.textContent = "입력되지 않은 항목이 있습니다";
     warning.style.display = "none";
     name.classList.remove("error");
     address.classList.remove("error");
