@@ -1,8 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, Response, flash, abort, jsonify
 import requests
-from io import BytesIO
-import smtplib
-from email.message import EmailMessage
 import os
 import json
 import logging
@@ -17,12 +14,6 @@ try:
     import psycopg2
 except Exception:
     psycopg2 = None
-
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.units import mm
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "replace-this-with-your-secure-secret-key")
@@ -1683,178 +1674,6 @@ def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_add
     return order, best
 
 
-def build_pdf_bytes(payload):
-    buffer = BytesIO()
-    page_size = landscape(A4)
-    doc = SimpleDocTemplate(
-        buffer, pagesize=page_size,
-        leftMargin=8 * mm, rightMargin=8 * mm, topMargin=8 * mm, bottomMargin=8 * mm
-    )
-
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle("TitleSmall", parent=styles["Heading2"], fontName="Helvetica-Bold", fontSize=12, leading=14, spaceAfter=4)
-    info_style = ParagraphStyle("InfoSmall", parent=styles["Normal"], fontName="Helvetica", fontSize=8, leading=10)
-    cell_style = ParagraphStyle("CellSmall", parent=styles["Normal"], fontName="Helvetica", fontSize=7, leading=8)
-    addr_style = ParagraphStyle("AddrBold", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=8, leading=9)
-
-    story = []
-    story.append(Paragraph("국세청 체납관리단 - SMART 경로탐색 결과", title_style))
-    meta_text = f"{payload.get('team_no', '')}({payload.get('user_name', '')}) - {payload.get('trip_date', '').replace('-', '.')}"
-    story.append(Paragraph(meta_text, info_style))
-    story.append(Spacer(1, 2 * mm))
-
-    summary_rows = [[
-        Paragraph("<b>총 방문지</b>", cell_style),
-        Paragraph("<b>총 이동거리</b>", cell_style),
-        Paragraph("<b>총 소요시간</b>", cell_style),
-        Paragraph("<b>예상 종료시간</b>", cell_style),
-    ], [
-        Paragraph(str(payload.get("total_count", "")), cell_style),
-        Paragraph(f"{payload.get('total_distance', '')} km", cell_style),
-        Paragraph(f"{payload.get('total_time', '')} 분", cell_style),
-        Paragraph(str(payload.get("end_time", "")), cell_style),
-    ]]
-
-    summary_table = Table(summary_rows, colWidths=[55 * mm, 55 * mm, 55 * mm, 55 * mm])
-    summary_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eaf2ff")),
-        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-        ("INNERGRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#cbd5e1")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-    ]))
-    story.append(summary_table)
-
-    warning_message = payload.get("warning_message", "")
-    if warning_message:
-        story.append(Spacer(1, 2 * mm))
-        warning_table = Table([[Paragraph(f"<b>{warning_message}</b>", cell_style)]], colWidths=[220 * mm])
-        warning_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#fff7ed")),
-            ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#fed7aa")),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ]))
-        story.append(warning_table)
-
-    story.append(Spacer(1, 2 * mm))
-
-    header = [
-        Paragraph("<b>구분</b>", cell_style),
-        Paragraph("<b>시간</b>", cell_style),
-        Paragraph("<b>주소 / 내용</b>", cell_style),
-        Paragraph("<b>약속</b>", cell_style),
-        Paragraph("<b>방문</b>", cell_style),
-        Paragraph("<b>이동</b>", cell_style),
-        Paragraph("<b>거리</b>", cell_style),
-    ]
-
-    table_rows = [header]
-    for v in payload.get("route", []):
-        kind = {
-            "start": "출발",
-            "visit": f"방문 {v.get('label', '')}",
-            "wait": "대기",
-            "lunch": "점심",
-            "return": "복귀",
-        }.get(v.get("type"), v.get("type", ""))
-
-        addr_content = Paragraph(v.get("address", "") if v.get("type") == "visit" else v.get("name", ""), addr_style if v.get("type") == "visit" else cell_style)
-
-        time_text = f"{v.get('arrival', '')}" if v.get("type") in ("start", "return") else f"{v.get('arrival', '')}~{v.get('end_time', '')}"
-
-        table_rows.append([
-            Paragraph(kind, cell_style),
-            Paragraph(time_text, cell_style),
-            addr_content,
-            Paragraph(v.get("appointment_time", "") or "-", cell_style),
-            Paragraph(f"{v.get('service_time', 0)}분" if v.get("type") in ("visit", "wait", "lunch") else "-", cell_style),
-            Paragraph(f"{v.get('travel_min', '')}분" if v.get("travel_min") is not None else "-", cell_style),
-            Paragraph(f"{v.get('travel_km', '')}km" if v.get("travel_km") is not None else "-", cell_style),
-        ])
-
-    detail_table = Table(table_rows, colWidths=[20 * mm, 28 * mm, 95 * mm, 18 * mm, 18 * mm, 18 * mm, 18 * mm], repeatRows=1)
-    detail_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#dbeafe")),
-        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#cbd5e1")),
-        ("INNERGRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#cbd5e1")),
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("ALIGN", (0, 0), (1, -1), "CENTER"),
-        ("ALIGN", (3, 1), (-1, -1), "CENTER"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-    ]))
-    story.append(detail_table)
-
-    doc.build(story)
-    pdf = buffer.getvalue()
-    buffer.close()
-    return pdf
-
-
-def send_result_email(recipient, payload):
-    mail_config = get_mail_config()
-    smtp_host = mail_config["smtp_host"]
-    smtp_port = mail_config["smtp_port"]
-    smtp_user = mail_config["smtp_user"]
-    smtp_password = mail_config["smtp_password"]
-    mail_from = mail_config["mail_from"]
-
-    if not smtp_user or not smtp_password or not mail_from:
-        return False
-
-    settings = load_settings()
-    mail_settings = settings.get("mail", {})
-
-    subject_template = mail_settings.get("email_subject_template", DEFAULT_SETTINGS["mail"]["email_subject_template"])
-    body_template = mail_settings.get("email_body_template", DEFAULT_SETTINGS["mail"]["email_body_template"])
-
-    try:
-        subject = subject_template.format(
-            team_no=payload.get("team_no", ""),
-            user_name=payload.get("user_name", ""),
-            trip_date=payload.get("trip_date", "")
-        )
-    except Exception:
-        subject = f"[경로결과] {payload.get('team_no', '')}({payload.get('user_name', '')}) - {payload.get('trip_date', '')}"
-
-    try:
-        body = body_template.format(
-            team_no=payload.get("team_no", ""),
-            user_name=payload.get("user_name", ""),
-            trip_date=payload.get("trip_date", ""),
-            total_count=payload.get("total_count", ""),
-            total_distance=payload.get("total_distance", ""),
-            total_time=payload.get("total_time", ""),
-            end_time=payload.get("end_time", "")
-        )
-    except Exception:
-        body = "경로 결과 PDF를 첨부합니다."
-
-    try:
-        pdf_bytes = build_pdf_bytes(payload)
-        msg = EmailMessage()
-        msg["Subject"] = subject
-        msg["From"] = mail_from
-        msg["To"] = recipient
-        msg.set_content(body)
-        msg.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename="route_result.pdf")
-
-        with smtplib.SMTP(smtp_host, smtp_port) as smtp:
-            smtp.starttls()
-            smtp.login(smtp_user, smtp_password)
-            smtp.send_message(msg)
-        return True
-    except Exception:
-        return False
-
-
 initialize_storage()
 
 
@@ -2293,20 +2112,6 @@ def result_page():
     if not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"] or not payload:
         return redirect(url_for("start"))
     return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
-
-
-@app.route("/send-result-email", methods=["POST"])
-def send_result_email_route():
-    settings = load_settings()
-    recipient = (request.form.get("email") or "").strip()
-    if not recipient:
-        recipient = settings.get("mail", {}).get("default_recipient_email", "").strip()
-
-    payload = session.get("last_result_payload")
-    if recipient and payload:
-        send_result_email(recipient, payload)
-
-    return Response(status=204)
 
 
 if __name__ == "__main__":

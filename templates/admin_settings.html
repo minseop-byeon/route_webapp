@@ -746,8 +746,7 @@
         <div class="admin-layout">
             <div class="tabs-card">
                 <div class="menu">
-                    <button type="button" class="menu-item active" data-target="panel-mail">메일설정</button>
-                    <button type="button" class="menu-item" data-target="panel-api">API설정</button>
+                    <button type="button" class="menu-item active" data-target="panel-api">API설정</button>
                     <button type="button" class="menu-item" data-target="panel-user">사용자 설정</button>
                     <button type="button" class="menu-item" data-target="panel-location">출발/복귀지 설정</button>
                     <button type="button" class="menu-item" data-target="panel-admin">관리자 비밀번호 변경</button>
@@ -755,63 +754,7 @@
             </div>
 
             <div class="content-area">
-                <section id="panel-mail" class="panel active">
-                    <h3 class="panel-title">메일설정</h3>
-                    <p class="panel-desc">메일 발송 계정, 기본 수신자, 제목 및 본문 템플릿을 설정합니다.</p>
-
-                    <form class="settings-form" data-section="mail">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="smtp_host">SMTP 호스트</label>
-                                <input type="text" id="smtp_host" name="smtp_host" value="{{ settings.mail.smtp_host }}">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="smtp_port">SMTP 포트</label>
-                                <input type="text" id="smtp_port" name="smtp_port" value="{{ settings.mail.smtp_port }}">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="smtp_user">SMTP 사용자 계정</label>
-                                <input type="text" id="smtp_user" name="smtp_user" value="{{ settings.mail.smtp_user }}">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="smtp_password">SMTP 비밀번호</label>
-                                <input type="password" id="smtp_password" name="smtp_password" value="{{ settings.mail.smtp_password }}">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="mail_from">발신자 이메일</label>
-                                <input type="text" id="mail_from" name="mail_from" value="{{ settings.mail.mail_from }}">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="default_recipient_email">기본 수신자 이메일</label>
-                                <input type="text" id="default_recipient_email" name="default_recipient_email" value="{{ settings.mail.default_recipient_email }}">
-                            </div>
-
-                            <div class="form-group full">
-                                <label for="email_subject_template">메일 제목 템플릿</label>
-                                <input type="text" id="email_subject_template" name="email_subject_template" value="{{ settings.mail.email_subject_template }}">
-                                <div class="help-text">{team_no}, {user_name}, {trip_date} 변수를 사용할 수 있습니다.</div>
-                            </div>
-
-                            <div class="form-group full">
-                                <label for="email_body_template">메일 본문 템플릿</label>
-                                <textarea id="email_body_template" name="email_body_template">{{ settings.mail.email_body_template }}</textarea>
-                                <div class="help-text">{team_no}, {user_name}, {trip_date}, {total_count}, {total_distance}, {total_time}, {end_time} 변수를 사용할 수 있습니다.</div>
-                            </div>
-                        </div>
-
-                        <div class="button-row">
-                            <button type="button" class="save-btn">변경사항 저장</button>
-                        </div>
-                        <div class="section-status"></div>
-                    </form>
-                </section>
-
-                <section id="panel-api" class="panel">
+                <section id="panel-api" class="panel active">
                     <h3 class="panel-title">API설정</h3>
                     <p class="panel-desc">외부 연동에 필요한 API 정보를 설정합니다.</p>
 
@@ -1004,7 +947,7 @@
     const guestToggleSwitch = document.getElementById('enableGuestUserSwitch');
     const guestToggleHidden = document.getElementById('enableGuestUserHidden');
 
-    let currentPanelId = 'panel-mail';
+    let currentPanelId = 'panel-api';
     let pendingPanelId = null;
     let pendingMenuButton = null;
     let dirtyForm = null;
