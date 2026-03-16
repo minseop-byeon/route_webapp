@@ -591,9 +591,9 @@ button{
 <div class="ocr-modal" id="qrScanModal">
   <div class="ocr-modal-card">
     <h3 class="ocr-modal-title">QR 스캔</h3>
-    <p class="ocr-modal-desc">RT1 형식 QR 코드를 스캔해 이름과 주소를 한 번에 추가합니다.</p>
+    <p class="ocr-modal-desc">QR코드를 촬영하여 이름과 주소를 불러옵니다.</p>
     <div id="qrReader" class="qr-reader"></div>
-    <p class="qr-help">같은 주소가 이미 목록에 있으면 중복 추가하지 않습니다. 주소 확인에 실패한 항목은 카드에 오류로 표시됩니다.</p>
+    <p class="qr-help">· 이미 목록에 추가된 주소는 중복 추가되지 않습니다.<br>· 주소가 올바르지 않은 경우 추가되지 않습니다.</p>
     <div class="ocr-modal-actions">
       <button type="button" class="btn-secondary" id="qrScanCloseBtn">닫기</button>
     </div>
@@ -1182,6 +1182,7 @@ async function startQrScanner(){
     {facingMode: "environment"},
     {fps: 10, qrbox: {width: 220, height: 220}},
     async (decodedText) => {
+      await stopQrScanner();
       await handleQrDecoded(decodedText);
     },
     () => {}
