@@ -243,7 +243,8 @@
         }
 
         .form-group input,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             width: 100%;
             border: 1px solid #e5e7eb;
             border-radius: 10px;
@@ -267,9 +268,20 @@
         }
 
         .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             border-color: #1d4ed8;
             box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.08);
+        }
+
+        .form-group select {
+            min-height: 42px;
+            appearance: none;
+            background-image: linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%);
+            background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 36px;
         }
 
         .help-text {
@@ -622,6 +634,87 @@
             color: #0f172a;
         }
 
+        .restaurant-table-wrap {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .restaurant-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .restaurant-table thead {
+            background: #f8fafc;
+        }
+
+        .restaurant-table th {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 800;
+            color: #475569;
+        }
+
+        .restaurant-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eef2f7;
+            vertical-align: middle;
+            font-size: 14px;
+            color: #111827;
+        }
+
+        .restaurant-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .restaurant-table th.actions-cell,
+        .restaurant-table td.actions-cell {
+            width: 88px;
+            text-align: center;
+        }
+
+        .restaurant-table input[readonly] {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            min-height: auto;
+            color: inherit;
+            pointer-events: none;
+        }
+
+        .restaurant-empty {
+            padding: 30px 16px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .restaurant-remove-btn {
+            position: static;
+            margin: 0 auto;
+        }
+
+        .restaurant-modal {
+            max-width: 640px;
+            padding: 24px;
+        }
+
+        .restaurant-modal .modal-title {
+            margin-bottom: 18px;
+        }
+
+        .restaurant-modal-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px 18px;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -846,43 +939,16 @@
                             <button type="button" class="add-card-btn" id="addRestaurantBtn">+ 식당 추가</button>
                         </div>
 
-                        <div class="form-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 14px;">
-                            <div class="form-group">
-                                <label for="restaurantFilterName">식당명 필터</label>
-                                <input type="text" id="restaurantFilterName" placeholder="식당명">
-                            </div>
-                            <div class="form-group">
-                                <label for="restaurantFilterMenu">메뉴 필터</label>
-                                <input type="text" id="restaurantFilterMenu" placeholder="메뉴">
-                            </div>
-                            <div class="form-group">
-                                <label for="restaurantFilterPrice">가격 필터</label>
-                                <input type="text" id="restaurantFilterPrice" placeholder="가격">
-                            </div>
-                            <div class="form-group">
-                                <label for="restaurantFilterAddress">주소 필터</label>
-                                <input type="text" id="restaurantFilterAddress" placeholder="주소">
-                            </div>
-                            <div class="form-group">
-                                <label for="restaurantFilterParking">주차 필터</label>
-                                <select id="restaurantFilterParking">
-                                    <option value="">전체</option>
-                                    <option value="1">가능</option>
-                                    <option value="0">불가</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div style="overflow-x: auto;">
-                            <table style="width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #d1d5db; border-radius: 12px; overflow: hidden;">
-                                <thead style="background: #f8fafc;">
+                        <div class="restaurant-table-wrap">
+                            <table class="restaurant-table">
+                                <thead>
                                     <tr>
-                                        <th style="padding: 12px; border-bottom: 1px solid #d1d5db; text-align: left;">식당명</th>
-                                        <th style="padding: 12px; border-bottom: 1px solid #d1d5db; text-align: left;">메뉴</th>
-                                        <th style="padding: 12px; border-bottom: 1px solid #d1d5db; text-align: left;">가격</th>
-                                        <th style="padding: 12px; border-bottom: 1px solid #d1d5db; text-align: left;">주소</th>
-                                        <th style="padding: 12px; border-bottom: 1px solid #d1d5db; text-align: left;">주차 가능여부</th>
-                                        <th style="padding: 12px; border-bottom: 1px solid #d1d5db; text-align: center; width: 88px;">삭제</th>
+                                        <th>식당명</th>
+                                        <th>메뉴</th>
+                                        <th>가격</th>
+                                        <th>주소</th>
+                                        <th>주차 가능여부</th>
+                                        <th class="actions-cell">삭제</th>
                                     </tr>
                                 </thead>
                                 <tbody id="restaurantRows">
@@ -893,29 +959,29 @@
                                         data-price="{{ item.price }}"
                                         data-address="{{ item.address }}"
                                         data-parking="{{ item.parking }}">
-                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                                            <input type="text" name="restaurant_name" value="{{ item.name }}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+                                        <td>
+                                            <input type="text" name="restaurant_name" value="{{ item.name }}" readonly>
                                         </td>
-                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                                            <input type="text" name="restaurant_menu" value="{{ item.menu }}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+                                        <td>
+                                            <input type="text" name="restaurant_menu" value="{{ item.menu }}" readonly>
                                         </td>
-                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                                            <input type="text" name="restaurant_price" value="{{ item.price }}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+                                        <td>
+                                            <input type="text" name="restaurant_price" value="{{ item.price }}" readonly>
                                         </td>
-                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                                            <input type="text" name="restaurant_address" value="{{ item.address }}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+                                        <td>
+                                            <input type="text" name="restaurant_address" value="{{ item.address }}" readonly>
                                         </td>
-                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                                            <input type="text" value="{{ '가능' if item.parking == '1' else '불가' }}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+                                        <td>
+                                            <input type="text" value="{{ '가능' if item.parking == '1' else '불가' }}" readonly>
                                             <input type="hidden" name="restaurant_parking" value="{{ item.parking }}">
                                         </td>
-                                        <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">
-                                            <button type="button" class="team-card-remove restaurant-remove-btn" title="식당 삭제" style="position: static; margin: 0 auto;">×</button>
+                                        <td class="actions-cell">
+                                            <button type="button" class="team-card-remove restaurant-remove-btn" title="식당 삭제">×</button>
                                         </td>
                                     </tr>
                                     {% endfor %}
                                     <tr id="restaurantEmptyRow">
-                                        <td colspan="6" style="padding: 24px 12px; text-align: center; color: #6b7280;">추천식당이 없습니다</td>
+                                        <td colspan="6" class="restaurant-empty">추천식당이 없습니다</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1023,9 +1089,9 @@
 </div>
 
 <div class="modal-backdrop" id="restaurantModal">
-    <div class="modal" style="max-width: 680px;">
+    <div class="modal restaurant-modal">
         <h3 class="modal-title">추천 식당 추가</h3>
-        <div class="form-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 12px;">
+        <div class="form-grid restaurant-modal-grid">
             <div class="form-group">
                 <label for="restaurantModalName">식당명</label>
                 <input type="text" id="restaurantModalName">
@@ -1087,11 +1153,6 @@
     const restaurantModalPrice = document.getElementById('restaurantModalPrice');
     const restaurantModalAddress = document.getElementById('restaurantModalAddress');
     const restaurantModalParking = document.getElementById('restaurantModalParking');
-    const restaurantFilterName = document.getElementById('restaurantFilterName');
-    const restaurantFilterMenu = document.getElementById('restaurantFilterMenu');
-    const restaurantFilterPrice = document.getElementById('restaurantFilterPrice');
-    const restaurantFilterAddress = document.getElementById('restaurantFilterAddress');
-    const restaurantFilterParking = document.getElementById('restaurantFilterParking');
     const restaurantEmptyRow = document.getElementById('restaurantEmptyRow');
 
     let currentPanelId = 'panel-user';
@@ -1561,24 +1622,24 @@
         row.dataset.address = item.address || '';
         row.dataset.parking = parkingValue;
         row.innerHTML = `
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                <input type="text" name="restaurant_name" value="${item.name || ''}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+            <td>
+                <input type="text" name="restaurant_name" value="${item.name || ''}" readonly>
             </td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                <input type="text" name="restaurant_menu" value="${item.menu || ''}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+            <td>
+                <input type="text" name="restaurant_menu" value="${item.menu || ''}" readonly>
             </td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                <input type="text" name="restaurant_price" value="${item.price || ''}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+            <td>
+                <input type="text" name="restaurant_price" value="${item.price || ''}" readonly>
             </td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                <input type="text" name="restaurant_address" value="${item.address || ''}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+            <td>
+                <input type="text" name="restaurant_address" value="${item.address || ''}" readonly>
             </td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
-                <input type="text" value="${parkingText}" readonly style="width: 100%; border: 0; background: transparent; padding: 0;">
+            <td>
+                <input type="text" value="${parkingText}" readonly>
                 <input type="hidden" name="restaurant_parking" value="${parkingValue}">
             </td>
-            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">
-                <button type="button" class="team-card-remove restaurant-remove-btn" title="식당 삭제" style="position: static; margin: 0 auto;">×</button>
+            <td class="actions-cell">
+                <button type="button" class="team-card-remove restaurant-remove-btn" title="식당 삭제">×</button>
             </td>
         `;
         return row;
@@ -1598,7 +1659,7 @@
         const removeBtn = row.querySelector('.restaurant-remove-btn');
         removeBtn.addEventListener('click', () => {
             row.remove();
-            applyRestaurantFilters();
+            refreshRestaurantTable();
             updateSaveButtonState(restaurantSettingsForm);
         });
     }
@@ -1611,36 +1672,14 @@
         restaurantModalParking.value = '1';
     }
 
-    function applyRestaurantFilters() {
-        const nameFilter = (restaurantFilterName?.value || '').trim().toLowerCase();
-        const menuFilter = (restaurantFilterMenu?.value || '').trim().toLowerCase();
-        const priceFilter = (restaurantFilterPrice?.value || '').trim().toLowerCase();
-        const addressFilter = (restaurantFilterAddress?.value || '').trim().toLowerCase();
-        const parkingFilter = (restaurantFilterParking?.value || '').trim();
-
-        restaurantRows.querySelectorAll('.restaurant-row').forEach((row) => {
-            const visible =
-                row.dataset.name.toLowerCase().includes(nameFilter) &&
-                row.dataset.menu.toLowerCase().includes(menuFilter) &&
-                row.dataset.price.toLowerCase().includes(priceFilter) &&
-                row.dataset.address.toLowerCase().includes(addressFilter) &&
-                (!parkingFilter || row.dataset.parking === parkingFilter);
-            row.style.display = visible ? '' : 'none';
-        });
+    function refreshRestaurantTable() {
         updateRestaurantEmptyState();
     }
 
     if (restaurantRows) {
         restaurantRows.querySelectorAll('.restaurant-row').forEach(row => bindRestaurantRow(row));
-        applyRestaurantFilters();
+        refreshRestaurantTable();
     }
-
-    [restaurantFilterName, restaurantFilterMenu, restaurantFilterPrice, restaurantFilterAddress, restaurantFilterParking]
-        .filter(Boolean)
-        .forEach((field) => {
-            field.addEventListener('input', applyRestaurantFilters);
-            field.addEventListener('change', applyRestaurantFilters);
-        });
 
     if (addRestaurantBtn) {
         addRestaurantBtn.addEventListener('click', () => {
@@ -1686,7 +1725,7 @@
                 restaurantRows.appendChild(row);
             }
             bindRestaurantRow(row);
-            applyRestaurantFilters();
+            refreshRestaurantTable();
             updateSaveButtonState(restaurantSettingsForm);
             restaurantModal.classList.remove('show');
         });
