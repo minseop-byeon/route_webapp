@@ -104,10 +104,10 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 
   <div class="card">
     <div class="summary-grid">
-      <div class="summary-item"><div class="summary-label">총 체납자 수</div><div class="summary-value">{{ total_count }}명</div></div>
-      <div class="summary-item"><div class="summary-label">총 이동 거리</div><div class="summary-value">{{ "%.1f"|format(total_distance|float) if total_distance != "--" else total_distance }}km</div></div>
-      <div class="summary-item"><div class="summary-label">총 소요 시간</div><div class="summary-value">{{ total_time }}분</div></div>
-      <div class="summary-item"><div class="summary-label">예상 종료 시간</div><div class="summary-value">{{ end_time }}</div></div>
+      <div class="summary-item"><div class="summary-label">총 방문지</div><div class="summary-value">{{ total_count }}곳</div></div>
+      <div class="summary-item"><div class="summary-label">총 이동거리</div><div class="summary-value">{{ "%.1f"|format(total_distance|float) if total_distance != "--" else total_distance }}km</div></div>
+      <div class="summary-item"><div class="summary-label">총 소요시간</div><div class="summary-value">{{ total_time }}분</div></div>
+      <div class="summary-item"><div class="summary-label">예상 종료시간</div><div class="summary-value">{{ end_time }}</div></div>
     </div>
   </div>
 

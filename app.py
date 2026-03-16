@@ -1704,10 +1704,10 @@ def build_pdf_bytes(payload):
     story.append(Spacer(1, 2 * mm))
 
     summary_rows = [[
-        Paragraph("<b>총 체납자 수</b>", cell_style),
-        Paragraph("<b>총 이동 거리</b>", cell_style),
-        Paragraph("<b>총 소요 시간</b>", cell_style),
-        Paragraph("<b>예상 종료 시간</b>", cell_style),
+        Paragraph("<b>총 방문지</b>", cell_style),
+        Paragraph("<b>총 이동거리</b>", cell_style),
+        Paragraph("<b>총 소요시간</b>", cell_style),
+        Paragraph("<b>예상 종료시간</b>", cell_style),
     ], [
         Paragraph(str(payload.get("total_count", "")), cell_style),
         Paragraph(f"{payload.get('total_distance', '')} km", cell_style),

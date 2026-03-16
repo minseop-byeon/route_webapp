@@ -567,7 +567,7 @@ button{
       QR 스캔하여 추가
     </button>
 
-    <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 체납자 추가</button>
+    <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 방문지 추가</button>
     <button type="submit" class="btn-primary submit-btn" id="submitBtn">최적 경로 계산</button>
   </form>
 
@@ -1025,7 +1025,7 @@ function addVisit(){
   div.innerHTML = `
     <div class="delete-icon" onclick="removeVisit(this)">✕</div>
 
-    <h3>체납자 ${count}</h3>
+    <h3>방문지 ${count}</h3>
 
     <div class="grid-main">
       <div class="field">
@@ -1085,7 +1085,7 @@ function renumber(){
   const cards = document.querySelectorAll(".card");
   count = cards.length;
   cards.forEach((card, idx) => {
-    card.querySelector("h3").innerText = "체납자 " + (idx + 1);
+    card.querySelector("h3").innerText = "방문지 " + (idx + 1);
   });
 }
 
