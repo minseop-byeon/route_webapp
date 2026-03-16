@@ -595,13 +595,10 @@ button{
     <div id="qrReader" class="qr-reader"></div>
     <p class="qr-help">· 이미 목록에 추가된 주소는 중복 추가되지 않습니다.<br>· 주소가 올바르지 않은 경우 추가되지 않습니다.</p>
     <div class="ocr-modal-actions">
-      <button type="button" class="btn-primary" id="qrScanStartBtn" style="display:none">촬영 시작</button>
       <button type="button" class="btn-secondary" id="qrScanCloseBtn">닫기</button>
     </div>
   </div>
 </div>
-
-<input type="file" id="qrImageInput" accept="image/*" capture="environment" hidden style="display:none">
 
 <input type="file" id="ocrCameraInput" accept="image/*" capture="environment" hidden style="display:none" tabindex="-1" aria-hidden="true">
 <input type="file" id="ocrGalleryInput" accept="image/*" hidden style="display:none" tabindex="-1" aria-hidden="true">
@@ -632,9 +629,7 @@ const DRAFT_KEY = "route_visit_draft_v5";
 const qrScanBtn = document.getElementById("qrScanBtn");
 const qrScanModal = document.getElementById("qrScanModal");
 const qrScanCloseBtn = document.getElementById("qrScanCloseBtn");
-const qrScanStartBtn = document.getElementById("qrScanStartBtn");
 const qrReader = document.getElementById("qrReader");
-const qrImageInput = document.getElementById("qrImageInput");
 const ocrPageBtn = document.getElementById("ocrPageBtn");
 const ocrGalleryBtn = document.getElementById("ocrGalleryBtn");
 const ocrCameraInput = document.getElementById("ocrCameraInput");
@@ -647,11 +642,6 @@ const isMobileClient = window.matchMedia("(max-width: 760px)").matches || /Andro
 let qrScanner = null;
 let qrScannerRunning = false;
 let qrProcessing = false;
-
-function isIosDevice(){
-  return /iPad|iPhone|iPod/.test(navigator.userAgent)
-    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-}
 
 function normalizeOcrText(text){
   return (text || "")
@@ -743,9 +733,16 @@ function normalizeAddressKey(address){
 }
 
 function parseQrPayload(rawText){
-  const text = (rawText || "").trim();
+  let text = (rawText || "").trim().replace(/\uFEFF/g, "");
+  if(/^RT1%7C/i.test(text)){
+    try{
+      text = decodeURIComponent(text);
+    }catch(error){
+    }
+  }
+  text = text.replace(/[\r\n]+/g, "");
   if(!text.startsWith("RT1|")){
-    throw new Error("지원하지 않는 QR 형식입니다.");
+    throw new Error(`지원하지 않는 QR 형식입니다.\n인식값: ${text.slice(0, 80) || "(비어 있음)"}`);
   }
 
   const pairs = text.split("|").slice(1).filter(Boolean);
@@ -1184,31 +1181,6 @@ async function handleQrDecoded(decodedText){
   }
 }
 
-async function handleQrImageFile(fileInput){
-  const file = fileInput.files && fileInput.files[0];
-  fileInput.value = "";
-  if(!file){
-    return;
-  }
-  if(typeof Html5Qrcode === "undefined"){
-    alert("QR 스캔 라이브러리를 불러오지 못했습니다.");
-    return;
-  }
-
-  const fileScanner = new Html5Qrcode("qrReader");
-  try{
-    const decodedText = await fileScanner.scanFile(file, false);
-    await handleQrDecoded(decodedText);
-  }catch(error){
-    alert("지원하지 않는 QR 형식입니다.");
-  }finally{
-    try{
-      await fileScanner.clear();
-    }catch(clearError){
-    }
-  }
-}
-
 async function startQrScanner(){
   if(qrScannerRunning || typeof Html5Qrcode === "undefined"){
     if(typeof Html5Qrcode === "undefined"){
@@ -1245,20 +1217,11 @@ async function stopQrScanner(){
 }
 
 function resetQrModalState(){
-  qrScanStartBtn.style.display = "none";
-  if(isIosDevice()){
-    qrReader.innerHTML = "";
-  }
+  qrReader.innerHTML = "";
 }
 
 async function openQrScanModal(){
   qrScanModal.classList.add("show");
-  if(isIosDevice()){
-    qrReader.innerHTML = "<div style=\"display:flex;height:100%;align-items:center;justify-content:center;color:#6b7280;font-size:14px;text-align:center;padding:12px;\">촬영 시작 버튼을 누르면 QR코드 촬영 화면이 열립니다.</div>";
-    qrScanStartBtn.style.display = "inline-flex";
-    return;
-  }
-  qrScanStartBtn.style.display = "none";
   try{
     await startQrScanner();
   }catch(error){
@@ -1341,16 +1304,6 @@ if(ocrGalleryBtn){
 }
 if(qrScanBtn){
   qrScanBtn.addEventListener("click", openQrScanModal);
-}
-if(qrScanStartBtn){
-  qrScanStartBtn.addEventListener("click", () => {
-    qrImageInput.click();
-  });
-}
-if(qrImageInput){
-  qrImageInput.addEventListener("change", async () => {
-    await handleQrImageFile(qrImageInput);
-  });
 }
 if(qrScanCloseBtn){
   qrScanCloseBtn.addEventListener("click", async () => {
