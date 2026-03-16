@@ -711,6 +711,10 @@ def estimate_matrix_leg(start, goal):
     return road_m, duration_min
 
 
+def fallback_route_info(start, goal):
+    return estimate_matrix_leg(start, goal)
+
+
 def build_prediction_time(trip_date, departure_min, bucket_minutes=10):
     trip_date = (trip_date or "").strip()
     if not trip_date:
@@ -792,7 +796,7 @@ def get_route_info(start, goal, prediction_time=None):
     url = "https://maps.apigw.ntruss.com/map-direction/v1/driving"
     headers = get_api_headers()
     if not headers["X-NCP-APIGW-API-KEY-ID"] or not headers["X-NCP-APIGW-API-KEY"]:
-        return 99999999, 9999
+        return fallback_route_info(start, goal)
 
     params = {
         "start": f"{start[0]},{start[1]}",
@@ -803,10 +807,10 @@ def get_route_info(start, goal, prediction_time=None):
     try:
         resp = requests.get(url, headers=headers, params=params, timeout=15)
     except requests.RequestException:
-        return 99999999, 9999
+        return fallback_route_info(start, goal)
 
     if resp.status_code != 200:
-        return 99999999, 9999
+        return fallback_route_info(start, goal)
 
     try:
         data = resp.json()
@@ -822,7 +826,7 @@ def get_route_info(start, goal, prediction_time=None):
         save_route_cache(route_cache)
         return distance_m, duration_min
     except Exception:
-        return 99999999, 9999
+        return fallback_route_info(start, goal)
 
 
 def get_trip_meta():
