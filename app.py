@@ -321,6 +321,8 @@ def migrate_legacy_settings(data):
                 "price": str(item.get("price", "") or "").strip(),
                 "address": str(item.get("address", "") or "").strip(),
                 "parking": str(item.get("parking", "") or "unknown").strip() if str(item.get("parking", "") or "").strip() in {"1", "0", "unknown"} else "unknown",
+                "payment_card": bool(item.get("payment_card")),
+                "payment_cash": bool(item.get("payment_cash")),
                 "note": str(item.get("note", "") or "").strip(),
             })
     merged["restaurant"]["items"] = normalized_restaurants
@@ -1885,6 +1887,8 @@ def save_admin_settings_section():
             prices = request.form.getlist("restaurant_price")
             addresses = request.form.getlist("restaurant_address")
             parkings = request.form.getlist("restaurant_parking")
+            payment_cards = request.form.getlist("restaurant_payment_card")
+            payment_cashes = request.form.getlist("restaurant_payment_cash")
             notes = request.form.getlist("restaurant_note")
 
             items = []
@@ -1895,6 +1899,8 @@ def save_admin_settings_section():
                 address = (addresses[idx] if idx < len(addresses) else "").strip()
                 raw_parking = (parkings[idx] if idx < len(parkings) else "unknown").strip()
                 parking = raw_parking if raw_parking in {"1", "0", "unknown"} else "unknown"
+                payment_card = (payment_cards[idx] if idx < len(payment_cards) else "0") == "1"
+                payment_cash = (payment_cashes[idx] if idx < len(payment_cashes) else "0") == "1"
                 note = (notes[idx] if idx < len(notes) else "").strip()
 
                 if not any([name, menu, price, address]):
@@ -1908,6 +1914,8 @@ def save_admin_settings_section():
                     "price": price,
                     "address": address,
                     "parking": parking,
+                    "payment_card": payment_card,
+                    "payment_cash": payment_cash,
                     "note": note,
                 })
 

@@ -688,6 +688,11 @@
             width: 120px;
         }
 
+        .restaurant-table th.payment-cell,
+        .restaurant-table td.payment-cell {
+            width: 120px;
+        }
+
         .restaurant-table th.parking-cell,
         .restaurant-table td.parking-cell {
             width: 120px;
@@ -769,6 +774,33 @@
         .restaurant-modal-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px 18px;
+        }
+
+        .restaurant-payment-group {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+            min-height: 42px;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .restaurant-payment-option {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .restaurant-payment-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
         }
 
         .hidden {
@@ -1002,6 +1034,7 @@
                                         <th class="name-cell">식당</th>
                                         <th>메뉴</th>
                                         <th class="price-cell">가격</th>
+                                        <th class="payment-cell">결제</th>
                                         <th>주소</th>
                                         <th class="parking-cell">주차</th>
                                         <th class="actions-cell"></th>
@@ -1015,6 +1048,8 @@
                                         data-price="{{ item.price }}"
                                         data-address="{{ item.address }}"
                                         data-parking="{{ item.parking }}"
+                                        data-payment-card="{{ 1 if item.payment_card else 0 }}"
+                                        data-payment-cash="{{ 1 if item.payment_cash else 0 }}"
                                         data-note="{{ item.note or '' }}">
                                         <td class="name-cell">
                                             <input type="hidden" name="restaurant_name" value="{{ item.name }}">
@@ -1027,6 +1062,11 @@
                                         <td class="price-cell">
                                             <input type="hidden" name="restaurant_price" value="{{ item.price }}">
                                             <input type="text" class="restaurant-price-display" value="{{ item.price }}" readonly>
+                                        </td>
+                                        <td class="payment-cell">
+                                            <input type="hidden" name="restaurant_payment_card" value="{{ 1 if item.payment_card else 0 }}">
+                                            <input type="hidden" name="restaurant_payment_cash" value="{{ 1 if item.payment_cash else 0 }}">
+                                            <input type="text" class="restaurant-payment-display" value="" readonly>
                                         </td>
                                         <td>
                                             <input type="hidden" name="restaurant_address" value="{{ item.address }}">
@@ -1059,7 +1099,7 @@
                                     </tr>
                                     {% endfor %}
                                     <tr id="restaurantEmptyRow">
-                                        <td colspan="6" class="restaurant-empty">추천식당이 없습니다</td>
+                                        <td colspan="7" class="restaurant-empty">추천식당이 없습니다</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1183,6 +1223,19 @@
                 <input type="text" id="restaurantModalPrice">
             </div>
             <div class="form-group">
+                <label>결제수단</label>
+                <div class="restaurant-payment-group">
+                    <label class="restaurant-payment-option" for="restaurantModalPaymentCard">
+                        <input type="checkbox" id="restaurantModalPaymentCard">
+                        <span>카드</span>
+                    </label>
+                    <label class="restaurant-payment-option" for="restaurantModalPaymentCash">
+                        <input type="checkbox" id="restaurantModalPaymentCash">
+                        <span>현금</span>
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
                 <label for="restaurantModalParking">주차가능여부</label>
                 <select id="restaurantModalParking">
                     <option value="1">가능</option>
@@ -1246,6 +1299,8 @@
     const restaurantModalName = document.getElementById('restaurantModalName');
     const restaurantModalMenu = document.getElementById('restaurantModalMenu');
     const restaurantModalPrice = document.getElementById('restaurantModalPrice');
+    const restaurantModalPaymentCard = document.getElementById('restaurantModalPaymentCard');
+    const restaurantModalPaymentCash = document.getElementById('restaurantModalPaymentCash');
     const restaurantModalAddress = document.getElementById('restaurantModalAddress');
     const restaurantModalParking = document.getElementById('restaurantModalParking');
     const restaurantModalNote = document.getElementById('restaurantModalNote');
@@ -1717,6 +1772,8 @@
         const parkingValue = item.parking === '1' || item.parking === '0' ? item.parking : 'unknown';
         const parkingText = parkingValue === '1' ? '가능' : (parkingValue === '0' ? '불가' : '알 수 없음');
         const formattedPrice = formatRestaurantPrice(item.price || '');
+        const paymentCard = Boolean(item.payment_card);
+        const paymentCash = Boolean(item.payment_cash);
         const row = document.createElement('tr');
         row.className = 'restaurant-row';
         row.dataset.name = item.name || '';
@@ -1724,6 +1781,8 @@
         row.dataset.price = item.price || '';
         row.dataset.address = item.address || '';
         row.dataset.parking = parkingValue;
+        row.dataset.paymentCard = paymentCard ? '1' : '0';
+        row.dataset.paymentCash = paymentCash ? '1' : '0';
         row.dataset.note = item.note || '';
         row.innerHTML = `
             <td class="name-cell">
@@ -1737,6 +1796,11 @@
             <td class="price-cell">
                 <input type="hidden" name="restaurant_price" value="${item.price || ''}">
                 <input type="text" class="restaurant-price-display" value="${formattedPrice}" readonly>
+            </td>
+            <td class="payment-cell">
+                <input type="hidden" name="restaurant_payment_card" value="${paymentCard ? '1' : '0'}">
+                <input type="hidden" name="restaurant_payment_cash" value="${paymentCash ? '1' : '0'}">
+                <input type="text" class="restaurant-payment-display" value="" readonly>
             </td>
             <td>
                 <input type="hidden" name="restaurant_address" value="${item.address || ''}">
@@ -1778,14 +1842,30 @@
         return `${Number(normalized).toLocaleString('ko-KR')}원`;
     }
 
+    function formatRestaurantPayment(cardEnabled, cashEnabled) {
+        if (cardEnabled && cashEnabled) {
+            return '카드·현금';
+        }
+        if (cardEnabled) {
+            return '카드';
+        }
+        if (cashEnabled) {
+            return '현금';
+        }
+        return '미확인';
+    }
+
     function applyRestaurantRowDisplay(row) {
         const rawName = row.dataset.name || '';
         const rawAddress = row.dataset.address || '';
         const rawPrice = row.dataset.price || '';
+        const paymentCard = row.dataset.paymentCard === '1';
+        const paymentCash = row.dataset.paymentCash === '1';
 
         const nameDisplay = row.querySelector('.restaurant-name-display');
         const addressDisplay = row.querySelector('.restaurant-address-display');
         const priceDisplay = row.querySelector('.restaurant-price-display');
+        const paymentDisplay = row.querySelector('.restaurant-payment-display');
 
         if (nameDisplay) {
             nameDisplay.value = rawName;
@@ -1799,6 +1879,9 @@
         }
         if (priceDisplay) {
             priceDisplay.value = formatRestaurantPrice(rawPrice);
+        }
+        if (paymentDisplay) {
+            paymentDisplay.value = formatRestaurantPayment(paymentCard, paymentCash);
         }
     }
 
@@ -1822,6 +1905,8 @@
                 name: row.dataset.name || '',
                 menu: row.dataset.menu || '',
                 price: row.dataset.price || '',
+                payment_card: row.dataset.paymentCard === '1',
+                payment_cash: row.dataset.paymentCash === '1',
                 address: row.dataset.address || '',
                 parking: row.dataset.parking || 'unknown',
                 note: row.dataset.note || '',
@@ -1843,6 +1928,8 @@
         restaurantModalName.value = item?.name || '';
         restaurantModalMenu.value = item?.menu || '';
         restaurantModalPrice.value = item?.price || '';
+        restaurantModalPaymentCard.checked = Boolean(item?.payment_card);
+        restaurantModalPaymentCash.checked = Boolean(item?.payment_cash);
         restaurantModalAddress.value = item?.address || '';
         restaurantModalParking.value = item?.parking || 'unknown';
         restaurantModalNote.value = item?.note || '';
@@ -1856,6 +1943,8 @@
         restaurantModalName.value = '';
         restaurantModalMenu.value = '';
         restaurantModalPrice.value = '';
+        restaurantModalPaymentCard.checked = false;
+        restaurantModalPaymentCash.checked = false;
         restaurantModalAddress.value = '';
         restaurantModalParking.value = 'unknown';
         restaurantModalNote.value = '';
@@ -1927,6 +2016,8 @@
                 name: restaurantModalName.value.trim(),
                 menu: restaurantModalMenu.value.trim(),
                 price: restaurantModalPrice.value.trim(),
+                payment_card: restaurantModalPaymentCard.checked,
+                payment_cash: restaurantModalPaymentCash.checked,
                 address: restaurantModalAddress.value.trim(),
                 parking: ['1', '0', 'unknown'].includes(restaurantModalParking.value) ? restaurantModalParking.value : 'unknown',
                 note: restaurantModalNote.value.trim(),
