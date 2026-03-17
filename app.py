@@ -758,6 +758,93 @@ def estimate_matrix_leg(start, goal):
     return road_m, duration_min
 
 
+def straight_distance_m(start, goal):
+    lon1, lat1 = start
+    lon2, lat2 = goal
+    rad = math.pi / 180.0
+    d_lat = (lat2 - lat1) * rad
+    d_lon = (lon2 - lon1) * rad
+    a = (
+        math.sin(d_lat / 2) ** 2
+        + math.cos(lat1 * rad) * math.cos(lat2 * rad) * (math.sin(d_lon / 2) ** 2)
+    )
+    return int(6371000 * 2 * math.asin(min(1, math.sqrt(a))))
+
+
+def estimate_walk_minutes(distance_m):
+    # 도보 평균속도 4.5km/h 기준
+    return max(1, int(math.ceil((max(0, distance_m) / 1000) / 4.5 * 60)))
+
+
+def enrich_route_with_nearby_parking(route_view, visits, parking_items):
+    if not route_view:
+        return
+
+    prepared_parkings = []
+    for item in parking_items or []:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        address = str(item.get("address") or "").strip()
+        if not name or not address:
+            continue
+        coord, meta, _ = geocode_with_meta(address)
+        if not coord:
+            continue
+        prepared_parkings.append({
+            "name": name,
+            "address": (meta or {}).get("display_address") or address,
+            "coord": coord,
+        })
+
+    # (name, address) 단위로 방문지 좌표 큐를 구성해 route_view의 visit 항목과 매칭
+    visit_coord_queue = {}
+    for visit in visits or []:
+        coord = visit.get("coord")
+        if not coord:
+            continue
+        key = (
+            str(visit.get("name") or "").strip(),
+            str(visit.get("display_address") or visit.get("address") or "").strip(),
+        )
+        if not key[0] or not key[1]:
+            continue
+        visit_coord_queue.setdefault(key, []).append(coord)
+
+    for item in route_view:
+        if item.get("type") != "visit":
+            continue
+
+        key = (
+            str(item.get("name") or "").strip(),
+            str(item.get("address") or "").strip(),
+        )
+        queue = visit_coord_queue.get(key) or []
+        visit_coord = queue.pop(0) if queue else None
+        visit_coord_queue[key] = queue
+
+        if not visit_coord or not prepared_parkings:
+            item["nearby_parkings"] = []
+            continue
+
+        nearby = []
+        for parking in prepared_parkings:
+            air_distance_m = straight_distance_m(visit_coord, parking["coord"])
+            if air_distance_m > 1000:
+                continue
+            road_m, car_min = estimate_matrix_leg(visit_coord, parking["coord"])
+            nearby.append({
+                "name": parking["name"],
+                "address": parking["address"],
+                "distance_m": int(air_distance_m),
+                "car_min": int(car_min),
+                "walk_min": int(estimate_walk_minutes(road_m)),
+            })
+
+        nearby.sort(key=lambda x: x["distance_m"])
+        item["nearby_parkings"] = nearby
+
+
 def fallback_route_info(start, goal):
     return estimate_matrix_leg(start, goal)
 
@@ -2295,6 +2382,12 @@ def planner():
 
         total_time_min = int(best["return_time"] - best.get("departure_time", DAY_START))
         total_distance_km = round(best["total_distance_m"] / 1000, 2)
+        settings = load_settings()
+        enrich_route_with_nearby_parking(
+            best["route_view"],
+            visits,
+            (settings.get("parking") or {}).get("items") or [],
+        )
 
         payload = {
             "route": best["route_view"],
