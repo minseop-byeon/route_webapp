@@ -1830,6 +1830,76 @@ def verify_admin_password():
     return jsonify({"success": True, "message": "비밀번호가 확인되었습니다."})
 
 
+@app.route("/admin/settings/search-parking-place", methods=["GET"])
+def admin_search_parking_place():
+    if not session.get("is_admin"):
+        return jsonify({"success": False, "message": "관리자 로그인이 필요합니다."}), 401
+
+    if is_mobile_request():
+        return jsonify({"success": False, "message": "모바일에서는 관리자 설정을 변경할 수 없습니다."}), 403
+
+    query = (request.args.get("query") or "").strip()
+    if len(query) < 2:
+        return jsonify({"success": False, "message": "검색어를 2자 이상 입력해 주세요."}), 400
+
+    settings = load_settings()
+    client_id = (settings.get("api", {}).get("client_id") or "").strip()
+    client_secret = (settings.get("api", {}).get("client_secret") or "").strip()
+    if not client_id or not client_secret:
+        return jsonify({"success": False, "message": "API 설정에서 NAVER Client ID/Secret을 먼저 입력해 주세요."}), 400
+
+    try:
+        response = requests.get(
+            "https://openapi.naver.com/v1/search/local.json",
+            headers={
+                "X-Naver-Client-Id": client_id,
+                "X-Naver-Client-Secret": client_secret,
+            },
+            params={
+                "query": query,
+                "display": 8,
+                "start": 1,
+                "sort": "random",
+            },
+            timeout=10,
+        )
+    except Exception:
+        return jsonify({"success": False, "message": "NAVER 검색 API 호출 중 오류가 발생했습니다."}), 502
+
+    if response.status_code != 200:
+        detail = ""
+        try:
+            detail = (response.json() or {}).get("errorMessage") or ""
+        except Exception:
+            detail = ""
+        return jsonify({"success": False, "message": f"NAVER 검색 API 응답 오류입니다. {detail}".strip()}), 502
+
+    try:
+        payload = response.json() or {}
+    except Exception:
+        return jsonify({"success": False, "message": "NAVER 검색 API 응답을 해석하지 못했습니다."}), 502
+
+    items = []
+    for raw in payload.get("items") or []:
+        if not isinstance(raw, dict):
+            continue
+        name = re.sub(r"<[^>]*>", "", str(raw.get("title") or "")).strip()
+        road_address = str(raw.get("roadAddress") or "").strip()
+        jibun_address = str(raw.get("address") or "").strip()
+        address = road_address or jibun_address
+        if not name or not address:
+            continue
+        items.append({
+            "name": name,
+            "address": address,
+            "road_address": road_address,
+            "jibun_address": jibun_address,
+            "category": str(raw.get("category") or "").strip(),
+        })
+
+    return jsonify({"success": True, "items": items})
+
+
 @app.route("/admin/settings/save-section", methods=["POST"])
 def save_admin_settings_section():
     if not session.get("is_admin"):

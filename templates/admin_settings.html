@@ -881,6 +881,47 @@
             margin-bottom: 18px;
         }
 
+        #parkingSearchResults {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #ffffff;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .parking-search-item {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid #eef2f7;
+            background: #ffffff;
+            text-align: left;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-family: Pretendard, sans-serif;
+        }
+
+        .parking-search-item:last-child {
+            border-bottom: 0;
+        }
+
+        .parking-search-item:hover {
+            background: #f8fafc;
+        }
+
+        .parking-search-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.35;
+        }
+
+        .parking-search-address {
+            margin-top: 2px;
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.45;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -1412,15 +1453,22 @@
         <h3 class="modal-title" id="parkingModalTitle">주차장 추가</h3>
         <div class="form-grid" style="grid-template-columns: 1fr;">
             <div class="form-group">
+                <label for="parkingModalKeyword">장소 검색어</label>
+                <div class="address-row">
+                    <input type="text" id="parkingModalKeyword" placeholder="예: 시청 주차장, 강남역 공영주차장">
+                    <button type="button" class="search-btn" id="parkingPlaceSearchBtn">네이버 검색</button>
+                </div>
+            </div>
+            <div class="form-group full">
+                <div id="parkingSearchResults" class="hidden"></div>
+            </div>
+            <div class="form-group">
                 <label for="parkingModalName">주차장명</label>
                 <input type="text" id="parkingModalName">
             </div>
             <div class="form-group">
                 <label for="parkingModalAddress">주소</label>
-                <div class="address-row">
-                    <input type="text" id="parkingModalAddress" readonly>
-                    <button type="button" class="search-btn" id="parkingAddressSearchBtn" data-target-input="parkingModalAddress">주소 검색</button>
-                </div>
+                <input type="text" id="parkingModalAddress">
             </div>
         </div>
         <div class="modal-buttons" style="margin-top: 18px;">
@@ -1474,6 +1522,9 @@
     const addParkingCardBtn = document.getElementById('addParkingCardBtn');
     const parkingModal = document.getElementById('parkingModal');
     const parkingModalTitle = document.getElementById('parkingModalTitle');
+    const parkingModalKeyword = document.getElementById('parkingModalKeyword');
+    const parkingPlaceSearchBtn = document.getElementById('parkingPlaceSearchBtn');
+    const parkingSearchResults = document.getElementById('parkingSearchResults');
     const parkingModalName = document.getElementById('parkingModalName');
     const parkingModalAddress = document.getElementById('parkingModalAddress');
     const parkingModalSaveBtn = document.getElementById('parkingModalSaveBtn');
@@ -1874,7 +1925,7 @@
         }).open();
     }
 
-    document.querySelectorAll('.search-btn').forEach(btn => {
+    document.querySelectorAll('.search-btn[data-target-input]').forEach(btn => {
         btn.addEventListener('click', () => {
             openPostcode(btn.dataset.targetInput);
         });
@@ -2056,12 +2107,83 @@
         parkingEmptyRow.style.display = visibleRows.length ? 'none' : '';
     }
 
+    function clearParkingSearchResults() {
+        if (!parkingSearchResults) return;
+        parkingSearchResults.innerHTML = '';
+        parkingSearchResults.classList.add('hidden');
+    }
+
+    function renderParkingSearchResults(items) {
+        if (!parkingSearchResults) return;
+        if (!items.length) {
+            parkingSearchResults.innerHTML = '<div class="parking-search-address" style="padding:10px 12px;">검색 결과가 없습니다.</div>';
+            parkingSearchResults.classList.remove('hidden');
+            return;
+        }
+
+        parkingSearchResults.innerHTML = '';
+        items.forEach((item) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'parking-search-item';
+            btn.innerHTML = `
+                <div class="parking-search-name"></div>
+                <div class="parking-search-address"></div>
+            `;
+            const nameEl = btn.querySelector('.parking-search-name');
+            const addressEl = btn.querySelector('.parking-search-address');
+            const name = (item.name || '').trim();
+            const address = (item.address || '').trim();
+            nameEl.textContent = name;
+            addressEl.textContent = address;
+            btn.addEventListener('click', () => {
+                parkingModalName.value = name;
+                parkingModalAddress.value = address;
+                clearParkingSearchResults();
+            });
+            parkingSearchResults.appendChild(btn);
+        });
+        parkingSearchResults.classList.remove('hidden');
+    }
+
+    async function searchParkingPlace() {
+        if (!parkingPlaceSearchBtn || !parkingModalKeyword) return;
+        const query = (parkingModalKeyword.value || parkingModalName.value || parkingModalAddress.value || '').trim();
+        if (!query) {
+            showStatus(parkingSettingsForm, 'error', '검색어를 입력해 주세요.');
+            return;
+        }
+
+        clearStatus(parkingSettingsForm);
+        parkingPlaceSearchBtn.disabled = true;
+        parkingPlaceSearchBtn.textContent = '검색 중...';
+
+        try {
+            const response = await fetch(`/admin/settings/search-parking-place?query=${encodeURIComponent(query)}`);
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                showStatus(parkingSettingsForm, 'error', result.message || '장소 검색 중 오류가 발생했습니다.');
+                clearParkingSearchResults();
+                return;
+            }
+            renderParkingSearchResults(Array.isArray(result.items) ? result.items : []);
+        } catch (error) {
+            showStatus(parkingSettingsForm, 'error', '서버 통신 중 오류가 발생했습니다.');
+            clearParkingSearchResults();
+        } finally {
+            parkingPlaceSearchBtn.disabled = false;
+            parkingPlaceSearchBtn.textContent = '네이버 검색';
+        }
+    }
+
     function openParkingModal(item = null, row = null) {
         editingParkingRow = row;
         parkingModalTitle.textContent = row ? '주차장 수정' : '주차장 추가';
         parkingModalSaveBtn.textContent = row ? '수정' : '추가';
+        parkingModalKeyword.value = '';
         parkingModalName.value = item?.name || '';
         parkingModalAddress.value = item?.address || '';
+        clearParkingSearchResults();
         parkingModal.classList.add('show');
     }
 
@@ -2069,8 +2191,10 @@
         editingParkingRow = null;
         parkingModalTitle.textContent = '주차장 추가';
         parkingModalSaveBtn.textContent = '추가';
+        parkingModalKeyword.value = '';
         parkingModalName.value = '';
         parkingModalAddress.value = '';
+        clearParkingSearchResults();
     }
 
     function bindParkingRow(row) {
@@ -2102,6 +2226,21 @@
         addParkingCardBtn.addEventListener('click', () => {
             clearParkingModal();
             parkingModal.classList.add('show');
+        });
+    }
+
+    if (parkingPlaceSearchBtn) {
+        parkingPlaceSearchBtn.addEventListener('click', () => {
+            searchParkingPlace();
+        });
+    }
+
+    if (parkingModalKeyword) {
+        parkingModalKeyword.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchParkingPlace();
+            }
         });
     }
 
