@@ -2512,6 +2512,10 @@
     if (restaurantRows) {
         restaurantRows.querySelectorAll('.restaurant-row').forEach(row => bindRestaurantRow(row));
         refreshRestaurantTable();
+        if (restaurantSettingsForm) {
+            // 표시용 필드(가격/결제수단) 초기 렌더 후 값을 동기화한 뒤 clean 기준을 다시 잡는다.
+            markFormClean(restaurantSettingsForm);
+        }
     }
 
     if (addRestaurantBtn) {
