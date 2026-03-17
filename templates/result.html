@@ -205,7 +205,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
                   </div>
                   {% if v.type == "visit" %}
                     <div class="parking-expand" data-role="parking-expand">
-                      <div class="parking-subtitle">??? ???</div>
+                      <div class="parking-subtitle">&#44032;&#44620;&#50868; &#51452;&#52264;&#51109;</div>
                       {% if v.nearby_parkings and v.nearby_parkings|length > 0 %}
                         {% for parking in v.nearby_parkings %}
                           <div class="parking-row">
@@ -220,18 +220,18 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
                             <span class="parking-meta car" title="car time">
                               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 13l1.2-4.2A2 2 0 0 1 7.1 7.3h9.8a2 2 0 0 1 1.9 1.5L20 13v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H7v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7.5" cy="14.5" r="1.2" fill="currentColor"/><circle cx="16.5" cy="14.5" r="1.2" fill="currentColor"/></svg>
                             </span>
-                            <div class="parking-time">{{ parking.drive_min }}?</div>
+                            <div class="parking-time">{{ parking.drive_min }}&#48516;</div>
                             <span class="parking-meta walk" title="walk time">
                               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="5" r="2" fill="currentColor"/><path d="M10 21l1.2-5-2.2-3.2 2.1-2.8 2.3 1.4 2.4.6m-4.7-2.1L9 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </span>
-                            <div class="parking-time">{{ parking.walk_min }}?</div>
+                            <div class="parking-time">{{ parking.walk_min }}&#48516;</div>
                             <a class="parking-guide {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ parking.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="guide" title="guide">
                               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
                             </a>
                           </div>
                         {% endfor %}
                       {% else %}
-                        <div class="parking-empty">1km ?? ??? ???? ????.</div>
+                        <div class="parking-empty">&#49;&#107;&#109; &#48152;&#44221; &#51060;&#45236;&#50640; &#51452;&#52264;&#51109;&#51060; &#50630;&#49845;&#45768;&#45796;&#46;</div>
                       {% endif %}
                     </div>
                   {% endif %}
