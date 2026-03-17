@@ -778,6 +778,24 @@ def estimate_walk_minutes(distance_m):
     return max(1, int(math.ceil((distance_m / 1000.0) / 4.2 * 60)))
 
 
+def estimate_parking_drive_walk_minutes(direct_distance_m):
+    direct_distance_m = max(0.0, float(direct_distance_m or 0.0))
+    if direct_distance_m <= 60:
+        return 1, 1
+
+    # Parking-to-visit legs are short local moves. Use lighter detour factors than full route estimates.
+    drive_distance_m = max(direct_distance_m * 1.12, direct_distance_m + 20)
+    walk_distance_m = max(direct_distance_m * 1.06, direct_distance_m)
+
+    drive_min = max(1, int(math.ceil((drive_distance_m / 1000.0) / 18.0 * 60)))
+    walk_min = max(1, int(math.ceil((walk_distance_m / 1000.0) / 4.5 * 60)))
+
+    # For very short hops, avoid unrealistic "driving much slower than walking" output.
+    if direct_distance_m < 300 and drive_min > walk_min:
+        drive_min = max(1, walk_min)
+    return drive_min, walk_min
+
+
 def enrich_route_with_nearby_parking(route_view, visits, visit_coords, parking_items, radius_m=1000, max_items=5):
     if not isinstance(route_view, list):
         return route_view
@@ -837,11 +855,7 @@ def enrich_route_with_nearby_parking(route_view, visits, visit_coords, parking_i
             if direct_m > radius_m:
                 continue
 
-            try:
-                road_m, drive_min = estimate_matrix_leg(visit_coord, parking["coord"])
-            except Exception:
-                continue
-            walk_min = estimate_walk_minutes(max(direct_m, road_m * 0.82))
+            drive_min, walk_min = estimate_parking_drive_walk_minutes(direct_m)
             nearby.append({
                 "name": parking["name"],
                 "address": parking["address"],
