@@ -84,6 +84,9 @@ MAX_PARTIAL_CANDIDATES = 1200
 APP_STATE_TABLE = "app_state"
 ROUTE_CACHE_MEMORY = None
 ROUTE_CACHE_DIRTY = False
+USE_TRAFFIC_FOR_PLANNING = (os.getenv("USE_TRAFFIC_FOR_PLANNING", "0").strip() == "1")
+PARKING_RESOLVED_CACHE_KEY = None
+PARKING_RESOLVED_CACHE = []
 
 
 def load_json_file(path, default_value):
@@ -797,6 +800,7 @@ def estimate_parking_drive_walk_minutes(direct_distance_m):
 
 
 def enrich_route_with_nearby_parking(route_view, visits, visit_coords, parking_items, radius_m=1000, max_items=5):
+    global PARKING_RESOLVED_CACHE_KEY, PARKING_RESOLVED_CACHE
     if not isinstance(route_view, list):
         return route_view
     radius_m = max(100, int(radius_m or 1000))
@@ -816,25 +820,34 @@ def enrich_route_with_nearby_parking(route_view, visits, visit_coords, parking_i
             continue
         visit_coord_map[visit_id] = visit_coords[idx]
 
-    resolved_parking = []
+    parking_pairs = []
     for item in (parking_items or [])[:200]:
         if not isinstance(item, dict):
             continue
         name = str(item.get("name") or "").strip()
         address = str(item.get("address") or "").strip()
-        if not name or not address:
-            continue
-        try:
-            coord, _, _ = geocode_with_meta(address)
-        except Exception:
-            continue
-        if not coord:
-            continue
-        resolved_parking.append({
-            "name": name,
-            "address": address,
-            "coord": coord,
-        })
+        if name and address:
+            parking_pairs.append((name, address))
+    cache_key = tuple(parking_pairs)
+
+    if cache_key == PARKING_RESOLVED_CACHE_KEY:
+        resolved_parking = PARKING_RESOLVED_CACHE
+    else:
+        resolved_parking = []
+        for name, address in parking_pairs:
+            try:
+                coord, _, _ = geocode_with_meta(address)
+            except Exception:
+                continue
+            if not coord:
+                continue
+            resolved_parking.append({
+                "name": name,
+                "address": address,
+                "coord": coord,
+            })
+        PARKING_RESOLVED_CACHE_KEY = cache_key
+        PARKING_RESOLVED_CACHE = resolved_parking
 
     for item in route_view:
         if not isinstance(item, dict) or item.get("type") != "visit":
@@ -1641,7 +1654,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
             return leg_cache[cache_key]
 
         prediction_time = build_prediction_time(trip_date, departure_min)
-        if coords and prediction_time:
+        if USE_TRAFFIC_FOR_PLANNING and coords and prediction_time:
             resolved = get_route_info(coords[from_node], coords[to_node], prediction_time, route_cache=route_cache)
         else:
             resolved = (distance_matrix[from_node][to_node], time_matrix[from_node][to_node])
@@ -2372,11 +2385,12 @@ def planner():
         time_matrix = [[0] * size for _ in range(size)]
 
         for i in range(size):
-            for j in range(size):
-                if i != j:
-                    d, t = estimate_matrix_leg(coords[i], coords[j])
-                    dist_matrix[i][j] = d
-                    time_matrix[i][j] = t
+            for j in range(i + 1, size):
+                d, t = estimate_matrix_leg(coords[i], coords[j])
+                dist_matrix[i][j] = d
+                time_matrix[i][j] = t
+                dist_matrix[j][i] = d
+                time_matrix[j][i] = t
 
         _, best = choose_best_schedule(
             visits,
