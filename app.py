@@ -61,6 +61,9 @@ DEFAULT_SETTINGS = {
     "restaurant": {
         "items": []
     },
+    "parking": {
+        "items": []
+    },
     "admin": {
         "admin_password": ADMIN_PASSWORD
     }
@@ -275,9 +278,9 @@ def migrate_legacy_settings(data):
     if not isinstance(data, dict):
         return merged
 
-    has_new_structure = any(k in data for k in ["mail", "api", "user", "restaurant", "admin"])
+    has_new_structure = any(k in data for k in ["mail", "api", "user", "restaurant", "parking", "admin"])
     if has_new_structure:
-        for section in ["mail", "api", "user", "restaurant", "admin"]:
+        for section in ["mail", "api", "user", "restaurant", "parking", "admin"]:
             if isinstance(data.get(section), dict):
                 merged[section].update(data[section])
     else:
@@ -326,6 +329,17 @@ def migrate_legacy_settings(data):
                 "note": str(item.get("note", "") or "").strip(),
             })
     merged["restaurant"]["items"] = normalized_restaurants
+    parking_items = merged.get("parking", {}).get("items", [])
+    normalized_parking = []
+    if isinstance(parking_items, list):
+        for item in parking_items:
+            if not isinstance(item, dict):
+                continue
+            normalized_parking.append({
+                "name": str(item.get("name", "") or "").strip(),
+                "address": str(item.get("address", "") or "").strip(),
+            })
+    merged["parking"]["items"] = normalized_parking
     if not merged["mail"].get("smtp_host"):
         merged["mail"]["smtp_host"] = "smtp.gmail.com"
     if not merged["mail"].get("smtp_port"):
@@ -1920,6 +1934,27 @@ def save_admin_settings_section():
                 })
 
             settings["restaurant"]["items"] = items
+
+        elif section == "parking":
+            names = request.form.getlist("parking_name")
+            addresses = request.form.getlist("parking_address")
+
+            items = []
+            for idx, raw_name in enumerate(names):
+                name = (raw_name or "").strip()
+                address = (addresses[idx] if idx < len(addresses) else "").strip()
+
+                if not any([name, address]):
+                    continue
+                if not name or not address:
+                    return jsonify({"success": False, "message": "주차장명과 주소를 모두 입력해 주세요."})
+
+                items.append({
+                    "name": name,
+                    "address": address,
+                })
+
+            settings["parking"]["items"] = items
 
         elif section == "admin":
             current_password = (request.form.get("current_admin_password") or "").strip()
