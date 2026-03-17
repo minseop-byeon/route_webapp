@@ -781,6 +781,13 @@ def estimate_walk_minutes(distance_m):
 def enrich_route_with_nearby_parking(route_view, visits, visit_coords, parking_items, radius_m=1000, max_items=5):
     if not isinstance(route_view, list):
         return route_view
+    radius_m = max(100, int(radius_m or 1000))
+    max_items = max(1, int(max_items or 5))
+
+    # Always expose the key for template safety.
+    for item in route_view:
+        if isinstance(item, dict) and item.get("type") == "visit":
+            item["nearby_parkings"] = []
 
     visit_coord_map = {}
     for idx, visit in enumerate(visits):
@@ -792,14 +799,17 @@ def enrich_route_with_nearby_parking(route_view, visits, visit_coords, parking_i
         visit_coord_map[visit_id] = visit_coords[idx]
 
     resolved_parking = []
-    for item in parking_items or []:
+    for item in (parking_items or [])[:200]:
         if not isinstance(item, dict):
             continue
         name = str(item.get("name") or "").strip()
         address = str(item.get("address") or "").strip()
         if not name or not address:
             continue
-        coord, _, _ = geocode_with_meta(address)
+        try:
+            coord, _, _ = geocode_with_meta(address)
+        except Exception:
+            continue
         if not coord:
             continue
         resolved_parking.append({
@@ -820,11 +830,17 @@ def enrich_route_with_nearby_parking(route_view, visits, visit_coords, parking_i
 
         nearby = []
         for parking in resolved_parking:
-            direct_m = straight_distance_m(visit_coord, parking["coord"])
+            try:
+                direct_m = straight_distance_m(visit_coord, parking["coord"])
+            except Exception:
+                continue
             if direct_m > radius_m:
                 continue
 
-            road_m, drive_min = estimate_matrix_leg(visit_coord, parking["coord"])
+            try:
+                road_m, drive_min = estimate_matrix_leg(visit_coord, parking["coord"])
+            except Exception:
+                continue
             walk_min = estimate_walk_minutes(max(direct_m, road_m * 0.82))
             nearby.append({
                 "name": parking["name"],
@@ -2377,15 +2393,18 @@ def planner():
         if best["return_late"] > 0:
             warning_message = f"복귀시간이 16:30보다 {best['return_late']}분 늦습니다."
 
-        parking_items = (load_settings().get("parking", {}) or {}).get("items", [])
-        best["route_view"] = enrich_route_with_nearby_parking(
-            best.get("route_view", []),
-            visits,
-            coords[1:],
-            parking_items,
-            radius_m=1000,
-            max_items=5,
-        )
+        try:
+            parking_items = (load_settings().get("parking", {}) or {}).get("items", [])
+            best["route_view"] = enrich_route_with_nearby_parking(
+                best.get("route_view", []),
+                visits,
+                coords[1:],
+                parking_items,
+                radius_m=1000,
+                max_items=5,
+            )
+        except Exception:
+            app.logger.exception("Failed to enrich nearby parking data; serving route without parking info.")
 
         total_time_min = int(best["return_time"] - best.get("departure_time", DAY_START))
         total_distance_km = round(best["total_distance_m"] / 1000, 2)
@@ -2415,6 +2434,11 @@ def result_page():
     if not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"] or not payload:
         return redirect(url_for("start"))
     return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+
+
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    return jsonify({"ok": True}), 200
 
 
 if __name__ == "__main__":
