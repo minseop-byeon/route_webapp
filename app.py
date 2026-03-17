@@ -1894,26 +1894,6 @@ def admin_search_parking_place():
             continue
 
         name = str(raw.get("name") or "").strip()
-        road_address = ""
-        new_address_list = (raw.get("newAddressList") or {}).get("newAddress") or []
-        if isinstance(new_address_list, dict):
-            new_address_list = [new_address_list]
-        if isinstance(new_address_list, list) and new_address_list:
-            road_address = str((new_address_list[0] or {}).get("fullAddressRoad") or "").strip()
-
-        if not road_address:
-            road_parts = [
-                str(raw.get("upperAddrName") or "").strip(),
-                str(raw.get("middleAddrName") or "").strip(),
-                str(raw.get("roadName") or "").strip(),
-            ]
-            first_build_no = str(raw.get("firstBuildNo") or "").strip()
-            second_build_no = str(raw.get("secondBuildNo") or "").strip()
-            build_no = ""
-            if first_build_no:
-                build_no = first_build_no if not second_build_no or second_build_no == "0" else f"{first_build_no}-{second_build_no}"
-            road_address = " ".join([x for x in [*road_parts, build_no] if x]).strip()
-
         jibun_parts = [
             str(raw.get("upperAddrName") or "").strip(),
             str(raw.get("middleAddrName") or "").strip(),
@@ -1924,19 +1904,20 @@ def admin_search_parking_place():
         second_no = str(raw.get("secondNo") or "").strip()
         jibun_no = ""
         if first_no:
-            jibun_no = first_no if not second_no else f"{first_no}-{second_no}"
+            # 부지번이 0이면 '-0'은 표기하지 않음 (예: 845-0 -> 845)
+            jibun_no = first_no if (not second_no or second_no == "0") else f"{first_no}-{second_no}"
         jibun_address = " ".join([x for x in [jibun_base, jibun_no] if x]).strip()
 
-        address = road_address or jibun_address
-        if not name or not address:
+        address = jibun_address
+        if not name or not jibun_address:
             continue
 
         items.append({
             "name": name,
             "address": address,
-            "road_address": road_address,
+            "road_address": "",
             "jibun_address": jibun_address,
-            "display_address": road_address or jibun_address,
+            "display_address": jibun_address,
             "category": str(raw.get("upperBizName") or "").strip(),
         })
 
