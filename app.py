@@ -1901,6 +1901,19 @@ def admin_search_parking_place():
         if isinstance(new_address_list, list) and new_address_list:
             road_address = str((new_address_list[0] or {}).get("fullAddressRoad") or "").strip()
 
+        if not road_address:
+            road_parts = [
+                str(raw.get("upperAddrName") or "").strip(),
+                str(raw.get("middleAddrName") or "").strip(),
+                str(raw.get("roadName") or "").strip(),
+            ]
+            first_build_no = str(raw.get("firstBuildNo") or "").strip()
+            second_build_no = str(raw.get("secondBuildNo") or "").strip()
+            build_no = ""
+            if first_build_no:
+                build_no = first_build_no if not second_build_no or second_build_no == "0" else f"{first_build_no}-{second_build_no}"
+            road_address = " ".join([x for x in [*road_parts, build_no] if x]).strip()
+
         jibun_parts = [
             str(raw.get("upperAddrName") or "").strip(),
             str(raw.get("middleAddrName") or "").strip(),
@@ -1923,6 +1936,7 @@ def admin_search_parking_place():
             "address": address,
             "road_address": road_address,
             "jibun_address": jibun_address,
+            "display_address": road_address or jibun_address,
             "category": str(raw.get("upperBizName") or "").strip(),
         })
 

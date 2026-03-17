@@ -2133,12 +2133,16 @@
             const nameEl = btn.querySelector('.parking-search-name');
             const addressEl = btn.querySelector('.parking-search-address');
             const name = (item.name || '').trim();
-            const address = (item.address || '').trim();
+            const roadAddress = (item.road_address || item.display_address || '').trim();
+            const jibunAddress = (item.jibun_address || '').trim();
+            const selectedAddress = roadAddress || (item.address || '').trim();
             nameEl.textContent = name;
-            addressEl.textContent = address;
+            addressEl.textContent = jibunAddress && jibunAddress !== selectedAddress
+                ? `${selectedAddress} (지번: ${jibunAddress})`
+                : selectedAddress;
             btn.addEventListener('click', () => {
                 parkingModalName.value = name;
-                parkingModalAddress.value = address;
+                parkingModalAddress.value = selectedAddress;
                 clearParkingSearchResults();
             });
             parkingSearchResults.appendChild(btn);
