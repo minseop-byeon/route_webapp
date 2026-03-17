@@ -816,55 +816,69 @@
             accent-color: #1d4ed8;
         }
 
-        .parking-cards {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        .parking-card {
-            position: relative;
+        .parking-table-wrap {
             border: 1px solid #e2e8f0;
             border-radius: 14px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .parking-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .parking-table thead {
             background: #f8fafc;
-            padding: 16px;
         }
 
-        .parking-card-remove {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            width: 28px;
-            height: 28px;
-            border: none;
-            border-radius: 50%;
-            background: transparent;
-            color: #9ca3af;
-            font-size: 18px;
-            line-height: 1;
-            cursor: pointer;
-            transition: 0.15s ease;
+        .parking-table th {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 800;
+            color: #475569;
         }
 
-        .parking-card-remove:hover {
-            background: #fee2e2;
-            color: #ef4444;
-        }
-
-        .parking-card-remove:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-        }
-
-        .parking-card h4 {
-            margin: 0 26px 12px 0;
+        .parking-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eef2f7;
+            vertical-align: middle;
             font-size: 14px;
-            font-weight: 850;
-            color: #0f172a;
+            color: #111827;
         }
 
-        .parking-card .form-group:last-child {
-            margin-bottom: 0;
+        .parking-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .parking-table th.name-cell,
+        .parking-table td.name-cell {
+            width: 220px;
+        }
+
+        .parking-table th.actions-cell,
+        .parking-table td.actions-cell {
+            width: 112px;
+            text-align: center;
+        }
+
+        .parking-cell-text {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .parking-modal {
+            max-width: 560px;
+            padding: 24px;
+        }
+
+        .parking-modal .modal-title {
+            margin-bottom: 18px;
         }
 
         .hidden {
@@ -926,8 +940,7 @@
             }
 
             .form-grid,
-            .team-cards,
-            .parking-cards {
+            .team-cards {
                 grid-template-columns: 1fr;
             }
 
@@ -1093,36 +1106,54 @@
                             <button type="button" class="add-card-btn" id="addParkingCardBtn">+ 주차장 추가</button>
                         </div>
 
-                        <div class="parking-cards" id="parkingCardsWrap">
-                            {% if settings.parking["items"] %}
-                                {% for item in settings.parking["items"] %}
-                                <div class="parking-card">
-                                    <button type="button" class="parking-card-remove" title="카드 삭제">✕</button>
-                                    <h4>주차장</h4>
-                                    <div class="form-group">
-                                        <label>주차장명</label>
-                                        <input type="text" name="parking_name" value="{{ item.name }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>주소</label>
-                                        <input type="text" name="parking_address" value="{{ item.address }}">
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="parking-card">
-                                    <button type="button" class="parking-card-remove" title="카드 삭제">✕</button>
-                                    <h4>주차장</h4>
-                                    <div class="form-group">
-                                        <label>주차장명</label>
-                                        <input type="text" name="parking_name" value="">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>주소</label>
-                                        <input type="text" name="parking_address" value="">
-                                    </div>
-                                </div>
-                            {% endif %}
+                        <div class="parking-table-wrap">
+                            <table class="parking-table">
+                                <thead>
+                                    <tr>
+                                        <th class="name-cell">주차장명</th>
+                                        <th>주소</th>
+                                        <th class="actions-cell"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="parkingRows">
+                                    {% for item in settings.parking["items"] %}
+                                    <tr class="parking-row"
+                                        data-name="{{ item.name }}"
+                                        data-address="{{ item.address }}">
+                                        <td class="name-cell">
+                                            <span class="parking-cell-text" title="{{ item.name }}">{{ item.name }}</span>
+                                            <input type="hidden" name="parking_name" value="{{ item.name }}">
+                                        </td>
+                                        <td>
+                                            <span class="parking-cell-text" title="{{ item.address }}">{{ item.address }}</span>
+                                            <input type="hidden" name="parking_address" value="{{ item.address }}">
+                                        </td>
+                                        <td class="actions-cell">
+                                            <div class="restaurant-action-group">
+                                                <button type="button" class="restaurant-icon-btn parking-edit-btn" title="주차장 수정" aria-label="주차장 수정">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M12 20h9"/>
+                                                        <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="restaurant-icon-btn delete parking-remove-btn" title="주차장 삭제" aria-label="주차장 삭제">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M3 6h18"/>
+                                                        <path d="M8 6V4h8v2"/>
+                                                        <path d="M19 6l-1 14H6L5 6"/>
+                                                        <path d="M10 11v6"/>
+                                                        <path d="M14 11v6"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    <tr id="parkingEmptyRow">
+                                        <td colspan="3" class="restaurant-empty">등록된 주차장이 없습니다</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
                         <div class="button-row">
@@ -1376,6 +1407,37 @@
     </div>
 </div>
 
+<div class="modal-backdrop" id="parkingModal">
+    <div class="modal parking-modal">
+        <h3 class="modal-title" id="parkingModalTitle">주차장 추가</h3>
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+            <div class="form-group">
+                <label for="parkingModalName">주차장명</label>
+                <input type="text" id="parkingModalName">
+            </div>
+            <div class="form-group">
+                <label for="parkingModalAddress">주소</label>
+                <input type="text" id="parkingModalAddress">
+            </div>
+        </div>
+        <div class="modal-buttons" style="margin-top: 18px;">
+            <button type="button" class="modal-btn primary" id="parkingModalSaveBtn">추가</button>
+            <button type="button" class="modal-btn secondary" id="parkingModalCloseBtn">취소</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="parkingDeleteModal">
+    <div class="modal">
+        <h3 class="modal-title">주차장 삭제</h3>
+        <p class="modal-text" id="parkingDeleteMessage"></p>
+        <div class="modal-buttons">
+            <button type="button" class="modal-btn primary" id="parkingDeleteConfirmBtn">삭제</button>
+            <button type="button" class="modal-btn secondary" id="parkingDeleteCancelBtn">취소</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-backdrop" id="restaurantDeleteModal">
     <div class="modal">
         <h3 class="modal-title">식당 삭제</h3>
@@ -1404,8 +1466,19 @@
     const guestToggleSwitch = document.getElementById('enableGuestUserSwitch');
     const guestToggleHidden = document.getElementById('enableGuestUserHidden');
     const parkingSettingsForm = document.getElementById('parkingSettingsForm');
-    const parkingCardsWrap = document.getElementById('parkingCardsWrap');
+    const parkingRows = document.getElementById('parkingRows');
+    const parkingEmptyRow = document.getElementById('parkingEmptyRow');
     const addParkingCardBtn = document.getElementById('addParkingCardBtn');
+    const parkingModal = document.getElementById('parkingModal');
+    const parkingModalTitle = document.getElementById('parkingModalTitle');
+    const parkingModalName = document.getElementById('parkingModalName');
+    const parkingModalAddress = document.getElementById('parkingModalAddress');
+    const parkingModalSaveBtn = document.getElementById('parkingModalSaveBtn');
+    const parkingModalCloseBtn = document.getElementById('parkingModalCloseBtn');
+    const parkingDeleteModal = document.getElementById('parkingDeleteModal');
+    const parkingDeleteMessage = document.getElementById('parkingDeleteMessage');
+    const parkingDeleteConfirmBtn = document.getElementById('parkingDeleteConfirmBtn');
+    const parkingDeleteCancelBtn = document.getElementById('parkingDeleteCancelBtn');
     const restaurantSettingsForm = document.getElementById('restaurantSettingsForm');
     const restaurantRows = document.getElementById('restaurantRows');
     const addRestaurantBtn = document.getElementById('addRestaurantBtn');
@@ -1431,6 +1504,8 @@
     let pendingPanelId = null;
     let pendingMenuButton = null;
     let dirtyForm = null;
+    let editingParkingRow = null;
+    let pendingParkingDeleteRow = null;
     let editingRestaurantRow = null;
     let pendingRestaurantDeleteRow = null;
 
@@ -1545,8 +1620,8 @@
             form.dataset.passwordVerified = form.dataset.passwordVerified || '0';
             form.dataset.initialCardCount = form.dataset.initialCardCount || '0';
         }
-        if (form.dataset.section === 'parking' && parkingCardsWrap) {
-            form.dataset.initialParkingCardCount = String(parkingCardsWrap.querySelectorAll('.parking-card').length);
+        if (form.dataset.section === 'parking' && parkingRows) {
+            form.dataset.initialParkingCardCount = String(parkingRows.querySelectorAll('.parking-row').length);
         }
 
         if (form.id === 'locationSettingsForm') {
@@ -1577,7 +1652,7 @@
         syncGuestToggleHidden();
         syncReturnAddressState();
         refreshAllCardRemoveButtons();
-        refreshAllParkingCardRemoveButtons();
+        updateParkingEmptyState();
         clearStatus(form);
         updateSaveButtonState(form);
     }
@@ -1602,9 +1677,9 @@
                 return true;
             }
         }
-        if (form.dataset.section === 'parking' && parkingCardsWrap) {
+        if (form.dataset.section === 'parking' && parkingRows) {
             const initialParkingCardCount = Number(form.dataset.initialParkingCardCount || '0');
-            const currentParkingCardCount = parkingCardsWrap.querySelectorAll('.parking-card').length;
+            const currentParkingCardCount = parkingRows.querySelectorAll('.parking-row').length;
             if (initialParkingCardCount !== currentParkingCardCount) {
                 return true;
             }
@@ -1640,8 +1715,8 @@
     }
 
     function syncParkingCardCount(form) {
-        if (form && form.dataset.section === 'parking' && parkingCardsWrap) {
-            form.dataset.initialParkingCardCount = String(parkingCardsWrap.querySelectorAll('.parking-card').length);
+        if (form && form.dataset.section === 'parking' && parkingRows) {
+            form.dataset.initialParkingCardCount = String(parkingRows.querySelectorAll('.parking-row').length);
         }
     }
 
@@ -1908,60 +1983,200 @@
         updateSaveButtonState(form);
     });
 
-    function createParkingCard(name = '', address = '') {
-        const wrap = document.createElement('div');
-        wrap.className = 'parking-card';
-        wrap.innerHTML = `
-            <button type="button" class="parking-card-remove" title="카드 삭제">✕</button>
-            <h4>주차장</h4>
-            <div class="form-group">
-                <label>주차장명</label>
-                <input type="text" name="parking_name" value="${name}">
-            </div>
-            <div class="form-group">
-                <label>주소</label>
-                <input type="text" name="parking_address" value="${address}">
-            </div>
+    function createParkingRow(item = {}) {
+        const row = document.createElement('tr');
+        row.className = 'parking-row';
+        row.dataset.name = item.name || '';
+        row.dataset.address = item.address || '';
+        row.innerHTML = `
+            <td class="name-cell">
+                <span class="parking-cell-text" title=""></span>
+                <input type="hidden" name="parking_name" value="">
+            </td>
+            <td>
+                <span class="parking-cell-text" title=""></span>
+                <input type="hidden" name="parking_address" value="">
+            </td>
+            <td class="actions-cell">
+                <div class="restaurant-action-group">
+                    <button type="button" class="restaurant-icon-btn parking-edit-btn" title="주차장 수정" aria-label="주차장 수정">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                        </svg>
+                    </button>
+                    <button type="button" class="restaurant-icon-btn delete parking-remove-btn" title="주차장 삭제" aria-label="주차장 삭제">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"/>
+                            <path d="M8 6V4h8v2"/>
+                            <path d="M19 6l-1 14H6L5 6"/>
+                            <path d="M10 11v6"/>
+                            <path d="M14 11v6"/>
+                        </svg>
+                    </button>
+                </div>
+            </td>
         `;
-        return wrap;
+        applyParkingRowDisplay(row);
+        return row;
     }
 
-    function refreshAllParkingCardRemoveButtons() {
-        const cards = document.querySelectorAll('#parkingCardsWrap .parking-card');
-        cards.forEach((card) => {
-            const btn = card.querySelector('.parking-card-remove');
-            const isOnlyCard = cards.length === 1;
-            btn.disabled = isOnlyCard;
-            btn.classList.toggle('hidden', isOnlyCard);
+    function applyParkingRowDisplay(row) {
+        const name = row.dataset.name || '';
+        const address = row.dataset.address || '';
+
+        const nameText = row.querySelector('td.name-cell .parking-cell-text');
+        const addressText = row.querySelector('td:nth-child(2) .parking-cell-text');
+        const nameHidden = row.querySelector('input[name="parking_name"]');
+        const addressHidden = row.querySelector('input[name="parking_address"]');
+
+        if (nameText) {
+            nameText.textContent = name;
+            nameText.title = name;
+        }
+        if (addressText) {
+            addressText.textContent = address;
+            addressText.title = address;
+        }
+        if (nameHidden) {
+            nameHidden.value = name;
+        }
+        if (addressHidden) {
+            addressHidden.value = address;
+        }
+    }
+
+    function updateParkingEmptyState() {
+        if (!parkingRows || !parkingEmptyRow) return;
+        const visibleRows = Array.from(parkingRows.querySelectorAll('.parking-row'))
+            .filter((row) => row.style.display !== 'none');
+        parkingEmptyRow.style.display = visibleRows.length ? 'none' : '';
+    }
+
+    function openParkingModal(item = null, row = null) {
+        editingParkingRow = row;
+        parkingModalTitle.textContent = row ? '주차장 수정' : '주차장 추가';
+        parkingModalSaveBtn.textContent = row ? '수정' : '추가';
+        parkingModalName.value = item?.name || '';
+        parkingModalAddress.value = item?.address || '';
+        parkingModal.classList.add('show');
+    }
+
+    function clearParkingModal() {
+        editingParkingRow = null;
+        parkingModalTitle.textContent = '주차장 추가';
+        parkingModalSaveBtn.textContent = '추가';
+        parkingModalName.value = '';
+        parkingModalAddress.value = '';
+    }
+
+    function bindParkingRow(row) {
+        applyParkingRowDisplay(row);
+        const editBtn = row.querySelector('.parking-edit-btn');
+        const removeBtn = row.querySelector('.parking-remove-btn');
+
+        editBtn.addEventListener('click', () => {
+            openParkingModal({
+                name: row.dataset.name || '',
+                address: row.dataset.address || '',
+            }, row);
         });
-    }
 
-    function bindParkingCard(card) {
-        const removeBtn = card.querySelector('.parking-card-remove');
         removeBtn.addEventListener('click', () => {
-            card.remove();
-            refreshAllParkingCardRemoveButtons();
-            updateSaveButtonState(parkingSettingsForm);
-        });
-
-        card.querySelectorAll('input').forEach((field) => {
-            field.addEventListener('input', () => updateSaveButtonState(parkingSettingsForm));
-            field.addEventListener('change', () => updateSaveButtonState(parkingSettingsForm));
+            pendingParkingDeleteRow = row;
+            const parkingName = (row.dataset.name || '').trim() || '이 주차장';
+            parkingDeleteMessage.textContent = `${parkingName}을(를) 삭제하시겠습니까?`;
+            parkingDeleteModal.classList.add('show');
         });
     }
 
-    if (parkingCardsWrap) {
-        parkingCardsWrap.querySelectorAll('.parking-card').forEach((card) => bindParkingCard(card));
-        refreshAllParkingCardRemoveButtons();
+    if (parkingRows) {
+        parkingRows.querySelectorAll('.parking-row').forEach((row) => bindParkingRow(row));
+        updateParkingEmptyState();
     }
 
     if (addParkingCardBtn) {
         addParkingCardBtn.addEventListener('click', () => {
-            const newCard = createParkingCard('', '');
-            parkingCardsWrap.appendChild(newCard);
-            bindParkingCard(newCard);
-            refreshAllParkingCardRemoveButtons();
+            clearParkingModal();
+            parkingModal.classList.add('show');
+        });
+    }
+
+    if (parkingModalCloseBtn) {
+        parkingModalCloseBtn.addEventListener('click', () => {
+            clearParkingModal();
+            parkingModal.classList.remove('show');
+        });
+    }
+
+    if (parkingModal) {
+        parkingModal.addEventListener('click', (event) => {
+            if (event.target === parkingModal) {
+                clearParkingModal();
+                parkingModal.classList.remove('show');
+            }
+        });
+    }
+
+    if (parkingDeleteCancelBtn) {
+        parkingDeleteCancelBtn.addEventListener('click', () => {
+            pendingParkingDeleteRow = null;
+            parkingDeleteModal.classList.remove('show');
+        });
+    }
+
+    if (parkingDeleteConfirmBtn) {
+        parkingDeleteConfirmBtn.addEventListener('click', () => {
+            if (pendingParkingDeleteRow) {
+                pendingParkingDeleteRow.remove();
+                updateParkingEmptyState();
+                updateSaveButtonState(parkingSettingsForm);
+            }
+            pendingParkingDeleteRow = null;
+            parkingDeleteModal.classList.remove('show');
+        });
+    }
+
+    if (parkingDeleteModal) {
+        parkingDeleteModal.addEventListener('click', (event) => {
+            if (event.target === parkingDeleteModal) {
+                pendingParkingDeleteRow = null;
+                parkingDeleteModal.classList.remove('show');
+            }
+        });
+    }
+
+    if (parkingModalSaveBtn) {
+        parkingModalSaveBtn.addEventListener('click', () => {
+            const item = {
+                name: parkingModalName.value.trim(),
+                address: parkingModalAddress.value.trim(),
+            };
+
+            if (!item.name || !item.address) {
+                showStatus(parkingSettingsForm, 'error', '주차장명과 주소를 모두 입력해 주세요.');
+                return;
+            }
+
+            clearStatus(parkingSettingsForm);
+            if (editingParkingRow) {
+                editingParkingRow.dataset.name = item.name;
+                editingParkingRow.dataset.address = item.address;
+                applyParkingRowDisplay(editingParkingRow);
+            } else {
+                const row = createParkingRow(item);
+                if (parkingEmptyRow) {
+                    parkingRows.insertBefore(row, parkingEmptyRow);
+                } else {
+                    parkingRows.appendChild(row);
+                }
+                bindParkingRow(row);
+            }
+
+            updateParkingEmptyState();
             updateSaveButtonState(parkingSettingsForm);
+            clearParkingModal();
+            parkingModal.classList.remove('show');
         });
     }
 
