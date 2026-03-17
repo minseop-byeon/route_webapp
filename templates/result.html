@@ -45,22 +45,6 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .nav-btn{display:none;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;margin-left:2px;}
 .nav-btn.disabled{opacity:.42;pointer-events:none;}
 .nav-btn svg{width:14px;height:14px;display:block;stroke-width:2.2;}
-.visit-expand-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #dbe2ea;background:#f8fafc;color:#334155;cursor:pointer;margin-left:2px;transition:.2s ease;}
-.visit-expand-btn:hover{background:#eef2f7;}
-.visit-expand-btn svg{width:14px;height:14px;display:block;stroke-width:2;}
-.route-panel.expanded .visit-expand-btn svg{transform:rotate(180deg);}
-.parking-collapse{max-height:0;opacity:0;overflow:hidden;transition:max-height .25s ease,opacity .2s ease;margin-top:0;}
-.route-panel.expanded .parking-collapse{max-height:520px;opacity:1;margin-top:12px;padding-top:12px;border-top:1px dashed #dbe2ea;}
-.parking-title{font-size:12px;font-weight:800;color:#334155;margin-bottom:8px;}
-.parking-list{display:flex;flex-direction:column;gap:7px;}
-.parking-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;}
-.parking-name{min-width:0;font-size:12px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.parking-metric{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#334155;white-space:nowrap;}
-.parking-metric svg{width:13px;height:13px;stroke-width:2;}
-.parking-nav-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;}
-.parking-nav-btn.disabled{opacity:.42;pointer-events:none;}
-.parking-nav-btn svg{width:13px;height:13px;stroke-width:2.2;}
-.parking-empty{padding:10px;border:1px dashed #dbe2ea;border-radius:10px;background:#f8fafc;font-size:12px;font-weight:700;color:#64748b;text-align:center;}
 .connector{position:relative;display:flex;align-items:center;gap:8px;padding:2px 0 2px 18px;margin:2px 0 0 18px;}
 .connector::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#d4dde7;transform:translateY(-50%);opacity:.9;}
 .connector-pill{position:relative;z-index:1;display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:10px;font-weight:700;}
@@ -94,12 +78,6 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
   .pill,.connector-pill{height:22px;padding:0 7px;font-size:10px;}
   .nav-btn{display:inline-flex;width:22px;height:22px;}
   .nav-btn svg{width:14px;height:14px;}
-  .visit-expand-btn{width:22px;height:22px;}
-  .parking-row{grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px;padding:7px 8px;}
-  .parking-name{font-size:11px;}
-  .parking-metric{font-size:10px;}
-  .parking-metric svg,.parking-nav-btn svg{width:12px;height:12px;}
-  .parking-nav-btn{width:22px;height:22px;}
   .connector{padding:4px 0 4px 14px;margin:2px 0 2px 16px;gap:6px;flex-wrap:wrap;}
   .connector::before{left:14px;}
   .bottom-actions{flex-direction:column;}
@@ -192,39 +170,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
                       </a>
                     {% endif %}
-                    {% if v.type == "visit" %}
-                      <button type="button" class="visit-expand-btn" aria-expanded="false" aria-label="주변 주차장 펼치기">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      </button>
-                    {% endif %}
                   </div>
-                  {% if v.type == "visit" %}
-                    <div class="parking-collapse">
-                      <div class="parking-title">주변 1km 주차장</div>
-                      {% if v.nearby_parkings and v.nearby_parkings|length > 0 %}
-                        <div class="parking-list">
-                          {% for p in v.nearby_parkings %}
-                            <div class="parking-row">
-                              <div class="parking-name" title="{{ p.name }}">{{ p.name }}</div>
-                              <div class="parking-metric" title="자동차 {{ p.car_min }}분">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 14h18v4a1 1 0 0 1-1 1h-1v-2H5v2H4a1 1 0 0 1-1-1v-4Z" stroke="currentColor"/><path d="m5 14 2-5a2 2 0 0 1 1.9-1.4h6.2A2 2 0 0 1 17 9l2 5" stroke="currentColor"/><circle cx="7.5" cy="15.5" r="1" fill="currentColor"/><circle cx="16.5" cy="15.5" r="1" fill="currentColor"/></svg>
-                                {{ p.car_min }}분
-                              </div>
-                              <div class="parking-metric" title="도보 {{ p.walk_min }}분">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="5" r="2" stroke="currentColor"/><path d="m10.5 10 2.2 1.4c.5.3.8.8.8 1.4V15l2.8 3.5M10.5 10l-2 3 2.4 2.2L9.5 19M12.7 11.4 10 14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                {{ p.walk_min }}분
-                              </div>
-                              <a class="parking-nav-btn {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ p.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="주차장 길안내" title="주차장 길안내">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4 11h5v7h6v-7h5L12 3Z" stroke="currentColor" stroke-linejoin="round"/></svg>
-                              </a>
-                            </div>
-                          {% endfor %}
-                        </div>
-                      {% else %}
-                        <div class="parking-empty">반경 1km 내 주차장이 없습니다.</div>
-                      {% endif %}
-                    </div>
-                  {% endif %}
                 </div>
               </div>
             </div>
@@ -243,15 +189,5 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
     </div>
   </div>
 </div>
-<script>
-document.querySelectorAll('.visit-expand-btn').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const panel = btn.closest('.route-panel');
-    if (!panel) return;
-    const expanded = panel.classList.toggle('expanded');
-    btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-  });
-});
-</script>
 </body>
 </html>
