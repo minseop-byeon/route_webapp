@@ -758,6 +758,88 @@ def estimate_matrix_leg(start, goal):
     return road_m, duration_min
 
 
+def straight_distance_m(start, goal):
+    lon1, lat1 = start
+    lon2, lat2 = goal
+    rad = math.pi / 180.0
+    d_lat = (lat2 - lat1) * rad
+    d_lon = (lon2 - lon1) * rad
+    a = (
+        math.sin(d_lat / 2) ** 2
+        + math.cos(lat1 * rad) * math.cos(lat2 * rad) * (math.sin(d_lon / 2) ** 2)
+    )
+    return 6371000 * 2 * math.asin(min(1, math.sqrt(a)))
+
+
+def estimate_walk_minutes(distance_m):
+    if distance_m <= 0:
+        return 1
+    # average walking speed: 4.2km/h
+    return max(1, int(math.ceil((distance_m / 1000.0) / 4.2 * 60)))
+
+
+def enrich_route_with_nearby_parking(route_view, visits, visit_coords, parking_items, radius_m=1000, max_items=5):
+    if not isinstance(route_view, list):
+        return route_view
+
+    visit_coord_map = {}
+    for idx, visit in enumerate(visits):
+        if idx >= len(visit_coords):
+            continue
+        visit_id = visit.get("visit_id")
+        if visit_id is None:
+            continue
+        visit_coord_map[visit_id] = visit_coords[idx]
+
+    resolved_parking = []
+    for item in parking_items or []:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        address = str(item.get("address") or "").strip()
+        if not name or not address:
+            continue
+        coord, _, _ = geocode_with_meta(address)
+        if not coord:
+            continue
+        resolved_parking.append({
+            "name": name,
+            "address": address,
+            "coord": coord,
+        })
+
+    for item in route_view:
+        if not isinstance(item, dict) or item.get("type") != "visit":
+            continue
+
+        visit_id = item.get("visit_id")
+        visit_coord = visit_coord_map.get(visit_id)
+        if not visit_coord:
+            item["nearby_parkings"] = []
+            continue
+
+        nearby = []
+        for parking in resolved_parking:
+            direct_m = straight_distance_m(visit_coord, parking["coord"])
+            if direct_m > radius_m:
+                continue
+
+            road_m, drive_min = estimate_matrix_leg(visit_coord, parking["coord"])
+            walk_min = estimate_walk_minutes(max(direct_m, road_m * 0.82))
+            nearby.append({
+                "name": parking["name"],
+                "address": parking["address"],
+                "drive_min": int(drive_min),
+                "walk_min": int(walk_min),
+                "distance_m": int(round(direct_m)),
+            })
+
+        nearby.sort(key=lambda x: (x["distance_m"], x["drive_min"], x["name"]))
+        item["nearby_parkings"] = nearby[:max_items]
+
+    return route_view
+
+
 def fallback_route_info(start, goal):
     return estimate_matrix_leg(start, goal)
 
@@ -1220,6 +1302,7 @@ def add_visit_block(route_view, visit_no, visit, arrival_min, travel_m, travel_m
     route_view.append({
         "type": "visit",
         "label": str(visit_no),
+        "visit_id": visit.get("visit_id"),
         "name": visit["name"],
         "address": visit.get("display_address") or visit["address"],
         "arrival": minutes_to_str(arrival_min),
@@ -2185,6 +2268,7 @@ def planner():
                 appointment_minute = parse_appointment_minute(hour, minute)
 
             visits.append({
+                "visit_id": i,
                 "name": name,
                 "address": address,
                 "service_time": service_time,
@@ -2292,6 +2376,16 @@ def planner():
         warning_message = ""
         if best["return_late"] > 0:
             warning_message = f"복귀시간이 16:30보다 {best['return_late']}분 늦습니다."
+
+        parking_items = (load_settings().get("parking", {}) or {}).get("items", [])
+        best["route_view"] = enrich_route_with_nearby_parking(
+            best.get("route_view", []),
+            visits,
+            coords[1:],
+            parking_items,
+            radius_m=1000,
+            max_items=5,
+        )
 
         total_time_min = int(best["return_time"] - best.get("departure_time", DAY_START))
         total_distance_km = round(best["total_distance_m"] / 1000, 2)
