@@ -1456,7 +1456,7 @@
                 <label for="parkingModalKeyword">장소 검색어</label>
                 <div class="address-row">
                     <input type="text" id="parkingModalKeyword" placeholder="예: 시청 주차장, 강남역 공영주차장">
-                    <button type="button" class="search-btn" id="parkingPlaceSearchBtn">네이버 검색</button>
+                    <button type="button" class="search-btn" id="parkingPlaceSearchBtn">TMAP 검색</button>
                 </div>
             </div>
             <div class="form-group full">
@@ -2172,7 +2172,7 @@
             clearParkingSearchResults();
         } finally {
             parkingPlaceSearchBtn.disabled = false;
-            parkingPlaceSearchBtn.textContent = '네이버 검색';
+            parkingPlaceSearchBtn.textContent = 'TMAP 검색';
         }
     }
 

@@ -1842,29 +1842,34 @@ def admin_search_parking_place():
     if len(query) < 2:
         return jsonify({"success": False, "message": "검색어를 2자 이상 입력해 주세요."}), 400
 
-    settings = load_settings()
-    client_id = (settings.get("api", {}).get("client_id") or "").strip()
-    client_secret = (settings.get("api", {}).get("client_secret") or "").strip()
-    if not client_id or not client_secret:
-        return jsonify({"success": False, "message": "API 설정에서 NAVER Client ID/Secret을 먼저 입력해 주세요."}), 400
+    tmap_app_key = get_tmap_app_key()
+    if not tmap_app_key:
+        return jsonify({"success": False, "message": "API 설정에서 TMAP App Key를 먼저 입력해 주세요."}), 400
 
     try:
         response = requests.get(
-            "https://openapi.naver.com/v1/search/local.json",
+            "https://apis.openapi.sk.com/tmap/pois",
             headers={
-                "X-Naver-Client-Id": client_id,
-                "X-Naver-Client-Secret": client_secret,
+                "Accept": "application/json",
+                "appKey": tmap_app_key,
             },
             params={
+                "version": "1",
                 "query": query,
-                "display": 8,
-                "start": 1,
-                "sort": "random",
+                "searchKeyword": query,
+                "searchType": "all",
+                "page": 1,
+                "count": 8,
+                "resCoordType": "WGS84GEO",
+                "reqCoordType": "WGS84GEO",
+                "multiPoint": "N",
+                "searchtypCd": "A",
+                "poiGroupYn": "N",
             },
             timeout=10,
         )
     except Exception:
-        return jsonify({"success": False, "message": "NAVER 검색 API 호출 중 오류가 발생했습니다."}), 502
+        return jsonify({"success": False, "message": "TMAP 장소 검색 API 호출 중 오류가 발생했습니다."}), 502
 
     if response.status_code != 200:
         detail = ""
@@ -1872,29 +1877,53 @@ def admin_search_parking_place():
             detail = (response.json() or {}).get("errorMessage") or ""
         except Exception:
             detail = ""
-        return jsonify({"success": False, "message": f"NAVER 검색 API 응답 오류입니다. {detail}".strip()}), 502
+        return jsonify({"success": False, "message": f"TMAP 장소 검색 API 응답 오류입니다. {detail}".strip()}), 502
 
     try:
         payload = response.json() or {}
     except Exception:
-        return jsonify({"success": False, "message": "NAVER 검색 API 응답을 해석하지 못했습니다."}), 502
+        return jsonify({"success": False, "message": "TMAP 장소 검색 API 응답을 해석하지 못했습니다."}), 502
+
+    poi_list = (((payload.get("searchPoiInfo") or {}).get("pois") or {}).get("poi") or [])
+    if isinstance(poi_list, dict):
+        poi_list = [poi_list]
 
     items = []
-    for raw in payload.get("items") or []:
+    for raw in poi_list:
         if not isinstance(raw, dict):
             continue
-        name = re.sub(r"<[^>]*>", "", str(raw.get("title") or "")).strip()
-        road_address = str(raw.get("roadAddress") or "").strip()
-        jibun_address = str(raw.get("address") or "").strip()
+
+        name = str(raw.get("name") or "").strip()
+        road_address = ""
+        new_address_list = (raw.get("newAddressList") or {}).get("newAddress") or []
+        if isinstance(new_address_list, dict):
+            new_address_list = [new_address_list]
+        if isinstance(new_address_list, list) and new_address_list:
+            road_address = str((new_address_list[0] or {}).get("fullAddressRoad") or "").strip()
+
+        jibun_parts = [
+            str(raw.get("upperAddrName") or "").strip(),
+            str(raw.get("middleAddrName") or "").strip(),
+            str(raw.get("lowerAddrName") or "").strip(),
+        ]
+        jibun_base = " ".join([x for x in jibun_parts if x])
+        first_no = str(raw.get("firstNo") or "").strip()
+        second_no = str(raw.get("secondNo") or "").strip()
+        jibun_no = ""
+        if first_no:
+            jibun_no = first_no if not second_no else f"{first_no}-{second_no}"
+        jibun_address = " ".join([x for x in [jibun_base, jibun_no] if x]).strip()
+
         address = road_address or jibun_address
         if not name or not address:
             continue
+
         items.append({
             "name": name,
             "address": address,
             "road_address": road_address,
             "jibun_address": jibun_address,
-            "category": str(raw.get("category") or "").strip(),
+            "category": str(raw.get("upperBizName") or "").strip(),
         })
 
     return jsonify({"success": True, "items": items})
