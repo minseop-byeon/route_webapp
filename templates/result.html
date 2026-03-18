@@ -16,9 +16,8 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .header-logo{width:64px;height:64px;object-fit:contain;display:block;flex:0 0 auto;}
 .header-title{font-size:23px;font-weight:800;line-height:1.05;letter-spacing:-0.5px;white-space:nowrap;}
 .header-sub{margin-top:4px;font-size:13px;font-weight:700;color:#5b6b7f;letter-spacing:-0.1px;}
-.profile-chip{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;padding:2px 0 0 0;background:transparent;border:none;box-shadow:none;max-width:220px;flex:0 0 auto;min-height:64px;}
-.profile-top{font-size:14px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px;letter-spacing:-0.2px;}
-.profile-bottom{font-size:12px;font-weight:600;color:#64748b;white-space:nowrap;letter-spacing:-0.1px;}
+.menu-btn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;border:1px solid #dbe5f0;background:#fff;color:#0f172a;cursor:pointer;flex:0 0 auto;}
+.menu-btn svg{width:20px;height:20px;display:block;}
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 8px 22px rgba(15,23,42,.045);padding:16px;margin-bottom:16px;}
 .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
 .summary-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;justify-content:center;min-height:50px;}
@@ -45,11 +44,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .nav-btn{display:none;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;margin-left:2px;}
 .nav-btn.disabled{opacity:.42;pointer-events:none;}
 .nav-btn svg{width:14px;height:14px;display:block;stroke-width:2.2;}
-.parking-toggle-btn{display:none;align-items:center;justify-content:center;width:28px;height:28px;border-radius:999px;border:1px solid #93c5fd;background:#dbeafe;color:#1d4ed8;cursor:pointer;padding:0;box-shadow:0 4px 10px rgba(37,99,235,.18);}
-.parking-toggle-btn svg{width:16px;height:16px;display:block;transition:transform .2s ease;}
-.parking-toggle-btn.is-open svg{transform:rotate(180deg);}
-.parking-expand{margin-top:16px;padding-top:12px;border-top:1px dashed #cbd5e1;display:none;}
-.parking-expand.show{display:block;}
+.parking-expand{margin-top:16px;padding-top:12px;border-top:1px dashed #cbd5e1;display:block;}
 .parking-subtitle{font-size:12px;font-weight:800;color:#334155;margin:0 0 8px 0;}
 .parking-empty{font-size:12px;color:#64748b;padding:2px 0 8px 0;}
 .parking-row{display:grid;grid-template-columns:minmax(8ch,1fr) 52px 66px 66px 22px;align-items:center;column-gap:4px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
@@ -71,47 +66,39 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .action-btn-primary{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
 .action-btn svg{width:15px;height:15px;flex:0 0 auto;}
 @media (max-width:760px){
-  body{
-    background:linear-gradient(180deg,#f1f6ff 0%,#edf3fb 38%,#f5f8fc 100%);
-  }
-  .container{margin:20px auto;padding:0 10px 24px;}
-  .header-row{gap:10px;align-items:flex-start;}
+  body{background:#f3f6fb;}
+  .container{margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 8px) 10px 22px;}
+  .header-row{gap:10px;align-items:center;margin-bottom:10px;}
   .header-left{gap:8px;min-width:0;}
-  .header-logo{width:56px;height:56px;}
-  .header-title{font-size:18px;white-space:nowrap;}
+  .header-logo{width:54px;height:54px;}
+  .header-title{font-size:17px;white-space:nowrap;}
   .header-sub{font-size:11px;margin-top:2px;}
-  .profile-chip{padding:0;max-width:154px;min-height:56px;}
-  .profile-top{font-size:12px;max-width:154px;}
-  .profile-bottom{font-size:10px;}
+  .menu-btn{width:38px;height:38px;border-radius:11px;}
   .card{padding:0;border:none;box-shadow:none;background:transparent;margin-bottom:12px;}
-  .summary-grid{grid-template-columns:repeat(2,1fr);gap:9px;}
+  .summary-grid{grid-template-columns:repeat(2,1fr);gap:7px;}
   .summary-item{
-    min-height:64px;
-    padding:10px 11px;
-    border-radius:14px;
-    border:1px solid #dbe8f8;
-    box-shadow:0 8px 16px rgba(37,99,235,.09);
+    min-height:50px;
+    padding:8px 9px;
+    border-radius:12px;
+    border:1px solid #dbe5f0;
+    box-shadow:none;
     background:#ffffff;
   }
-  .summary-item:nth-child(1){background:#ebf5ff;border-color:#bfdbfe;}
-  .summary-item:nth-child(2){background:#f5f3ff;border-color:#ddd6fe;}
-  .summary-item:nth-child(3){background:#ecfdf5;border-color:#bbf7d0;}
-  .summary-item:nth-child(4){background:#fff7ed;border-color:#fed7aa;}
-  .summary-label{font-size:10px;color:#334155;}
-  .summary-value{font-size:13px;color:#0f172a;}
-  .section-title{font-size:17px;}
+  .summary-label{font-size:10px;color:#475569;}
+  .summary-value{font-size:12px;color:#0f172a;}
+  .section-title{font-size:17px;margin-bottom:10px;}
   .route-panel{
-    padding:12px 12px 11px 12px;
+    padding:12px 12px 10px 12px;
     border-radius:16px;
     border:1px solid #dbe7f5;
-    box-shadow:0 10px 18px rgba(15,23,42,.08);
+    box-shadow:0 5px 12px rgba(15,23,42,.06);
     background:#fff;
   }
-  .route-panel.route-start{background:#eef5ff;border-color:#c7dcff;}
-  .route-panel.route-visit{background:#ffffff;border-color:#dbe7f5;}
-  .route-panel.route-wait{background:#fff7ed;border-color:#fed7aa;}
-  .route-panel.route-lunch{background:#ecfdf5;border-color:#bbf7d0;}
-  .route-panel.route-return{background:#eef2ff;border-color:#c7d2fe;}
+  .route-panel.route-start{border-color:#bfd5ff;}
+  .route-panel.route-visit{border-color:#dbe7f5;}
+  .route-panel.route-wait{border-color:#fecaa5;}
+  .route-panel.route-lunch{border-color:#a7f3d0;}
+  .route-panel.route-return{border-color:#c7d2fe;}
   .route-top{gap:12px;}
   .route-badge{width:34px;height:34px;font-size:14px;}
   .route-panel.route-start .route-badge{background:#2563eb;box-shadow:0 8px 18px rgba(37,99,235,.25);}
@@ -120,7 +107,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
   .route-panel.route-lunch .route-badge{background:#059669;box-shadow:0 8px 18px rgba(5,150,105,.2);}
   .route-panel.route-return .route-badge{background:#4f46e5;box-shadow:0 8px 18px rgba(79,70,229,.22);}
   .route-badge.word{font-size:12px;}
-  .route-address{font-size:16px;line-height:1.28;}
+  .route-address{font-size:17px;line-height:1.28;}
   .route-name{font-size:13px;line-height:1.3;}
   .route-meta{margin-top:11px;gap:5px;}
   .pill,.connector-pill{height:22px;padding:0 8px;font-size:10px;border-width:1px;}
@@ -129,9 +116,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
   .route-panel.route-return .pill-primary{background:#e0e7ff;border-color:#c7d2fe;color:#3730a3;}
   .nav-btn{display:inline-flex;width:22px;height:22px;}
   .nav-btn svg{width:14px;height:14px;}
-  .parking-toggle-btn{display:inline-flex;width:26px;height:26px;margin-left:auto;}
-  .parking-toggle-btn svg{width:15px;height:15px;}
-  .parking-expand{margin-top:14px;padding-top:11px;border-top:1px dashed #bfd3ea;}
+  .parking-expand{margin-top:12px;padding-top:10px;border-top:1px dashed #bfd3ea;}
   .parking-row{grid-template-columns:minmax(8ch,1fr) 50px 62px 62px 22px;column-gap:3px;}
   .parking-name{font-size:12px;}
   .parking-distance{font-size:10px;}
@@ -155,10 +140,11 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
         <div class="header-sub">SMART 경로탐색</div>
       </div>
     </div>
-    <div class="profile-chip" aria-label="사용자 정보">
-      <div class="profile-top">{{ user_name }}({{ team_no }})</div>
-      <div class="profile-bottom">{{ trip_date|replace('-', '.') }}</div>
-    </div>
+    <button type="button" class="menu-btn" aria-label="menu">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
+      </svg>
+    </button>
   </div>
 
   <div class="card">
@@ -229,14 +215,9 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
                       </a>
                     {% endif %}
-                    {% if v.type == "visit" %}
-                      <button type="button" class="parking-toggle-btn" aria-expanded="false" aria-label="nearby parking">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                      </button>
-                    {% endif %}
                   </div>
                   {% if v.type == "visit" %}
-                    <div class="parking-expand" data-role="parking-expand">
+                    <div class="parking-expand">
                       <div class="parking-subtitle">&#44032;&#44620;&#50868; &#51452;&#52264;&#51109;</div>
                       {% if v.nearby_parkings and v.nearby_parkings|length > 0 %}
                         {% for parking in v.nearby_parkings %}
@@ -288,16 +269,5 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
     </div>
   </div>
 </div>
-<script>
-document.addEventListener('click', function (event) {
-  const toggle = event.target.closest('.parking-toggle-btn');
-  if (!toggle) return;
-  const panel = toggle.closest('.route-main')?.querySelector('[data-role="parking-expand"]');
-  if (!panel) return;
-  const opened = panel.classList.toggle('show');
-  toggle.classList.toggle('is-open', opened);
-  toggle.setAttribute('aria-expanded', opened ? 'true' : 'false');
-});
-</script>
 </body>
 </html>
