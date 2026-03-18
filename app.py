@@ -2458,7 +2458,7 @@ def planner():
 
         warning_message = ""
         if best["return_time"] >= (16 * 60 + 20):
-            warning_message = "복귀 시간이 16:30분에 근접합니다. 복귀가 늦지 않도록 주의해 주세요."
+            warning_message = "복귀 시간이 16:30에 가깝습니다.\n복귀가 늦지 않도록 주의하세요."
 
         try:
             parking_items = (load_settings().get("parking", {}) or {}).get("items", [])
@@ -2513,7 +2513,7 @@ def result_demo_page():
         "total_distance": 32.4,
         "total_time": 385,
         "end_time": "16:25",
-        "warning_message": "복귀 시간이 16:30분에 근접합니다. 복귀가 늦지 않도록 주의해 주세요.",
+        "warning_message": "복귀 시간이 16:30에 가깝습니다.\n복귀가 늦지 않도록 주의하세요.",
         "route": [
             {
                 "type": "start",

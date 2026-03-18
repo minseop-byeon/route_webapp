@@ -32,8 +32,8 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .summary-item:nth-child(4) .summary-label::before{content:"예상 복귀시간";font-size:11px;color:#7b8797;font-weight:700;}
 .summary-item:nth-child(4) .summary-value{margin-top:0;font-size:15px;letter-spacing:-0.1px;}
 
-.section-title{margin:0 0 12px 0;font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-0.2px;text-align:center;}
-.notice-box{margin-top:8px;padding:11px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;font-weight:800;line-height:1.5;}
+.section-title{margin:0 0 12px 0;font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-0.2px;text-align:left;}
+.notice-box{margin-top:8px;padding:11px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;font-weight:800;line-height:1.5;white-space:pre-line;}
 .empty-box{padding:22px 16px;border-radius:14px;background:#f8fafc;border:1px dashed #cbd5e1;color:#64748b;text-align:center;font-size:14px;}
 .route-list{display:flex;flex-direction:column;gap:10px;padding:0 2px;}
 .route-item{position:relative;padding:0;margin:0;}
@@ -48,7 +48,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .route-name{display:block;margin-top:6px;font-size:13px;font-weight:800;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .route-name.visit-name{font-size:14px;}
 .route-meta{margin-top:7px;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;max-width:100%;overflow:hidden;}
-.route-meta .nav-btn{margin-left:auto;flex:0 0 auto;}
+.route-meta .nav-btn{flex:0 0 auto;}
 .pill{display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 7px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;letter-spacing:-0.1px;}
 .pill-primary{background:#eff6ff;border:1px solid #dbeafe;color:#1d4ed8;}
 .pill-neutral{background:#f8fafc;border:1px solid #e2e8f0;color:#334155;}
@@ -57,11 +57,16 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .nav-btn svg{width:13px;height:13px;display:block;stroke-width:2.2;}
 
 .parking-expand{margin-top:11px;padding-top:9px;border-top:1px dashed #cbd5e1;display:block;}
+.route-panel.route-visit .parking-expand{position:relative;margin-top:12px;padding-top:12px;border-top:1px dashed #cbd5e1;}
+.route-panel.route-visit .parking-expand::before,
+.route-panel.route-visit .parking-expand::after{content:"";position:absolute;top:-12px;width:18px;height:18px;border-radius:50%;background:#f3f6fb;border:1px solid #dbe5f0;}
+.route-panel.route-visit .parking-expand::before{left:-24px;}
+.route-panel.route-visit .parking-expand::after{right:-24px;}
 .parking-subtitle{font-size:12px;font-weight:800;color:#334155;margin:0 0 8px 0;}
 .parking-empty{font-size:12px;color:#64748b;padding:2px 0 8px 0;}
-.parking-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;column-gap:3px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
+.parking-row{display:flex;align-items:center;gap:4px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
 .parking-row:last-child{border-bottom:none;}
-.parking-name{min-width:0;font-size:12px;color:#0f172a;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.parking-name{min-width:0;max-width:58%;font-size:12px;color:#0f172a;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;}
 .parking-trip-chip{display:inline-flex;align-items:center;justify-content:center;height:21px;border-radius:999px;padding:0 7px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid transparent;}
 .parking-trip-chip svg{display:none;}
 .parking-trip-chip.car span::before{content:"차량 ";}
@@ -80,6 +85,16 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .action-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid #dbe2ea;background:#fff;color:#0f172a;font-size:13px;font-weight:700;font-family:Pretendard,sans-serif;cursor:pointer;}
 .action-btn-primary{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
 .action-btn svg{width:15px;height:15px;flex:0 0 auto;}
+
+@media (min-width:761px){
+  .header-row{align-items:flex-start;margin-bottom:16px;}
+  .menu-btn{width:24px;height:24px;}
+  .menu-btn svg{width:22px;height:22px;}
+  .card{margin-bottom:16px;}
+  .summary-grid{background:#eef2f7;border:1px solid #d9e2ec;border-radius:26px;padding:12px 12px 10px;box-shadow:0 8px 16px rgba(15,23,42,.05);}
+  .summary-grid::before,.summary-grid::after{display:none;}
+  .route-panel.route-visit .parking-expand::before,.route-panel.route-visit .parking-expand::after{display:none;}
+}
 
 @media (max-width:760px){
   .container{margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 8px) 10px 22px;}
@@ -104,7 +119,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
   .route-meta{gap:3px;}
   .pill,.connector-pill{height:20px;padding:0 6px;font-size:9px;}
   .nav-btn{display:inline-flex;}
-  .parking-row{column-gap:1px;}
+  .parking-row{gap:2px;}
   .parking-name{font-size:12px;}
   .parking-trip-chip{height:20px;padding:0 5px;font-size:9px;}
   .bottom-actions{flex-direction:column;}
@@ -221,18 +236,17 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
                           {% endif %}
                         {% endfor %}
                       {% else %}
-                        <div class="parking-empty">1km 반경 이내에 주차장이 없습니다.</div>
+                        <div class="parking-empty">반경 1km 이내에 주차장이 없습니다.</div>
                       {% endif %}
                     </div>
-                  {% endif %}
-
-                  {% if v.type == "return" and warning_message %}
-                    <div class="notice-box">{{ warning_message }}</div>
                   {% endif %}
                 </div>
               </div>
             </div>
           </div>
+          {% if v.type == "return" and warning_message %}
+            <div class="notice-box">{{ warning_message }}</div>
+          {% endif %}
         {% endfor %}
       </div>
     {% endif %}
