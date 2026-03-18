@@ -57,11 +57,12 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .nav-btn svg{width:13px;height:13px;display:block;stroke-width:2.2;}
 
 .parking-expand{margin-top:11px;padding-top:9px;border-top:1px solid #c7d8ee;display:block;}
+.route-panel.route-visit{overflow:hidden;}
 .route-panel.route-visit .parking-expand{position:relative;margin-top:12px;padding-top:12px;border-top:1px solid #c7d8ee;}
 .route-panel.route-visit .parking-expand::before,
-.route-panel.route-visit .parking-expand::after{content:"";position:absolute;top:-11px;width:22px;height:22px;border-radius:50%;background:#8fd3ff;border:none;}
-.route-panel.route-visit .parking-expand::before{left:-60px;}
-.route-panel.route-visit .parking-expand::after{right:-14px;}
+.route-panel.route-visit .parking-expand::after{content:"";position:absolute;top:-11px;width:22px;height:22px;border-radius:50%;background:#f3f6fb;border:none;z-index:2;}
+.route-panel.route-visit .parking-expand::before{left:-57px;}
+.route-panel.route-visit .parking-expand::after{right:-11px;}
 .parking-subtitle{font-size:12px;font-weight:800;color:#334155;margin:0 0 8px 0;}
 .parking-empty{font-size:12px;color:#64748b;padding:2px 0 8px 0;}
 .parking-row{display:flex;align-items:center;gap:4px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
@@ -155,7 +156,7 @@ body.force-mobile .parking-trip-chip{height:20px;padding:0 5px;font-size:9px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 body.force-mobile .route-panel.route-visit .parking-expand::before,
-body.force-mobile .route-panel.route-visit .parking-expand::after{display:block;}
+body.force-mobile .route-panel.route-visit .parking-expand::after{display:block;background:#f3f6fb;}
 </style>
 </head>
 <body{% if force_mobile %} class="force-mobile"{% endif %}>
