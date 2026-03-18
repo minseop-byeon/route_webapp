@@ -455,6 +455,26 @@
             align-items: end;
         }
 
+        .location-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .location-section {
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #f8fafc;
+        }
+
+        .location-section-title {
+            margin: 0 0 14px 0;
+            font-size: 16px;
+            font-weight: 850;
+            color: #0f172a;
+        }
+
         .check-row {
             display: flex;
             align-items: center;
@@ -989,6 +1009,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .location-section {
+                padding: 16px;
+            }
+
             .guest-toggle-box {
                 flex-direction: column;
                 align-items: flex-start;
@@ -1303,29 +1327,48 @@
                     <p class="panel-desc">경로 계산 시 사용하는 출발지와 복귀지 주소를 설정합니다.</p>
 
                     <form class="settings-form" data-section="user" id="locationSettingsForm">
-                        <div class="form-grid">
-                            <div class="form-group full">
-                                <label for="start_address">출발지 주소</label>
-                                <div class="address-row">
-                                    <input type="text" id="start_address" name="start_address" value="{{ settings.user.start_address }}" readonly>
-                                    <button type="button" class="search-btn" data-target-input="start_address">주소 검색</button>
+                        <div class="location-sections">
+                            <div class="location-section">
+                                <h4 class="location-section-title">출발지 설정</h4>
+                                <div class="form-grid">
+                                    <div class="form-group full">
+                                        <label for="start_name">출발지명</label>
+                                        <input type="text" id="start_name" name="start_name" value="{{ settings.user.start_name or '' }}" maxlength="10" placeholder="최대 10자">
+                                    </div>
+                                    <div class="form-group full">
+                                        <label for="start_address">출발지 주소</label>
+                                        <div class="address-row">
+                                            <input type="text" id="start_address" name="start_address" value="{{ settings.user.start_address }}" readonly>
+                                            <button type="button" class="search-btn" data-target-input="start_address">주소 검색</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="form-group full">
-                                <label for="return_address">복귀지 주소</label>
-                                <div class="check-row">
-                                    <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
-                                    <label for="return_same_as_start_checkbox" style="margin:0; font-weight:700; color:#475569;">출발지와 동일합니다.</label>
+                            <div class="location-section">
+                                <h4 class="location-section-title">복귀지 설정</h4>
+                                <div class="form-grid">
+                                    <div class="form-group full">
+                                        <label for="return_name">복귀지명</label>
+                                        <input type="text" id="return_name" name="return_name" value="{{ settings.user.return_name or '' }}" maxlength="10" placeholder="최대 10자">
+                                    </div>
+                                    <div class="form-group full">
+                                        <label for="return_address">복귀지 주소</label>
+                                        <div class="check-row">
+                                            <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
+                                            <label for="return_same_as_start_checkbox" style="margin:0; font-weight:700; color:#475569;">출발지와 동일합니다.</label>
+                                        </div>
+                                        <div class="address-row" style="margin-top:10px;">
+                                            <input type="text" id="return_address" name="return_address" value="{{ settings.user.return_address }}" readonly>
+                                            <button type="button" class="search-btn" id="returnSearchBtn" data-target-input="return_address">주소 검색</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="address-row" style="margin-top:10px;">
-                                    <input type="text" id="return_address" name="return_address" value="{{ settings.user.return_address }}" readonly>
-                                    <button type="button" class="search-btn" id="returnSearchBtn" data-target-input="return_address">주소 검색</button>
-                                </div>
-                                <input type="hidden" id="return_same_as_start" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
-                        <input type="hidden" name="enable_guest_user" value="{{ 1 if settings.user.enable_guest_user else 0 }}">
                             </div>
                         </div>
+
+                        <input type="hidden" id="return_same_as_start" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">
+                        <input type="hidden" name="enable_guest_user" value="{{ 1 if settings.user.enable_guest_user else 0 }}">
 
                         {% for team_name, users in settings.user.team_users.items() %}
                         <input type="hidden" name="team_name" value="{{ team_name }}">
@@ -1622,16 +1665,34 @@
     }
 
     function getLocationFormSnapshot(form) {
+        const startName = (form.querySelector('#start_name')?.value || '').trim();
         const startValue = (form.querySelector('#start_address')?.value || '').trim();
+        const returnName = (form.querySelector('#return_name')?.value || '').trim();
         const returnValue = (form.querySelector('#return_address')?.value || '').trim();
         const sameAsStart = Boolean(form.querySelector('#return_same_as_start_checkbox')?.checked);
         return {
+            start_name: startName,
             start_address: startValue,
+            return_name: sameAsStart ? startName : returnName,
             return_address: sameAsStart ? startValue : returnValue,
+            return_same_as_start: sameAsStart ? '1' : '0',
         };
     }
 
     function validateUserSettingsForm(form) {
+        if (form.id === 'locationSettingsForm') {
+            const startName = (form.querySelector('#start_name')?.value || '').trim();
+            const returnName = (form.querySelector('#return_name')?.value || '').trim();
+
+            if (startName.length > 10) {
+                return '출발지명은 최대 10자까지 입력할 수 있습니다.';
+            }
+            if (returnName.length > 10) {
+                return '복귀지명은 최대 10자까지 입력할 수 있습니다.';
+            }
+            return null;
+        }
+
         if (form.id !== 'userSettingsForm') return null;
 
         const cards = Array.from(form.querySelectorAll('#teamCardsWrap .team-card'));
@@ -1934,7 +1995,9 @@
     function syncReturnAddressState() {
         const checkbox = document.getElementById('return_same_as_start_checkbox');
         const hidden = document.getElementById('return_same_as_start');
+        const startNameInput = document.getElementById('start_name');
         const startInput = document.getElementById('start_address');
+        const returnNameInput = document.getElementById('return_name');
         const returnInput = document.getElementById('return_address');
         const returnSearchBtn = document.getElementById('returnSearchBtn');
 
@@ -1942,12 +2005,15 @@
         hidden.value = checked ? '1' : '0';
 
         if (checked) {
+            returnNameInput.value = startNameInput.value;
+            returnNameInput.setAttribute('readonly', 'readonly');
             returnInput.value = startInput.value;
             returnInput.setAttribute('readonly', 'readonly');
             returnSearchBtn.disabled = true;
             returnSearchBtn.style.opacity = '0.5';
             returnSearchBtn.style.cursor = 'not-allowed';
         } else {
+            returnNameInput.removeAttribute('readonly');
             returnInput.removeAttribute('readonly');
             returnSearchBtn.disabled = false;
             returnSearchBtn.style.opacity = '1';
@@ -1957,6 +2023,14 @@
 
     document.getElementById('return_same_as_start_checkbox').addEventListener('change', () => {
         syncReturnAddressState();
+        updateSaveButtonState(document.querySelector('#panel-location .settings-form'));
+    });
+
+    document.getElementById('start_name').addEventListener('input', () => {
+        const checkbox = document.getElementById('return_same_as_start_checkbox');
+        if (checkbox.checked) {
+            document.getElementById('return_name').value = document.getElementById('start_name').value;
+        }
         updateSaveButtonState(document.querySelector('#panel-location .settings-form'));
     });
 

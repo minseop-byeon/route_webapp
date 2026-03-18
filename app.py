@@ -52,7 +52,9 @@ DEFAULT_SETTINGS = {
         "google_vision_api_key": ""
     },
     "user": {
+        "start_name": "",
         "start_address": START_ADDRESS,
+        "return_name": "",
         "return_address": RETURN_ADDRESS,
         "return_same_as_start": True,
         "team_users": DEFAULT_TEAM_USERS,
@@ -297,11 +299,15 @@ def migrate_legacy_settings(data):
             data.get("email_body_template", DEFAULT_SETTINGS["mail"]["email_body_template"]) or ""
         ).strip()
         merged["user"]["team_users"] = data.get("team_users", DEFAULT_TEAM_USERS)
+        merged["user"]["start_name"] = ""
         merged["user"]["start_address"] = START_ADDRESS
+        merged["user"]["return_name"] = ""
         merged["user"]["return_address"] = RETURN_ADDRESS
         merged["user"]["return_same_as_start"] = True
 
     merged["user"]["team_users"] = normalize_team_users(merged["user"].get("team_users", {}))
+    merged["user"]["start_name"] = str(merged["user"].get("start_name", "") or "").strip()[:10]
+    merged["user"]["return_name"] = str(merged["user"].get("return_name", "") or "").strip()[:10]
     if "enable_guest_user" not in merged["user"]:
         merged["user"]["enable_guest_user"] = True
 
@@ -2084,12 +2090,21 @@ def save_admin_settings_section():
             settings["api"]["tmap_app_key"] = (request.form.get("tmap_app_key") or TMAP_DEFAULT_APP_KEY).strip()
 
         elif section == "user":
+            start_name = (request.form.get("start_name") or "").strip()
             start_address = (request.form.get("start_address") or "").strip()
+            return_name = (request.form.get("return_name") or "").strip()
             return_address = (request.form.get("return_address") or "").strip()
             return_same_as_start = (request.form.get("return_same_as_start") or "").strip() == "1"
 
+            if len(start_name) > 10:
+                return jsonify({"success": False, "message": "출발지명은 최대 10자까지 입력할 수 있습니다."})
+            if len(return_name) > 10:
+                return jsonify({"success": False, "message": "복귀지명은 최대 10자까지 입력할 수 있습니다."})
+
+            settings["user"]["start_name"] = start_name
             settings["user"]["start_address"] = start_address or START_ADDRESS
             settings["user"]["return_same_as_start"] = return_same_as_start
+            settings["user"]["return_name"] = settings["user"]["start_name"] if return_same_as_start else return_name
             settings["user"]["return_address"] = settings["user"]["start_address"] if return_same_as_start else (return_address or settings["user"]["start_address"])
             settings["user"]["enable_guest_user"] = (request.form.get("enable_guest_user") or "1") == "1"
 
