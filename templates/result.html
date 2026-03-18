@@ -59,27 +59,27 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--page-bg);color:
 .nav-btn svg{width:13px;height:13px;display:block;stroke-width:2.2;}
 
 .parking-expand{margin-top:11px;padding-top:9px;border-top:1px solid #c7d8ee;display:block;}
-.route-panel.route-visit .parking-expand{
-  position:relative;
-  margin-top:12px;
-  padding-top:12px;
-  border-top:none;
+.route-panel.route-visit{
+  overflow:hidden;
   background-image:
-    radial-gradient(circle 11px at -11px 0, transparent 10px, #c7d8ee 10px 11px, transparent 11px),
-    radial-gradient(circle 11px at calc(100% + 11px) 0, transparent 10px, #c7d8ee 10px 11px, transparent 11px),
-    linear-gradient(to right, transparent 11px, #c7d8ee 11px calc(100% - 11px), transparent calc(100% - 11px));
+    radial-gradient(circle 13px at -13px 50%, transparent 12px, #dbe5f0 12px 13px, transparent 13px),
+    radial-gradient(circle 13px at calc(100% + 13px) 50%, transparent 12px, #dbe5f0 12px 13px, transparent 13px);
   background-repeat:no-repeat;
-  background-size:auto, auto, 100% 1px;
-  background-position:0 0, 0 0, 0 0;
-  margin-left:-60px;
-  margin-right:-14px;
-  padding-left:60px;
-  padding-right:14px;
 }
-.route-panel.route-visit .parking-expand::before,
-.route-panel.route-visit .parking-expand::after{content:"";position:absolute;top:-11px;width:22px;height:22px;border-radius:50%;background:var(--page-bg);border:none;z-index:2;}
-.route-panel.route-visit .parking-expand::before{left:-11px;}
-.route-panel.route-visit .parking-expand::after{right:-11px;}
+.route-panel.route-visit::before,
+.route-panel.route-visit::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  width:26px;
+  height:26px;
+  margin-top:-13px;
+  border-radius:50%;
+  background:var(--page-bg);
+  z-index:3;
+}
+.route-panel.route-visit::before{left:-13px;}
+.route-panel.route-visit::after{right:-13px;}
 .parking-subtitle{font-size:12px;font-weight:800;color:#334155;margin:0 0 8px 0;}
 .parking-empty{font-size:12px;color:#64748b;padding:2px 0 8px 0;}
 .parking-row{display:flex;align-items:center;gap:4px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
@@ -111,8 +111,8 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--page-bg);color:
   .card{margin-bottom:16px;}
   .summary-grid{background:#eef2f7;border:1px solid #d9e2ec;border-radius:26px;padding:12px 12px 10px;box-shadow:0 8px 16px rgba(15,23,42,.05);}
   .summary-grid::before,.summary-grid::after{display:none;}
-  .route-panel.route-visit .parking-expand{margin-left:0;margin-right:0;padding-left:0;padding-right:0;}
-  .route-panel.route-visit .parking-expand::before,.route-panel.route-visit .parking-expand::after{display:none;}
+  .route-panel.route-visit{background-image:none;}
+  .route-panel.route-visit::before,.route-panel.route-visit::after{display:none;}
 }
 
 @media (max-width:760px){
@@ -173,8 +173,11 @@ body.force-mobile .parking-name{font-size:12px;}
 body.force-mobile .parking-trip-chip{height:20px;padding:0 5px;font-size:9px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
-body.force-mobile .route-panel.route-visit .parking-expand::before,
-body.force-mobile .route-panel.route-visit .parking-expand::after{display:block;background:var(--page-bg);}
+body.force-mobile .route-panel.route-visit{background-image:
+  radial-gradient(circle 13px at -13px 50%, transparent 12px, #dbe5f0 12px 13px, transparent 13px),
+  radial-gradient(circle 13px at calc(100% + 13px) 50%, transparent 12px, #dbe5f0 12px 13px, transparent 13px);}
+body.force-mobile .route-panel.route-visit::before,
+body.force-mobile .route-panel.route-visit::after{display:block;background:var(--page-bg);}
 </style>
 </head>
 <body{% if force_mobile %} class="force-mobile"{% endif %}>
