@@ -64,17 +64,20 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--page-bg);color:
   margin-top:12px;
   padding-top:12px;
   border-top:none;
-  background-image:linear-gradient(to right, transparent 0 11px, #c7d8ee 11px calc(100% - 11px), transparent calc(100% - 11px) 100%);
+  background-image:
+    radial-gradient(circle 11px at 0 0, transparent 10px, #c7d8ee 10px 11px, transparent 11px),
+    radial-gradient(circle 11px at 100% 0, transparent 10px, #c7d8ee 10px 11px, transparent 11px),
+    linear-gradient(to right, transparent 11px, #c7d8ee 11px calc(100% - 11px), transparent calc(100% - 11px));
   background-repeat:no-repeat;
-  background-size:100% 1px;
-  background-position:0 0;
+  background-size:22px 22px, 22px 22px, 100% 1px;
+  background-position:left -11px top -11px, right -11px top -11px, 0 0;
   margin-left:-60px;
   margin-right:-14px;
   padding-left:60px;
   padding-right:14px;
 }
 .route-panel.route-visit .parking-expand::before,
-.route-panel.route-visit .parking-expand::after{content:"";position:absolute;top:-11px;width:22px;height:22px;border-radius:50%;background:var(--page-bg);border:1px solid #c7d8ee;z-index:2;}
+.route-panel.route-visit .parking-expand::after{content:"";position:absolute;top:-11px;width:22px;height:22px;border-radius:50%;background:var(--page-bg);border:none;z-index:2;}
 .route-panel.route-visit .parking-expand::before{left:-11px;}
 .route-panel.route-visit .parking-expand::after{right:-11px;}
 .parking-subtitle{font-size:12px;font-weight:800;color:#334155;margin:0 0 8px 0;}
