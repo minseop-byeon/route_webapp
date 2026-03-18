@@ -2464,6 +2464,108 @@ def result_page():
     return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
 
 
+@app.route("/result/demo", methods=["GET"])
+def result_demo_page():
+    payload = {
+        "team_no": "1조",
+        "user_name": "데모 사용자",
+        "trip_date": "2026-03-18",
+        "total_count": 2,
+        "total_distance": 32.4,
+        "total_time": 385,
+        "end_time": "16:25",
+        "warning_message": "복귀 시간이 16:30에 근접합니다. 방문 순서를 확인해 주세요.",
+        "route": [
+            {
+                "type": "start",
+                "label": "S",
+                "name": "출발지",
+                "address": "서울특별시 종로구 사직로 161",
+                "arrival": "10:00",
+                "end_time": "10:00",
+                "service_time": 0,
+                "travel_km": None,
+                "travel_min": None,
+            },
+            {
+                "type": "visit",
+                "label": "1",
+                "name": "홍길동",
+                "address": "서울특별시 용산구 한강대로 405",
+                "arrival": "10:35",
+                "end_time": "11:10",
+                "service_time": 35,
+                "travel_km": 8.4,
+                "travel_min": 35,
+                "appointment_time": "10:40",
+                "nearby_parkings": [
+                    {
+                        "name": "서울역 공영주차장",
+                        "address": "서울특별시 용산구 청파로 378",
+                        "distance_m": 320,
+                        "drive_min": 3,
+                        "walk_min": 5,
+                    },
+                    {
+                        "name": "남영역 민영주차장",
+                        "address": "서울특별시 용산구 한강대로 270",
+                        "distance_m": 870,
+                        "drive_min": 5,
+                        "walk_min": 11,
+                    },
+                ],
+            },
+            {
+                "type": "wait",
+                "label": "W",
+                "name": "대기",
+                "address": "",
+                "arrival": "11:10",
+                "end_time": "11:30",
+                "service_time": 20,
+                "travel_km": None,
+                "travel_min": None,
+            },
+            {
+                "type": "lunch",
+                "label": "L",
+                "name": "점심",
+                "address": "",
+                "arrival": "11:30",
+                "end_time": "12:30",
+                "service_time": 60,
+                "travel_km": None,
+                "travel_min": None,
+            },
+            {
+                "type": "visit",
+                "label": "2",
+                "name": "김철수",
+                "address": "서울특별시 송파구 올림픽로 300",
+                "arrival": "13:10",
+                "end_time": "14:00",
+                "service_time": 50,
+                "travel_km": 14.2,
+                "travel_min": 40,
+                "appointment_time": None,
+                "nearby_parkings": [],
+            },
+            {
+                "type": "return",
+                "label": "R",
+                "name": "복귀",
+                "address": "서울특별시 종로구 사직로 161",
+                "arrival": "16:25",
+                "end_time": "16:25",
+                "service_time": 0,
+                "travel_km": 9.8,
+                "travel_min": 55,
+            },
+        ],
+    }
+    return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+
+
 @app.route("/healthz", methods=["GET"])
 def healthz():
     return jsonify({"ok": True}), 200
