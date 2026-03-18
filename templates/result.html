@@ -16,13 +16,19 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .header-logo{width:64px;height:64px;object-fit:contain;display:block;flex:0 0 auto;}
 .header-title{font-size:23px;font-weight:800;line-height:1.05;letter-spacing:-0.5px;white-space:nowrap;}
 .header-sub{margin-top:4px;font-size:13px;font-weight:700;color:#5b6b7f;letter-spacing:-0.1px;}
-.menu-btn{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;border:1px solid #dbe5f0;background:#fff;color:#0f172a;cursor:pointer;flex:0 0 auto;}
-.menu-btn svg{width:20px;height:20px;display:block;}
+.menu-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;background:transparent;color:#0f172a;cursor:pointer;flex:0 0 auto;padding:0;}
+.menu-btn svg{width:22px;height:22px;display:block;}
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 8px 22px rgba(15,23,42,.045);padding:16px;margin-bottom:16px;}
-.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.summary-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;justify-content:center;min-height:50px;}
-.summary-label{font-size:10px;color:#64748b;font-weight:700;line-height:1.1;letter-spacing:-0.1px;}
-.summary-value{margin-top:2px;font-size:14px;color:#0f172a;font-weight:800;letter-spacing:-0.2px;line-height:1.1;}
+.summary-dashboard{background:#eef2f7;border:1px solid #d9e2ec;border-radius:26px;padding:12px 12px 10px;box-shadow:0 8px 16px rgba(15,23,42,.05);}
+.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;}
+.summary-item{padding:2px 8px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:54px;text-align:center;}
+.summary-item:not(:last-child){border-right:1px solid #d4dde7;}
+.summary-label{font-size:11px;color:#8a95a5;font-weight:700;line-height:1.15;letter-spacing:-0.1px;}
+.summary-value{margin-top:4px;font-size:30px;color:#0f172a;font-weight:850;letter-spacing:-0.35px;line-height:1;}
+.summary-unit{margin-left:3px;font-size:20px;font-weight:800;}
+.summary-return{margin-top:9px;padding-top:8px;border-top:1px solid #d4dde7;display:flex;justify-content:space-between;align-items:center;}
+.summary-return-label{font-size:11px;color:#7b8797;font-weight:700;}
+.summary-return-value{font-size:15px;color:#0f172a;font-weight:850;letter-spacing:-0.2px;}
 .section-title{margin:0 0 12px 0;font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-0.2px;}
 .notice-box{margin-bottom:12px;padding:12px 14px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;font-weight:800;}
 .empty-box{padding:22px 16px;border-radius:14px;background:#f8fafc;border:1px dashed #cbd5e1;color:#64748b;text-align:center;font-size:14px;}
@@ -36,8 +42,9 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .route-badge.word{font-size:13px;letter-spacing:-0.1px;}
 .route-main{min-width:0;flex:1 1 auto;}
 .route-address{font-size:18px;font-weight:800;line-height:1.28;color:#0f172a;letter-spacing:-0.28px;word-break:keep-all;overflow-wrap:anywhere;}
-.route-name{margin-top:6px;font-size:14px;font-weight:700;color:#334155;line-height:1.3;letter-spacing:-0.1px;}
-.route-meta{margin-top:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.route-name{display:inline-block;margin-top:0;margin-right:4px;font-size:12px;font-weight:800;color:#334155;max-width:5.4ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
+.route-meta{margin-top:0;display:inline-flex;align-items:center;gap:4px;flex-wrap:nowrap;max-width:100%;vertical-align:middle;overflow:hidden;}
+.route-meta .nav-btn{margin-left:auto;flex:0 0 auto;}
 .pill{display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 8px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;letter-spacing:-0.1px;}
 .pill-primary{background:#eff6ff;border:1px solid #dbeafe;color:#1d4ed8;}
 .pill-neutral{background:#f8fafc;border:1px solid #e2e8f0;color:#334155;}
@@ -47,12 +54,14 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .parking-expand{margin-top:16px;padding-top:12px;border-top:1px dashed #cbd5e1;display:block;}
 .parking-subtitle{font-size:12px;font-weight:800;color:#334155;margin:0 0 8px 0;}
 .parking-empty{font-size:12px;color:#64748b;padding:2px 0 8px 0;}
-.parking-row{display:grid;grid-template-columns:minmax(8ch,1fr) 52px 66px 66px 22px;align-items:center;column-gap:4px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
+.parking-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto;align-items:center;column-gap:5px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
 .parking-row:last-child{border-bottom:none;}
 .parking-name{min-width:0;flex:1 1 auto;font-size:13px;color:#0f172a;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.parking-distance{font-size:11px;font-weight:700;color:#334155;text-align:right;white-space:nowrap;}
-.parking-trip-chip{display:inline-flex;align-items:center;justify-content:center;gap:3px;height:21px;border-radius:999px;padding:0 5px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid transparent;}
-.parking-trip-chip svg{width:14px;height:14px;display:block;}
+.parking-distance{font-size:11px;font-weight:700;color:#334155;text-align:left;white-space:nowrap;}
+.parking-trip-chip{display:inline-flex;align-items:center;justify-content:center;height:21px;border-radius:999px;padding:0 7px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid transparent;}
+.parking-trip-chip svg{display:none;}
+.parking-trip-chip.car span::before{content:"차량 ";}
+.parking-trip-chip.walk span::before{content:"도보 ";}
 .parking-trip-chip.car{color:#1e40af;background:#e8f0ff;border-color:#bfd3ff;}
 .parking-trip-chip.walk{color:#065f46;background:#e7f8f0;border-color:#bde7d1;}
 .parking-guide{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;}
@@ -73,20 +82,34 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
   .header-logo{width:54px;height:54px;}
   .header-title{font-size:17px;white-space:nowrap;}
   .header-sub{font-size:11px;margin-top:2px;}
-  .menu-btn{width:38px;height:38px;border-radius:11px;}
+  .menu-btn{width:22px;height:22px;}
   .card{padding:0;border:none;box-shadow:none;background:transparent;margin-bottom:12px;}
-  .summary-grid{grid-template-columns:repeat(2,1fr);gap:7px;}
-  .summary-item{
-    min-height:50px;
-    padding:8px 9px;
-    border-radius:12px;
-    border:1px solid #dbe5f0;
-    box-shadow:none;
-    background:#ffffff;
+  .summary-dashboard{border-radius:22px;padding:11px 10px 9px;}
+  .summary-item{min-height:46px;padding:0 6px;}
+  .summary-label{font-size:10px;}
+  .summary-value{font-size:19px;}
+  .summary-unit{font-size:13px;}
+  .summary-item:nth-child(4){
+    grid-column:1 / -1;
+    border-right:none;
+    border-top:1px solid #d4dde7;
+    margin-top:6px;
+    min-height:34px;
+    padding-top:7px;
   }
-  .summary-label{font-size:10px;color:#475569;}
-  .summary-value{font-size:12px;color:#0f172a;}
-  .section-title{font-size:17px;margin-bottom:10px;}
+  .summary-item:nth-child(4) .summary-label{font-size:0;}
+  .summary-item:nth-child(4) .summary-label::before{
+    content:"예상 복귀시간";
+    font-size:10px;
+    color:#7b8797;
+    font-weight:700;
+  }
+  .summary-item:nth-child(4) .summary-value{font-size:13px;letter-spacing:-0.1px;}
+  .summary-return{margin-top:7px;padding-top:7px;}
+  .summary-return-label{font-size:10px;}
+  .summary-return-value{font-size:13px;}
+  .section-title{font-size:17px;margin:0 2px 10px;}
+  .route-list{padding:0 2px;}
   .route-panel{
     padding:12px 12px 10px 12px;
     border-radius:16px;
@@ -108,20 +131,21 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
   .route-panel.route-return .route-badge{background:#4f46e5;box-shadow:0 8px 18px rgba(79,70,229,.22);}
   .route-badge.word{font-size:12px;}
   .route-address{font-size:17px;line-height:1.28;}
-  .route-name{font-size:13px;line-height:1.3;}
-  .route-meta{margin-top:11px;gap:5px;}
-  .pill,.connector-pill{height:22px;padding:0 8px;font-size:10px;border-width:1px;}
+  .route-name{font-size:11px;max-width:5.4ch;}
+  .route-meta{gap:3px;}
+  .pill,.connector-pill{height:20px;padding:0 6px;font-size:9px;border-width:1px;}
   .route-panel.route-wait .pill-primary{background:#ffedd5;border-color:#fdba74;color:#9a3412;}
   .route-panel.route-lunch .pill-primary{background:#dcfce7;border-color:#86efac;color:#065f46;}
   .route-panel.route-return .pill-primary{background:#e0e7ff;border-color:#c7d2fe;color:#3730a3;}
-  .nav-btn{display:inline-flex;width:22px;height:22px;}
-  .nav-btn svg{width:14px;height:14px;}
+  .nav-btn{display:inline-flex;width:20px;height:20px;}
+  .nav-btn svg{width:13px;height:13px;}
   .parking-expand{margin-top:12px;padding-top:10px;border-top:1px dashed #bfd3ea;}
-  .parking-row{grid-template-columns:minmax(8ch,1fr) 50px 62px 62px 22px;column-gap:3px;}
+  .parking-row{grid-template-columns:minmax(0,1fr) auto auto auto auto;column-gap:2px;}
   .parking-name{font-size:12px;}
   .parking-distance{font-size:10px;}
-  .parking-trip-chip{height:20px;padding:0 4px;font-size:10px;gap:2px;}
-  .parking-trip-chip svg{width:13px;height:13px;}
+  .parking-trip-chip{height:20px;padding:0 5px;font-size:9px;}
+  .parking-guide{width:20px;height:20px;}
+  .parking-guide svg{width:12px;height:12px;}
   .connector{padding:4px 0 4px 14px;margin:2px 0 2px 16px;gap:6px;flex-wrap:wrap;}
   .connector::before{left:14px;}
   .bottom-actions{flex-direction:column;}
