@@ -212,18 +212,52 @@ button{
 
 
 .btn-secondary{
-  background:#eef0f4;
-  color:#0f172a;
+  background:#e8f1ff;
+  color:#1e3a8a;
+  border:1px solid #93c5fd;
 }
 
 .btn-primary{
   background:#1d4ed8;
   color:#fff;
+  border:1px solid #1d4ed8;
 }
 
 .add-btn{
   width:100%;
   margin-top:10px;
+}
+
+#qrScanBtn{
+  background:#0f766e;
+  color:#fff;
+  border:1px solid #0f766e;
+}
+
+#qrScanBtn:hover{
+  background:#115e59;
+  border-color:#115e59;
+}
+
+button[onclick="addVisit()"]{
+  background:#047857;
+  color:#fff;
+  border:1px solid #047857;
+}
+
+button[onclick="addVisit()"]:hover{
+  background:#065f46;
+  border-color:#065f46;
+}
+
+.btn-secondary:hover{
+  background:#dbeafe;
+  border-color:#60a5fa;
+}
+
+.btn-primary:hover{
+  background:#1e40af;
+  border-color:#1e40af;
 }
 
 .action-btn{
@@ -464,15 +498,6 @@ button{
   .container{
     margin:24px auto;
     padding:0 10px 26px;
-  }
-
-  .card{
-    padding:12px 0;
-    border-radius:0;
-    border:none;
-    box-shadow:none;
-    background:transparent;
-    margin-bottom:12px;
   }
 
   .header-row{
