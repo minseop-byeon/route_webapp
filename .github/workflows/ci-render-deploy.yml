@@ -40,11 +40,16 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Trigger Render deploy hook
-        if: secrets.RENDER_DEPLOY_HOOK_URL != ''
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is empty; skipping deploy hook trigger."
+            exit 0
+          fi
           success=0
           for i in 1 2 3; do
-            code=$(curl --show-error --silent --output /dev/null --write-out "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+            code=$(curl --show-error --silent --output /dev/null --write-out "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK_URL")
             if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then
               echo "Render deploy hook accepted: HTTP $code"
               success=1
@@ -56,7 +61,3 @@ jobs:
           if [ "$success" -ne 1 ]; then
             echo "Render deploy hook did not return success after retries."
           fi
-
-      - name: Render hook missing
-        if: secrets.RENDER_DEPLOY_HOOK_URL == ''
-        run: echo "RENDER_DEPLOY_HOOK_URL secret is empty; skipping deploy hook trigger."
