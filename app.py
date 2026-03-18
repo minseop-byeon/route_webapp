@@ -392,6 +392,23 @@ def get_return_address():
     return (user.get("return_address") or start_address).strip() or start_address
 
 
+def get_start_name():
+    settings = load_settings()
+    value = (settings.get("user", {}).get("start_name") or "").strip()
+    return value or "출발지"
+
+
+def get_return_name():
+    settings = load_settings()
+    user = settings.get("user", {})
+    start_name = (user.get("start_name") or "").strip()
+    if user.get("return_same_as_start"):
+        value = start_name
+    else:
+        value = (user.get("return_name") or "").strip()
+    return value or "복귀지"
+
+
 def get_mail_config():
     settings = load_settings()
     mail = settings.get("mail", {})
@@ -1363,11 +1380,11 @@ def add_visit_block(route_view, visit_no, visit, arrival_min, travel_m, travel_m
     })
 
 
-def add_return_block(route_view, arrival_min, travel_m, travel_min, return_address=None):
+def add_return_block(route_view, arrival_min, travel_m, travel_min, return_address=None, return_name=None):
     route_view.append({
         "type": "return",
         "label": "R",
-        "name": "복귀",
+        "name": return_name or get_return_name(),
         "address": return_address or get_return_address(),
         "arrival": minutes_to_str(arrival_min),
         "end_time": minutes_to_str(arrival_min),
@@ -1734,7 +1751,14 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
                 travel_back = 0
 
             return_time = effective_end + travel_back
-            add_return_block(end_route, return_time, dist_back, travel_back, return_display_address)
+            add_return_block(
+                end_route,
+                return_time,
+                dist_back,
+                travel_back,
+                return_display_address,
+                get_return_name(),
+            )
 
             consider_result({
                 "route_view": end_route,
@@ -1801,7 +1825,7 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
     initial_route = [{
         "type": "start",
         "label": "S",
-        "name": "출발",
+        "name": get_start_name(),
         "address": start_display_address or get_start_address(),
         "arrival": minutes_to_str(start_time),
         "end_time": minutes_to_str(start_time),
@@ -2433,8 +2457,8 @@ def planner():
             return redirect(url_for("result_page"))
 
         warning_message = ""
-        if best["return_late"] > 0:
-            warning_message = f"복귀시간이 16:30보다 {best['return_late']}분 늦습니다."
+        if best["return_time"] >= (16 * 60 + 20):
+            warning_message = "복귀 시간이 16:30분에 근접합니다. 복귀가 늦지 않도록 주의해 주세요."
 
         try:
             parking_items = (load_settings().get("parking", {}) or {}).get("items", [])
@@ -2489,12 +2513,12 @@ def result_demo_page():
         "total_distance": 32.4,
         "total_time": 385,
         "end_time": "16:25",
-        "warning_message": "복귀 시간이 16:30에 근접합니다. 방문 순서를 확인해 주세요.",
+        "warning_message": "복귀 시간이 16:30분에 근접합니다. 복귀가 늦지 않도록 주의해 주세요.",
         "route": [
             {
                 "type": "start",
                 "label": "S",
-                "name": "출발지",
+                "name": "출발지명",
                 "address": "서울특별시 종로구 사직로 161",
                 "arrival": "10:00",
                 "end_time": "10:00",
@@ -2568,7 +2592,7 @@ def result_demo_page():
             {
                 "type": "return",
                 "label": "R",
-                "name": "복귀",
+                "name": "복귀지명",
                 "address": "서울특별시 종로구 사직로 161",
                 "arrival": "16:25",
                 "end_time": "16:25",

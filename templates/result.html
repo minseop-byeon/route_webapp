@@ -7,151 +7,109 @@
 <title>국세청 체납관리단 - SMART 경로탐색</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
-
 *{box-sizing:border-box;}
 body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827;}
 .container{max-width:920px;margin:36px auto;padding:0 18px 32px;}
-.header-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px;}
+.header-row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px;}
 .header-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto;}
 .header-logo{width:64px;height:64px;object-fit:contain;display:block;flex:0 0 auto;}
 .header-title{font-size:23px;font-weight:800;line-height:1.05;letter-spacing:-0.5px;white-space:nowrap;}
 .header-sub{margin-top:4px;font-size:13px;font-weight:700;color:#5b6b7f;letter-spacing:-0.1px;}
-.menu-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;background:transparent;color:#0f172a;cursor:pointer;flex:0 0 auto;padding:0;}
-.menu-btn svg{width:22px;height:22px;display:block;}
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 8px 22px rgba(15,23,42,.045);padding:16px;margin-bottom:16px;}
-.summary-dashboard{background:#eef2f7;border:1px solid #d9e2ec;border-radius:26px;padding:12px 12px 10px;box-shadow:0 8px 16px rgba(15,23,42,.05);}
-.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;}
-.summary-item{padding:2px 8px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:54px;text-align:center;}
+.menu-btn{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border:none;background:transparent;color:#0f172a;cursor:pointer;flex:0 0 auto;padding:0;}
+.menu-btn svg{width:40px;height:40px;display:block;}
+
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 8px 22px rgba(15,23,42,.045);padding:16px;margin-bottom:14px;}
+.summary-grid{position:relative;overflow:hidden;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:linear-gradient(180deg,#eaf1ff 0%,#f5f8ff 100%);border:1px solid #d7e2f3;border-radius:30px;padding:14px 12px 10px;box-shadow:0 10px 18px rgba(15,23,42,.055);}
+.summary-grid::before{content:"";position:absolute;top:-66px;left:50%;transform:translateX(-50%);width:168px;height:116px;border-radius:0 0 84px 84px;background:rgba(255,255,255,.44);}
+.summary-grid::after{content:"";position:absolute;right:-10px;bottom:-16px;width:78px;height:54px;border-radius:16px;background:rgba(255,255,255,.3);}
+.summary-item{position:relative;z-index:1;padding:2px 8px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:54px;text-align:center;}
 .summary-item:not(:last-child){border-right:1px solid #d4dde7;}
 .summary-label{font-size:11px;color:#8a95a5;font-weight:700;line-height:1.15;letter-spacing:-0.1px;}
 .summary-value{margin-top:4px;font-size:30px;color:#0f172a;font-weight:850;letter-spacing:-0.35px;line-height:1;}
 .summary-unit{margin-left:3px;font-size:20px;font-weight:800;}
-.summary-return{margin-top:9px;padding-top:8px;border-top:1px solid #d4dde7;display:flex;justify-content:space-between;align-items:center;}
-.summary-return-label{font-size:11px;color:#7b8797;font-weight:700;}
-.summary-return-value{font-size:15px;color:#0f172a;font-weight:850;letter-spacing:-0.2px;}
-.section-title{margin:0 0 12px 0;font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-0.2px;}
-.notice-box{margin-bottom:12px;padding:12px 14px;border-radius:12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:13px;font-weight:800;}
+.summary-item:nth-child(4){grid-column:1 / -1;border-right:none;border-top:1px solid #d4dde7;margin-top:6px;min-height:34px;padding-top:7px;display:flex;flex-direction:row;justify-content:center;align-items:center;gap:6px;}
+.summary-item:nth-child(4) .summary-label{font-size:0;}
+.summary-item:nth-child(4) .summary-label::before{content:"예상 복귀시간";font-size:11px;color:#7b8797;font-weight:700;}
+.summary-item:nth-child(4) .summary-value{margin-top:0;font-size:15px;letter-spacing:-0.1px;}
+
+.section-title{margin:0 0 12px 0;font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-0.2px;text-align:center;}
+.notice-box{margin-top:8px;padding:11px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;font-weight:800;line-height:1.5;}
 .empty-box{padding:22px 16px;border-radius:14px;background:#f8fafc;border:1px dashed #cbd5e1;color:#64748b;text-align:center;font-size:14px;}
-.route-list{display:flex;flex-direction:column;gap:10px;}
+.route-list{display:flex;flex-direction:column;gap:10px;padding:0 2px;}
 .route-item{position:relative;padding:0;margin:0;}
-.route-panel{position:relative;background:#fff;border:1px solid #dbe5f0;border-radius:16px;padding:16px 16px 14px 16px;box-shadow:0 6px 16px rgba(15,23,42,.035);}
-.route-top{display:flex;align-items:flex-start;gap:14px;}
-.route-badge{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;background:#1d4ed8;box-shadow:0 8px 18px rgba(29,78,216,.16);flex:0 0 auto;letter-spacing:-0.1px;}
+.route-panel{position:relative;background:#fff;border:1px solid #dbe5f0;border-radius:16px;padding:14px 14px 12px 14px;box-shadow:0 6px 16px rgba(15,23,42,.035);}
+.route-top{display:flex;align-items:flex-start;gap:12px;}
+.route-badge{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;background:#1d4ed8;box-shadow:0 8px 18px rgba(29,78,216,.16);flex:0 0 auto;letter-spacing:-0.1px;}
 .route-badge.start{background:#1e40af;}
-.route-badge.return{background:#0f172a;}
-.route-badge.word{font-size:13px;letter-spacing:-0.1px;}
+.route-badge.return{background:#4f46e5;}
+.route-badge.word{font-size:12px;letter-spacing:-0.1px;}
 .route-main{min-width:0;flex:1 1 auto;}
-.route-address{font-size:18px;font-weight:800;line-height:1.28;color:#0f172a;letter-spacing:-0.28px;word-break:keep-all;overflow-wrap:anywhere;}
-.route-name{display:inline-block;margin-top:0;margin-right:4px;font-size:12px;font-weight:800;color:#334155;max-width:5.4ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
-.route-meta{margin-top:0;display:inline-flex;align-items:center;gap:4px;flex-wrap:nowrap;max-width:100%;vertical-align:middle;overflow:hidden;}
+.route-address{font-size:18px;font-weight:800;line-height:1.28;color:#0f172a;letter-spacing:-0.25px;word-break:keep-all;overflow-wrap:anywhere;}
+.route-name{display:block;margin-top:6px;font-size:13px;font-weight:800;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.route-name.visit-name{font-size:14px;}
+.route-meta{margin-top:7px;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;max-width:100%;overflow:hidden;}
 .route-meta .nav-btn{margin-left:auto;flex:0 0 auto;}
-.pill{display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 8px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;letter-spacing:-0.1px;}
+.pill{display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 7px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;letter-spacing:-0.1px;}
 .pill-primary{background:#eff6ff;border:1px solid #dbeafe;color:#1d4ed8;}
 .pill-neutral{background:#f8fafc;border:1px solid #e2e8f0;color:#334155;}
-.nav-btn{display:none;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;margin-left:2px;}
+.nav-btn{display:none;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;}
 .nav-btn.disabled{opacity:.42;pointer-events:none;}
-.nav-btn svg{width:14px;height:14px;display:block;stroke-width:2.2;}
-.parking-expand{margin-top:16px;padding-top:12px;border-top:1px dashed #cbd5e1;display:block;}
+.nav-btn svg{width:13px;height:13px;display:block;stroke-width:2.2;}
+
+.parking-expand{margin-top:11px;padding-top:9px;border-top:1px dashed #cbd5e1;display:block;}
 .parking-subtitle{font-size:12px;font-weight:800;color:#334155;margin:0 0 8px 0;}
 .parking-empty{font-size:12px;color:#64748b;padding:2px 0 8px 0;}
-.parking-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto;align-items:center;column-gap:5px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
+.parking-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;column-gap:3px;padding:8px 0;border-bottom:1px solid #e2e8f0;}
 .parking-row:last-child{border-bottom:none;}
-.parking-name{min-width:0;flex:1 1 auto;font-size:13px;color:#0f172a;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.parking-distance{font-size:11px;font-weight:700;color:#334155;text-align:left;white-space:nowrap;}
+.parking-name{min-width:0;font-size:12px;color:#0f172a;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .parking-trip-chip{display:inline-flex;align-items:center;justify-content:center;height:21px;border-radius:999px;padding:0 7px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid transparent;}
 .parking-trip-chip svg{display:none;}
 .parking-trip-chip.car span::before{content:"차량 ";}
 .parking-trip-chip.walk span::before{content:"도보 ";}
 .parking-trip-chip.car{color:#1e40af;background:#e8f0ff;border-color:#bfd3ff;}
 .parking-trip-chip.walk{color:#065f46;background:#e7f8f0;border-color:#bde7d1;}
-.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;}
+.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;}
 .parking-guide.disabled{opacity:.42;pointer-events:none;}
-.parking-guide svg{width:14px;height:14px;display:block;stroke-width:2.2;}
+.parking-guide svg{width:12px;height:12px;display:block;stroke-width:2.2;}
+
 .connector{position:relative;display:flex;align-items:center;gap:8px;padding:2px 0 2px 18px;margin:2px 0 0 18px;}
 .connector::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#d4dde7;transform:translateY(-50%);opacity:.9;}
 .connector-pill{position:relative;z-index:1;display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:10px;font-weight:700;}
-.bottom-actions{margin-top:24px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+
+.bottom-actions{margin-top:20px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .action-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid #dbe2ea;background:#fff;color:#0f172a;font-size:13px;font-weight:700;font-family:Pretendard,sans-serif;cursor:pointer;}
 .action-btn-primary{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
 .action-btn svg{width:15px;height:15px;flex:0 0 auto;}
+
 @media (max-width:760px){
-  body{background:#f3f6fb;}
   .container{margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 8px) 10px 22px;}
-  .header-row{gap:10px;align-items:center;margin-bottom:10px;}
-  .header-left{gap:8px;min-width:0;}
   .header-logo{width:54px;height:54px;}
-  .header-title{font-size:17px;white-space:nowrap;}
-  .header-sub{font-size:11px;margin-top:2px;}
-  .menu-btn{width:22px;height:22px;}
+  .header-title{font-size:17px;}
+  .header-sub{font-size:11px;}
+  .menu-btn{width:54px;height:54px;}
+  .menu-btn svg{width:38px;height:38px;}
   .card{padding:0;border:none;box-shadow:none;background:transparent;margin-bottom:12px;}
-  .summary-dashboard{border-radius:22px;padding:11px 10px 9px;}
+  .summary-grid{border-radius:24px;padding:11px 10px 9px;}
+  .summary-grid::before{top:-58px;width:152px;height:104px;border-radius:0 0 76px 76px;}
   .summary-item{min-height:46px;padding:0 6px;}
   .summary-label{font-size:10px;}
   .summary-value{font-size:19px;}
   .summary-unit{font-size:13px;}
-  .summary-item:nth-child(4){
-    grid-column:1 / -1;
-    border-right:none;
-    border-top:1px solid #d4dde7;
-    margin-top:6px;
-    min-height:34px;
-    padding-top:7px;
-  }
-  .summary-item:nth-child(4) .summary-label{font-size:0;}
-  .summary-item:nth-child(4) .summary-label::before{
-    content:"예상 복귀시간";
-    font-size:10px;
-    color:#7b8797;
-    font-weight:700;
-  }
-  .summary-item:nth-child(4) .summary-value{font-size:13px;letter-spacing:-0.1px;}
-  .summary-return{margin-top:7px;padding-top:7px;}
-  .summary-return-label{font-size:10px;}
-  .summary-return-value{font-size:13px;}
-  .section-title{font-size:17px;margin:0 2px 10px;}
-  .route-list{padding:0 2px;}
-  .route-panel{
-    padding:12px 12px 10px 12px;
-    border-radius:16px;
-    border:1px solid #dbe7f5;
-    box-shadow:0 5px 12px rgba(15,23,42,.06);
-    background:#fff;
-  }
-  .route-panel.route-start{border-color:#bfd5ff;}
-  .route-panel.route-visit{border-color:#dbe7f5;}
-  .route-panel.route-wait{border-color:#fecaa5;}
-  .route-panel.route-lunch{border-color:#a7f3d0;}
-  .route-panel.route-return{border-color:#c7d2fe;}
-  .route-top{gap:12px;}
-  .route-badge{width:34px;height:34px;font-size:14px;}
-  .route-panel.route-start .route-badge{background:#2563eb;box-shadow:0 8px 18px rgba(37,99,235,.25);}
-  .route-panel.route-visit .route-badge{background:#1d4ed8;box-shadow:0 8px 18px rgba(29,78,216,.22);}
-  .route-panel.route-wait .route-badge{background:#ea580c;box-shadow:0 8px 18px rgba(234,88,12,.2);}
-  .route-panel.route-lunch .route-badge{background:#059669;box-shadow:0 8px 18px rgba(5,150,105,.2);}
-  .route-panel.route-return .route-badge{background:#4f46e5;box-shadow:0 8px 18px rgba(79,70,229,.22);}
-  .route-badge.word{font-size:12px;}
-  .route-address{font-size:17px;line-height:1.28;}
-  .route-name{font-size:11px;max-width:5.4ch;}
+  .summary-item:nth-child(4) .summary-label::before{font-size:10px;}
+  .summary-item:nth-child(4) .summary-value{font-size:13px;}
+  .section-title{font-size:17px;}
+  .route-address{font-size:17px;}
+  .route-name{font-size:12px;}
+  .route-name.visit-name{font-size:13px;}
   .route-meta{gap:3px;}
-  .pill,.connector-pill{height:20px;padding:0 6px;font-size:9px;border-width:1px;}
-  .route-panel.route-wait .pill-primary{background:#ffedd5;border-color:#fdba74;color:#9a3412;}
-  .route-panel.route-lunch .pill-primary{background:#dcfce7;border-color:#86efac;color:#065f46;}
-  .route-panel.route-return .pill-primary{background:#e0e7ff;border-color:#c7d2fe;color:#3730a3;}
-  .nav-btn{display:inline-flex;width:20px;height:20px;}
-  .nav-btn svg{width:13px;height:13px;}
-  .parking-expand{margin-top:12px;padding-top:10px;border-top:1px dashed #bfd3ea;}
-  .parking-row{grid-template-columns:minmax(0,1fr) auto auto auto auto;column-gap:2px;}
+  .pill,.connector-pill{height:20px;padding:0 6px;font-size:9px;}
+  .nav-btn{display:inline-flex;}
+  .parking-row{column-gap:1px;}
   .parking-name{font-size:12px;}
-  .parking-distance{font-size:10px;}
   .parking-trip-chip{height:20px;padding:0 5px;font-size:9px;}
-  .parking-guide{width:20px;height:20px;}
-  .parking-guide svg{width:12px;height:12px;}
-  .connector{padding:4px 0 4px 14px;margin:2px 0 2px 16px;gap:6px;flex-wrap:wrap;}
-  .connector::before{left:14px;}
   .bottom-actions{flex-direction:column;}
   .action-btn{width:100%;}
 }
-
 </style>
 </head>
 <body>
@@ -173,21 +131,19 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 
   <div class="card">
     <div class="summary-grid">
-      <div class="summary-item"><div class="summary-label">총 방문지</div><div class="summary-value">{{ total_count }}곳</div></div>
-      <div class="summary-item"><div class="summary-label">총 이동거리</div><div class="summary-value">{{ "%.1f"|format(total_distance|float) if total_distance != "--" else total_distance }}km</div></div>
-      <div class="summary-item"><div class="summary-label">총 소요시간</div><div class="summary-value">{{ total_time }}분</div></div>
-      <div class="summary-item"><div class="summary-label">예상 종료시간</div><div class="summary-value">{{ end_time }}</div></div>
+      <div class="summary-item"><div class="summary-label">총 방문지</div><div class="summary-value">{{ total_count }}<span class="summary-unit">곳</span></div></div>
+      <div class="summary-item"><div class="summary-label">총 이동거리</div><div class="summary-value">{{ "%.1f"|format(total_distance|float) if total_distance != "--" else total_distance }}<span class="summary-unit">km</span></div></div>
+      <div class="summary-item"><div class="summary-label">총 소요시간</div><div class="summary-value">{{ total_time }}<span class="summary-unit">분</span></div></div>
+      <div class="summary-item"><div class="summary-label">예상 복귀시간</div><div class="summary-value">{{ end_time }}</div></div>
     </div>
   </div>
 
   <div class="card">
     <h3 class="section-title">최적 방문 순서</h3>
-    {% if warning_message %}<div class="notice-box">{{ warning_message }}</div>{% endif %}
     {% if route|length == 0 %}
       <div class="empty-box">경로를 생성할 수 없습니다. 입력 정보를 확인한 뒤 다시 시도해주세요.</div>
     {% else %}
       <div class="route-list">
-        
         {% for v in route %}
           {% if loop.index > 1 and v.travel_km is not none and v.travel_min is not none %}
             <div class="connector">
@@ -213,8 +169,12 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 
                 <div class="route-main">
                   {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
-                  {% if v.name and not ((v.type == 'start') or (v.type == 'return' and (v.name == '복귀' or v.name == '복귀완료')) or (v.type == 'start' and v.name == '출발지')) %}
-                    <div class="route-name">{{ v.name }}</div>
+                  {% if v.name %}
+                    {% set display_name = v.name %}
+                    {% if v.type == "visit" and v.name|length > 5 %}
+                      {% set display_name = v.name[:5] ~ "…" %}
+                    {% endif %}
+                    <div class="route-name{% if v.type == 'visit' %} visit-name{% endif %}" title="{{ v.name }}">{{ display_name }}</div>
                   {% endif %}
                   <div class="route-meta">
                     <div class="pill pill-primary">
@@ -240,30 +200,20 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
                       </a>
                     {% endif %}
                   </div>
+
                   {% if v.type == "visit" %}
                     <div class="parking-expand">
-                      <div class="parking-subtitle">&#44032;&#44620;&#50868; &#51452;&#52264;&#51109;</div>
+                      <div class="parking-subtitle">가까운 주차장</div>
                       {% if v.nearby_parkings and v.nearby_parkings|length > 0 %}
                         {% for parking in v.nearby_parkings %}
                           {% if parking is mapping %}
+                          {% set distance_m = parking.distance_m|default(0, true)|int %}
                           <div class="parking-row">
-                            <div class="parking-name" title="{{ parking.name|default('', true) }}">{{ parking.name|default('', true) }}</div>
-                            <div class="parking-distance">
-                              {% set distance_m = parking.distance_m|default(0, true)|int %}
-                              {% if distance_m < 1000 %}
-                                {{ distance_m }}m
-                              {% else %}
-                                {{ "%.2f"|format((distance_m|float) / 1000) }}km
-                              {% endif %}
+                            <div class="parking-name" title="{{ parking.name|default('', true) }} · {% if distance_m < 1000 %}{{ distance_m }}m{% else %}{{ '%.2f'|format((distance_m|float) / 1000) }}km{% endif %}">
+                              {{ parking.name|default('', true) }} · {% if distance_m < 1000 %}{{ distance_m }}m{% else %}{{ "%.2f"|format((distance_m|float) / 1000) }}km{% endif %}
                             </div>
-                            <span class="parking-trip-chip car" title="car time">
-                              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 13l1.2-4.2A2 2 0 0 1 7.1 7.3h9.8a2 2 0 0 1 1.9 1.5L20 13v4a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H7v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7.5" cy="14.5" r="1.2" fill="currentColor"/><circle cx="16.5" cy="14.5" r="1.2" fill="currentColor"/></svg>
-                              <span>{{ parking.drive_min|default(0, true)|int }}&#48516;</span>
-                            </span>
-                            <span class="parking-trip-chip walk" title="walk time">
-                              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="5" r="2" fill="currentColor"/><path d="M10 21l1.2-5-2.2-3.2 2.1-2.8 2.3 1.4 2.4.6m-4.7-2.1L9 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                              <span>{{ parking.walk_min|default(0, true)|int }}&#48516;</span>
-                            </span>
+                            <span class="parking-trip-chip car" title="car time"><span>{{ parking.drive_min|default(0, true)|int }}분</span></span>
+                            <span class="parking-trip-chip walk" title="walk time"><span>{{ parking.walk_min|default(0, true)|int }}분</span></span>
                             <a class="parking-guide {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ parking.address|default('', true)|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="guide" title="guide">
                               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
                             </a>
@@ -271,16 +221,19 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
                           {% endif %}
                         {% endfor %}
                       {% else %}
-                        <div class="parking-empty">&#49;&#107;&#109; &#48152;&#44221; &#51060;&#45236;&#50640; &#51452;&#52264;&#51109;&#51060; &#50630;&#49845;&#45768;&#45796;&#46;</div>
+                        <div class="parking-empty">1km 반경 이내에 주차장이 없습니다.</div>
                       {% endif %}
                     </div>
+                  {% endif %}
+
+                  {% if v.type == "return" and warning_message %}
+                    <div class="notice-box">{{ warning_message }}</div>
                   {% endif %}
                 </div>
               </div>
             </div>
           </div>
         {% endfor %}
-
       </div>
     {% endif %}
 
