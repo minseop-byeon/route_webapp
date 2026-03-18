@@ -1181,7 +1181,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="parkingRows">
-                                    {% for item in settings.parking["items"] %}
+                                    {% for item in settings.parking["items"] | sort(attribute='name') %}
                                     <tr class="parking-row"
                                         data-name="{{ item.name }}"
                                         data-address="{{ item.address }}">
@@ -2181,6 +2181,19 @@
         parkingEmptyRow.style.display = visibleRows.length ? 'none' : '';
     }
 
+    function sortParkingRows() {
+        if (!parkingRows) return;
+        const rows = Array.from(parkingRows.querySelectorAll('.parking-row'));
+        rows.sort((a, b) => {
+            const aName = (a.dataset.name || '').trim();
+            const bName = (b.dataset.name || '').trim();
+            return aName.localeCompare(bName, 'ko-KR');
+        });
+        rows.forEach((row) => {
+            parkingRows.insertBefore(row, parkingEmptyRow);
+        });
+    }
+
     function clearParkingSearchResults() {
         if (!parkingSearchResults) return;
         parkingSearchResults.innerHTML = '';
@@ -2294,6 +2307,7 @@
 
     if (parkingRows) {
         parkingRows.querySelectorAll('.parking-row').forEach((row) => bindParkingRow(row));
+        sortParkingRows();
         updateParkingEmptyState();
     }
 
@@ -2390,6 +2404,7 @@
                 bindParkingRow(row);
             }
 
+            sortParkingRows();
             updateParkingEmptyState();
             updateSaveButtonState(parkingSettingsForm);
             clearParkingModal();
