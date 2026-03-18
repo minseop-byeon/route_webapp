@@ -2500,7 +2500,7 @@ def result_page():
     payload = session.get("last_result_payload")
     if not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"] or not payload:
         return redirect(url_for("start"))
-    return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+    return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key(), force_mobile=False)
 
 
 @app.route("/result/demo", methods=["GET"])
@@ -2514,6 +2514,7 @@ def result_demo_page():
         "total_time": 385,
         "end_time": "16:25",
         "warning_message": "복귀 시간이 16:30에 가깝습니다.\n복귀가 늦지 않도록 주의하세요.",
+        "force_mobile": True,
         "route": [
             {
                 "type": "start",
