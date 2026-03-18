@@ -71,7 +71,10 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
 .action-btn-primary{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
 .action-btn svg{width:15px;height:15px;flex:0 0 auto;}
 @media (max-width:760px){
-  .container{margin:24px auto;padding:0 10px 24px;}
+  body{
+    background:linear-gradient(180deg,#f1f6ff 0%,#edf3fb 38%,#f5f8fc 100%);
+  }
+  .container{margin:20px auto;padding:0 10px 24px;}
   .header-row{gap:10px;align-items:flex-start;}
   .header-left{gap:8px;min-width:0;}
   .header-logo{width:56px;height:56px;}
@@ -80,25 +83,55 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
   .profile-chip{padding:0;max-width:154px;min-height:56px;}
   .profile-top{font-size:12px;max-width:154px;}
   .profile-bottom{font-size:10px;}
-  .card{padding:12px 0;border-radius:0;border:none;box-shadow:none;background:transparent;margin-bottom:12px;}
-  .summary-grid{grid-template-columns:repeat(2,1fr);gap:7px;}
-  .summary-item{padding:6px 0;min-height:46px;border:none;border-radius:0;background:transparent;}
-  .summary-label{font-size:10px;}
-  .summary-value{font-size:13px;}
+  .card{padding:0;border:none;box-shadow:none;background:transparent;margin-bottom:12px;}
+  .summary-grid{grid-template-columns:repeat(2,1fr);gap:9px;}
+  .summary-item{
+    min-height:64px;
+    padding:10px 11px;
+    border-radius:14px;
+    border:1px solid #dbe8f8;
+    box-shadow:0 8px 16px rgba(37,99,235,.09);
+    background:#ffffff;
+  }
+  .summary-item:nth-child(1){background:#ebf5ff;border-color:#bfdbfe;}
+  .summary-item:nth-child(2){background:#f5f3ff;border-color:#ddd6fe;}
+  .summary-item:nth-child(3){background:#ecfdf5;border-color:#bbf7d0;}
+  .summary-item:nth-child(4){background:#fff7ed;border-color:#fed7aa;}
+  .summary-label{font-size:10px;color:#334155;}
+  .summary-value{font-size:13px;color:#0f172a;}
   .section-title{font-size:17px;}
-  .route-panel{padding:10px 0 12px 0;border:none;border-radius:0;box-shadow:none;background:transparent;}
+  .route-panel{
+    padding:12px 12px 11px 12px;
+    border-radius:16px;
+    border:1px solid #dbe7f5;
+    box-shadow:0 10px 18px rgba(15,23,42,.08);
+    background:#fff;
+  }
+  .route-panel.route-start{background:#eef5ff;border-color:#c7dcff;}
+  .route-panel.route-visit{background:#ffffff;border-color:#dbe7f5;}
+  .route-panel.route-wait{background:#fff7ed;border-color:#fed7aa;}
+  .route-panel.route-lunch{background:#ecfdf5;border-color:#bbf7d0;}
+  .route-panel.route-return{background:#eef2ff;border-color:#c7d2fe;}
   .route-top{gap:12px;}
   .route-badge{width:34px;height:34px;font-size:14px;}
+  .route-panel.route-start .route-badge{background:#2563eb;box-shadow:0 8px 18px rgba(37,99,235,.25);}
+  .route-panel.route-visit .route-badge{background:#1d4ed8;box-shadow:0 8px 18px rgba(29,78,216,.22);}
+  .route-panel.route-wait .route-badge{background:#ea580c;box-shadow:0 8px 18px rgba(234,88,12,.2);}
+  .route-panel.route-lunch .route-badge{background:#059669;box-shadow:0 8px 18px rgba(5,150,105,.2);}
+  .route-panel.route-return .route-badge{background:#4f46e5;box-shadow:0 8px 18px rgba(79,70,229,.22);}
   .route-badge.word{font-size:12px;}
   .route-address{font-size:16px;line-height:1.28;}
   .route-name{font-size:13px;line-height:1.3;}
   .route-meta{margin-top:11px;gap:5px;}
-  .pill,.connector-pill{height:22px;padding:0 7px;font-size:10px;}
+  .pill,.connector-pill{height:22px;padding:0 8px;font-size:10px;border-width:1px;}
+  .route-panel.route-wait .pill-primary{background:#ffedd5;border-color:#fdba74;color:#9a3412;}
+  .route-panel.route-lunch .pill-primary{background:#dcfce7;border-color:#86efac;color:#065f46;}
+  .route-panel.route-return .pill-primary{background:#e0e7ff;border-color:#c7d2fe;color:#3730a3;}
   .nav-btn{display:inline-flex;width:22px;height:22px;}
   .nav-btn svg{width:14px;height:14px;}
   .parking-toggle-btn{display:inline-flex;width:26px;height:26px;margin-left:auto;}
   .parking-toggle-btn svg{width:15px;height:15px;}
-  .parking-expand{margin-top:18px;padding-top:13px;}
+  .parking-expand{margin-top:14px;padding-top:11px;border-top:1px dashed #bfd3ea;}
   .parking-row{grid-template-columns:minmax(8ch,1fr) 50px 62px 62px 22px;column-gap:3px;}
   .parking-name{font-size:12px;}
   .parking-distance{font-size:10px;}
@@ -154,7 +187,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:#f3f6fb;color:#111827
           {% endif %}
 
           <div class="route-item">
-            <div class="route-panel">
+            <div class="route-panel route-{{ v.type }}">
               <div class="route-top">
                 {% if v.type == "start" %}
                   <div class="route-badge start word">S</div>
