@@ -1074,7 +1074,7 @@
                     <button type="button" class="menu-item" data-target="panel-parking">주차장 설정</button>
                     <button type="button" class="menu-item" data-target="panel-restaurant">추천식당 설정</button>
                     <button type="button" class="menu-item" data-target="panel-api">API 설정</button>
-                    <button type="button" class="menu-item" data-target="panel-location">출발/복귀지 설정</button>
+                    <button type="button" class="menu-item" data-target="panel-location">출발·복귀지 설정</button>
                     <button type="button" class="menu-item" data-target="panel-admin">관리자 비밀번호 설정</button>
                 </div>
             </div>
@@ -1085,24 +1085,30 @@
                     <p class="panel-desc">외부 연동에 필요한 API 정보를 설정합니다.</p>
 
                     <form class="settings-form" data-section="api">
-                        <div class="section-subtitle">NAVER Cloud</div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="client_id">Client ID</label>
-                                <input type="text" id="client_id" name="client_id" value="{{ settings.api.client_id }}">
+                        <div class="location-sections">
+                            <div class="location-section">
+                                <h4 class="location-section-title">NAVER Cloud</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="client_id">Client ID</label>
+                                        <input type="text" id="client_id" name="client_id" value="{{ settings.api.client_id }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="client_secret">Client Secret</label>
+                                        <input type="text" id="client_secret" name="client_secret" value="{{ settings.api.client_secret }}">
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="client_secret">Client Secret</label>
-                                <input type="text" id="client_secret" name="client_secret" value="{{ settings.api.client_secret }}">
-                            </div>
-                        </div>
-
-                        <div class="section-subtitle">Tmap</div>
-                        <div class="form-grid">
-                            <div class="form-group full">
-                                <label for="tmap_app_key">App Key</label>
-                                <input type="text" id="tmap_app_key" name="tmap_app_key" value="{{ settings.api.tmap_app_key }}">
+                            <div class="location-section">
+                                <h4 class="location-section-title">Tmap</h4>
+                                <div class="form-grid">
+                                    <div class="form-group full">
+                                        <label for="tmap_app_key">App Key</label>
+                                        <input type="text" id="tmap_app_key" name="tmap_app_key" value="{{ settings.api.tmap_app_key }}">
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1323,8 +1329,8 @@
                 </section>
 
                 <section id="panel-location" class="panel">
-                    <h3 class="panel-title">출발/복귀지 설정</h3>
-                    <p class="panel-desc">경로 계산 시 사용하는 출발지와 복귀지 주소를 설정합니다.</p>
+                    <h3 class="panel-title">출발·복귀지 설정</h3>
+                    <p class="panel-desc">출발지와 복귀지 정보를 설정합니다.</p>
 
                     <form class="settings-form" data-section="user" id="locationSettingsForm">
                         <div class="location-sections">
@@ -1354,13 +1360,13 @@
                                     </div>
                                     <div class="form-group full">
                                         <label for="return_address">복귀지 주소</label>
-                                        <div class="check-row">
-                                            <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
-                                            <label for="return_same_as_start_checkbox" style="margin:0; font-weight:700; color:#475569;">출발지와 동일합니다.</label>
-                                        </div>
-                                        <div class="address-row" style="margin-top:10px;">
+                                        <div class="address-row">
                                             <input type="text" id="return_address" name="return_address" value="{{ settings.user.return_address }}" readonly>
                                             <button type="button" class="search-btn" id="returnSearchBtn" data-target-input="return_address">주소 검색</button>
+                                        </div>
+                                        <div class="check-row" style="margin-top:10px;">
+                                            <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
+                                            <label for="return_same_as_start_checkbox" style="margin:0; font-weight:700; color:#475569;">출발지와 동일합니다.</label>
                                         </div>
                                     </div>
                                 </div>
