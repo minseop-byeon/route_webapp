@@ -58,22 +58,26 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--page-bg);color:
 .nav-btn.disabled{opacity:.42;pointer-events:none;}
 .nav-btn svg{width:13px;height:13px;display:block;stroke-width:2.2;}
 
-.parking-expand{margin-top:11px;padding-top:9px;border-top:1px solid #c7d8ee;display:block;}
+.parking-expand{margin-top:11px;padding-top:10px;border-top:1px solid #c7d8ee;display:block;}
 .route-panel.route-visit{
   overflow:hidden;
+  border-radius:20px;
+  border-color:#cfd9e8;
+  box-shadow:0 8px 18px rgba(15,23,42,.06);
 }
 .route-panel.route-visit .parking-expand{
   position:relative;
-  margin-left:-60px;
+  margin-left:-46px;
   margin-right:-14px;
-  padding-left:60px;
+  padding-left:14px;
   padding-right:14px;
+  background:#fff;
 }
 .route-panel.route-visit .parking-expand::before,
 .route-panel.route-visit .parking-expand::after{
   content:"";
   position:absolute;
-  top:-9px;
+  top:-10px;
   width:18px;
   height:18px;
   border-radius:50%;
