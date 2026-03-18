@@ -3,6 +3,7 @@ import requests
 import os
 import json
 import logging
+import copy
 import math
 import base64
 import re
@@ -2505,7 +2506,14 @@ def result_page():
 
 @app.route("/result/demo", methods=["GET"])
 def result_demo_page():
-    payload = {
+    case_id = (request.args.get("case") or "default").strip().lower()
+    payload = build_result_demo_payload(case_id)
+    payload["force_mobile"] = True
+    return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+
+
+def build_result_demo_payload(case_id="default"):
+    base = {
         "team_no": "1조",
         "user_name": "데모 사용자",
         "trip_date": "2026-03-18",
@@ -2514,7 +2522,6 @@ def result_demo_page():
         "total_time": 385,
         "end_time": "16:25",
         "warning_message": "복귀 시간이 16:30에 가깝습니다.\n복귀가 늦지 않도록 주의하세요.",
-        "force_mobile": True,
         "route": [
             {
                 "type": "start",
@@ -2603,7 +2610,74 @@ def result_demo_page():
             },
         ],
     }
-    return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
+    payload = copy.deepcopy(base)
+
+    if case_id == "no-warning":
+        payload["end_time"] = "15:45"
+        payload["total_time"] = 325
+        payload["warning_message"] = ""
+        payload["route"][-1]["arrival"] = "15:45"
+        payload["route"][-1]["end_time"] = "15:45"
+        payload["route"][-1]["travel_min"] = 40
+        payload["route"][-1]["travel_km"] = 7.2
+        payload["route"][-2]["end_time"] = "14:40"
+    elif case_id == "long-name":
+        payload["route"][1]["name"] = "가나다라마바사아자차"
+        payload["route"][1]["address"] = "서울특별시 마포구 성암로 28 (가칭행복주택)"
+        payload["route"][1]["appointment_time"] = "10:30"
+        payload["route"][1]["nearby_parkings"] = []
+        payload["route"][4]["name"] = "홍길동"
+    elif case_id == "no-parking":
+        payload["route"][1]["nearby_parkings"] = []
+        payload["route"][4]["nearby_parkings"] = []
+    elif case_id == "minimal":
+        payload["total_count"] = 0
+        payload["total_distance"] = 3.6
+        payload["total_time"] = 40
+        payload["end_time"] = "10:40"
+        payload["warning_message"] = ""
+        payload["route"] = [
+            {
+                "type": "start",
+                "label": "S",
+                "name": "출발지명",
+                "address": "서울특별시 종로구 사직로 161",
+                "arrival": "10:00",
+                "end_time": "10:00",
+                "service_time": 0,
+                "travel_km": None,
+                "travel_min": None,
+            },
+            {
+                "type": "return",
+                "label": "R",
+                "name": "복귀지명",
+                "address": "서울특별시 종로구 사직로 161",
+                "arrival": "10:40",
+                "end_time": "10:40",
+                "service_time": 0,
+                "travel_km": 3.6,
+                "travel_min": 40,
+            },
+        ]
+
+    return payload
+
+
+@app.route("/result/demo/all", methods=["GET"])
+def result_demo_all_page():
+    cases = [
+        {"id": "default", "label": "기본(경고+주차장)"},
+        {"id": "no-warning", "label": "경고 없음"},
+        {"id": "long-name", "label": "긴 체납자명"},
+        {"id": "no-parking", "label": "주차장 없음"},
+        {"id": "minimal", "label": "최소 경로"},
+    ]
+    selected_case = (request.args.get("case") or "default").strip().lower()
+    valid_ids = {item["id"] for item in cases}
+    if selected_case not in valid_ids:
+        selected_case = "default"
+    return render_template("result_demo_all.html", cases=cases, selected_case=selected_case)
 
 
 @app.route("/healthz", methods=["GET"])
