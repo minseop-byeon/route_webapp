@@ -581,11 +581,11 @@ input[type="text"]:focus{
           <label class="required" for="teamSelect">조</label>
           <div class="select-wrap krds-form-select custom-select placeholder" id="teamSelectWrap">
             <button type="button" class="select-trigger" id="teamSelectTrigger" aria-haspopup="listbox" aria-expanded="false">
-              <span class="select-text" id="teamSelectText">선택해주세요.</span>
+              <span class="select-text" id="teamSelectText">선택</span>
               <span class="select-arrow" aria-hidden="true"></span>
             </button>
             <ul class="select-menu hidden" id="teamSelectMenu" role="listbox">
-              <li><button type="button" class="select-option selected" data-value="">선택해주세요.</button></li>
+              <li><button type="button" class="select-option selected" data-value="">선택</button></li>
               {% for team in team_options %}
               <li><button type="button" class="select-option" data-value="{{ team }}">{{ team }}</button></li>
               {% endfor %}
@@ -600,11 +600,11 @@ input[type="text"]:focus{
           <label class="required" for="userSelect">사용자</label>
           <div class="select-wrap krds-form-select custom-select placeholder" id="userSelectWrap">
             <button type="button" class="select-trigger" id="userSelectTrigger" aria-haspopup="listbox" aria-expanded="false">
-              <span class="select-text" id="userSelectText">선택해주세요.</span>
+              <span class="select-text" id="userSelectText">선택</span>
               <span class="select-arrow" aria-hidden="true"></span>
             </button>
             <ul class="select-menu hidden" id="userSelectMenu" role="listbox">
-              <li><button type="button" class="select-option selected" data-value="">선택해주세요.</button></li>
+              <li><button type="button" class="select-option selected" data-value="">선택</button></li>
             </ul>
             <input type="hidden" name="user_name" id="userSelect">
           </div>
@@ -698,7 +698,7 @@ function closeAllCustomSelects(){
 
 function renderUserOptions(team){
   const users = (team && teamUsers[team]) ? teamUsers[team] : [];
-  const items = ['<li><button type="button" class="select-option selected" data-value="">선택해주세요.</button></li>'];
+  const items = ['<li><button type="button" class="select-option selected" data-value="">선택</button></li>'];
   users.forEach((user) => {
     items.push(`<li><button type="button" class="select-option" data-value="${user}">${user}</button></li>`);
   });
@@ -707,7 +707,7 @@ function renderUserOptions(team){
 
 function setCustomValue(selectEl, textEl, wrapEl, menuEl, value){
   const options = menuEl.querySelectorAll(".select-option");
-  let selectedText = "선택해주세요.";
+  let selectedText = "선택";
   options.forEach((btn) => {
     const isSelected = btn.dataset.value === value;
     btn.classList.toggle("selected", isSelected);
