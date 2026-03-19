@@ -29,23 +29,26 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:
 .brand img{width:62px;height:62px;object-fit:contain;}
 .main-title{font-size:28px;font-weight:800;line-height:1.1;letter-spacing:-0.3px;color:#0b2f65;}
 .sub-title{margin-top:3px;font-size:14px;font-weight:700;color:var(--krds-sub);}
-.guide{margin:0 0 14px;padding:10px 12px;border-radius:8px;background:#f3f7fc;border:1px solid #d6deea;font-size:13px;color:#334155;font-weight:600;}
 .field{margin-bottom:14px;}
 label{display:block;font-size:13px;font-weight:700;color:#334155;margin-bottom:6px;}
 .required::after{content:" *";color:#d32f2f;}
-.select-wrap,.date-wrap{position:relative;}
+.select-wrap{position:relative;}
 select,input[type="date"]{width:100%;height:46px;padding:0 42px 0 12px;border:1px solid #bcc4cf;border-radius:8px;background:#fff;font-size:14px;font-weight:600;color:#0f172a;appearance:none;-webkit-appearance:none;}
 select:focus,input[type="date"]:focus{outline:2px solid #5b9dff;outline-offset:1px;border-color:#4a90f2;}
 .select-wrap::after{content:"";position:absolute;top:50%;right:15px;width:8px;height:8px;border-right:2px solid #66758a;border-bottom:2px solid #66758a;transform:translateY(-65%) rotate(45deg);pointer-events:none;}
-.date-wrap::after{content:"";position:absolute;top:50%;right:12px;width:16px;height:16px;border:2px solid #66758a;border-radius:4px;transform:translateY(-50%);pointer-events:none;}
-.date-wrap::before{content:"";position:absolute;top:calc(50% - 5px);right:16px;width:8px;height:2px;background:#66758a;z-index:1;pointer-events:none;}
-input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;right:8px;width:26px;height:26px;opacity:0;cursor:pointer;}
+.date-input-group{display:flex;align-items:center;gap:8px;}
+.date-input-group input[type="date"]{flex:1;padding-right:12px;}
+.date-picker-btn{width:46px;height:46px;border:1px solid #bcc4cf;border-radius:8px;background:#fff;color:#334155;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}
+.date-picker-btn:hover{background:#f8fafc;}
+.date-picker-btn:focus{outline:2px solid #5b9dff;outline-offset:1px;border-color:#4a90f2;}
+.date-picker-btn svg{width:18px;height:18px;}
+.field-hint{margin:6px 0 0;font-size:12px;color:#59697f;font-weight:600;}
 .hidden{display:none;}
 .submit-btn{width:100%;height:48px;border:none;border-radius:8px;background:var(--krds-primary);color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
 .submit-btn:hover:enabled{background:var(--krds-primary-strong);}
 .submit-btn:disabled{background:#9aa6b8;cursor:not-allowed;}
 @media (max-width:640px){
-  .panel{padding:16px 14px;}
+  .panel{padding:0;border:none;border-top:none;background:transparent;}
   .main-title{font-size:24px;}
   .brand img{width:56px;height:56px;}
 }
@@ -72,11 +75,9 @@ input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;right:8p
       </div>
     </div>
 
-    <p class="guide">조, 사용자, 날짜를 선택하면 방문 경로 최적화를 시작할 수 있습니다.</p>
-
     <form id="startForm" method="POST">
       <div class="field">
-        <label class="required" for="teamSelect">조 선택</label>
+        <label class="required" for="teamSelect">조</label>
         <div class="select-wrap">
           <select name="team_no" id="teamSelect" required>
             <option value="">선택</option>
@@ -88,7 +89,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;right:8p
       </div>
 
       <div class="field hidden" id="userField">
-        <label class="required" for="userSelect">사용자명</label>
+        <label class="required" for="userSelect">사용자</label>
         <div class="select-wrap">
           <select name="user_name" id="userSelect" required>
             <option value="">선택</option>
@@ -97,10 +98,16 @@ input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;right:8p
       </div>
 
       <div class="field hidden" id="dateField">
-        <label class="required" for="tripDate">방문 날짜</label>
-        <div class="date-wrap">
-          <input type="date" name="trip_date" id="tripDate" required>
+        <label class="required" for="tripDate">방문일자</label>
+        <div class="date-input-group">
+          <input type="date" name="trip_date" id="tripDate" aria-describedby="tripDateHint" required>
+          <button type="button" id="openDatePicker" class="date-picker-btn" aria-label="방문일자 달력 열기">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 3v3M17 3v3M4 8h16M5 6h14a1 1 0 0 1 1 1v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
+        <p class="field-hint" id="tripDateHint">YYYY-MM-DD 형식으로 입력하거나 달력에서 선택해 주세요.</p>
       </div>
 
       <button type="submit" class="submit-btn" id="submitBtn" disabled>경로 최적화 시작하기</button>
@@ -117,6 +124,7 @@ const tripDate = document.getElementById("tripDate");
 const userField = document.getElementById("userField");
 const dateField = document.getElementById("dateField");
 const submitBtn = document.getElementById("submitBtn");
+const openDatePicker = document.getElementById("openDatePicker");
 
 function updateSubmitState(){
   const isReady = !!(teamSelect.value && userSelect.value && tripDate.value);
@@ -163,6 +171,17 @@ userSelect.addEventListener("change", function(){
 tripDate.addEventListener("change", function(){
   updateSubmitState();
 });
+
+if(openDatePicker){
+  openDatePicker.addEventListener("click", function(){
+    if(typeof tripDate.showPicker === "function"){
+      tripDate.showPicker();
+      return;
+    }
+    tripDate.focus();
+    tripDate.click();
+  });
+}
 </script>
 </body>
 </html>
