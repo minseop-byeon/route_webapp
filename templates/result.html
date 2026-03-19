@@ -17,21 +17,19 @@
 }
 *{box-sizing:border-box;}
 body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);}
-.gov-top{background:#0f172a;color:#fff;padding:8px 0;font-size:12px;font-weight:600;}
-.gov-top-inner{max-width:1080px;margin:0 auto;padding:0 16px;display:flex;align-items:center;gap:8px;}
-.gov-dot{width:7px;height:7px;border-radius:50%;background:#69a8ff;display:inline-block;}
-.container{max-width:1080px;margin:0 auto;padding:18px 16px 30px;}
-.hero{background:#fff;border:1px solid var(--krds-border);border-top:4px solid var(--krds-primary);border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px;}
-.header-left{display:flex;align-items:center;gap:12px;min-width:0;}
-.header-logo{width:56px;height:56px;object-fit:contain;display:block;}
+.container{max-width:1080px;margin:0 auto;padding:16px 16px 30px;}
+.hero{padding:0 0 10px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:8px;}
+.header-left{display:flex;align-items:stretch;gap:10px;min-width:0;}
+.header-logo{width:56px;height:56px;object-fit:contain;display:block;flex:0 0 auto;}
+.hero-text{height:56px;display:flex;flex-direction:column;justify-content:space-between;}
 .header-title{font-size:27px;font-weight:800;line-height:1.1;letter-spacing:-0.3px;color:#0b2f65;}
-.header-sub{margin-top:3px;font-size:14px;font-weight:700;color:var(--krds-sub);}
+.header-sub{font-size:14px;font-weight:700;color:var(--krds-sub);}
 .summary-wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
 .summary-item{background:#fff;border:1px solid var(--krds-border);border-radius:10px;padding:14px 12px;}
 .summary-label{font-size:12px;color:#5e6c7d;font-weight:700;}
 .summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#10233d;letter-spacing:-0.2px;}
 .summary-unit{margin-left:2px;font-size:18px;font-weight:700;}
-.section-card{background:#fff;border:1px solid var(--krds-border);border-radius:12px;padding:16px;}
+.section-card{background:transparent;border:none;border-radius:0;padding:0;}
 .section-title{margin:0 0 10px;font-size:20px;color:#0b2f65;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:8px;background:#f8fafc;border:1px solid #dde3ea;color:#516072;font-size:14px;text-align:center;}
 .route-list{display:flex;flex-direction:column;gap:10px;}
@@ -75,10 +73,11 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:
   .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media (max-width:760px){
-  .gov-top-inner,.container{padding-left:10px;padding-right:10px;}
+  .container{padding-left:10px;padding-right:10px;}
   .container{padding-top:10px;}
-  .hero{padding:13px 12px;}
+  .hero{padding:0 0 8px;}
   .header-logo{width:48px;height:48px;}
+  .hero-text{height:48px;}
   .header-title{font-size:22px;}
   .summary-item{padding:11px 10px;}
   .summary-value{font-size:22px;}
@@ -93,25 +92,22 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:
   .action-btn{width:100%;}
 }
 body.force-mobile .container{max-width:430px;padding-top:10px;}
+body.force-mobile .hero{padding:0 0 8px;}
+body.force-mobile .header-logo{width:48px;height:48px;}
+body.force-mobile .hero-text{height:48px;}
 body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 </style>
 </head>
 <body{% if force_mobile %} class="force-mobile"{% endif %}>
-<div class="gov-top">
-  <div class="gov-top-inner">
-    <span class="gov-dot" aria-hidden="true"></span>
-    대한민국 공식 전자정부 누리집 스타일을 참고한 업무용 화면입니다.
-  </div>
-</div>
 <div class="container">
   <section class="hero">
     <div class="header-left">
       <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
-      <div>
+      <div class="hero-text">
         <div class="header-title">국세청 체납관리단</div>
-        <div class="header-sub">SMART 경로탐색 결과</div>
+        <div class="header-sub">SMART WORK</div>
       </div>
     </div>
   </section>
