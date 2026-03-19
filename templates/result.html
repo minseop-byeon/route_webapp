@@ -37,9 +37,9 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .section-card{background:transparent;border:none;border-radius:0;padding:0;}
 .section-title{margin:0 14px 10px;font-size:21px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
-.route-list{display:flex;flex-direction:column;gap:14px;}
+.route-list{display:flex;flex-direction:column;gap:0;}
 .route-item{display:block;width:100%;}
-.connector{position:relative;display:flex;gap:8px;align-items:center;padding:0 0 0 12px;margin:0 0 10px;}
+.connector{position:relative;display:flex;gap:8px;align-items:center;min-height:30px;padding:0 0 0 12px;margin:10px 0;}
 .connector::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#d5dde8;transform:translateY(-50%);}
 .connector-pill{
   position:relative;
@@ -124,8 +124,8 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .route-badge{width:42px;height:42px;font-size:21px;}
   .route-badge.word{font-size:17px;}
   .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
-  .route-list{gap:14px;}
-  .connector{padding:0 0 0 10px;margin:0 0 10px;}
+  .route-list{gap:0;}
+  .connector{padding:0 0 0 10px;margin:10px 0;}
   .connector-pill{height:29px;padding:0 12px;font-size:12px;line-height:1.1;}
   .pill{height:23px;font-size:10.5px;padding:0 7px;}
   .nav-btn,.parking-guide{width:23px;height:23px;}
@@ -157,8 +157,8 @@ body.force-mobile .card-head{align-items:flex-start;gap:11px;}
 body.force-mobile .route-badge{width:42px;height:42px;font-size:21px;}
 body.force-mobile .route-badge.word{font-size:17px;}
 body.force-mobile .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
-body.force-mobile .route-list{gap:14px;}
-body.force-mobile .connector{padding:0 0 0 10px;margin:0 0 10px;}
+body.force-mobile .route-list{gap:0;}
+body.force-mobile .connector{padding:0 0 0 10px;margin:10px 0;}
 body.force-mobile .connector-pill{height:29px;padding:0 12px;font-size:12px;line-height:1.1;}
 body.force-mobile .pill{height:23px;font-size:10.5px;padding:0 7px;}
 body.force-mobile .nav-btn,body.force-mobile .parking-guide{width:23px;height:23px;}
