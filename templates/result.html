@@ -9,13 +9,13 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
 <style>
 :root{
-  --krds-primary:#0050b3;
-  --krds-primary-strong:#003b86;
-  --krds-bg:#eef2f6;
+  --krds-primary:#1d4ed8;
+  --krds-primary-strong:#1e40af;
+  --krds-bg:#f4f6fa;
   --krds-surface:#ffffff;
-  --krds-border:#c6d6f3;
-  --krds-text:#10243e;
-  --krds-sub:#4b6382;
+  --krds-border:#e2e8f0;
+  --krds-text:#111827;
+  --krds-sub:#64748b;
   --krds-accent:#00a0e9;
 }
 *{box-sizing:border-box;}
@@ -28,49 +28,50 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#0a3f82;}
 .header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
 .summary-wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
-.summary-item{background:var(--krds-surface);border:1px solid #d8dee6;border-radius:10px;padding:13px 11px;box-shadow:none;}
-.summary-label{font-size:12px;color:#3f5f85;font-weight:700;}
-.summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#08366f;letter-spacing:-0.2px;}
+.summary-item{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:10px;padding:13px 11px;box-shadow:none;}
+.summary-label{font-size:12px;color:#6b7280;font-weight:700;}
+.summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#111827;letter-spacing:-0.2px;}
 .summary-unit{margin-left:2px;font-size:18px;font-weight:700;}
 .section-card{background:transparent;border:none;border-radius:0;padding:0;}
-.section-title{margin:0 0 10px;font-size:21px;color:#09458f;font-weight:800;letter-spacing:-0.2px;}
-.empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid #cedcf3;color:#355176;font-size:14px;text-align:center;}
+.section-title{margin:0 0 10px;font-size:21px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
+.empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
 .route-list{display:flex;flex-direction:column;gap:12px;}
 .route-item{display:block;width:100%;}
-.connector{display:flex;gap:6px;align-items:center;padding:6px 0 0 8px;margin:0 0 6px;border-top:1px solid #d8dee6;}
-.connector-pill{display:inline-flex;height:22px;align-items:center;padding:0 8px;border-radius:999px;background:#eef3f8;border:1px solid #d8dee6;color:#425569;font-size:11px;font-weight:700;}
+.connector{position:relative;display:flex;gap:6px;align-items:center;padding:0 0 8px 2px;margin:2px 0 12px;}
+.connector::before{content:"";position:absolute;left:0;right:0;top:11px;height:1px;background:#dbe2ea;}
+.connector-pill{position:relative;z-index:1;display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:#f2f4f8;border:1px solid #dbe2ea;color:#4b5563;font-size:11px;font-weight:700;}
 .route-panel{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;}
-.route-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 4px 10px rgba(0,80,179,.26);}
-.route-badge.start{background:#0d6ac7;}
-.route-badge.return{background:#356fb1;}
+.route-badge{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 8px 16px rgba(29,78,216,.24);}
+.route-badge.start{background:#1d4ed8;}
+.route-badge.return{background:#1e40af;}
 .route-badge.word{font-size:12px;}
-.visit-card{width:100%;background:var(--krds-surface);border:1px solid #cfd7e2;border-radius:18px;padding:12px 12px 11px;box-shadow:0 1px 0 rgba(16,36,62,.05);}
+.visit-card{width:100%;background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:16px;padding:12px 12px 11px;box-shadow:0 10px 22px rgba(15,23,42,.06);}
 .card-head{display:flex;align-items:center;gap:10px;}
 .card-main{min-width:0;flex:1;}
-.route-address{font-size:17px;font-weight:800;line-height:1.24;color:#0f2e59;word-break:keep-all;overflow-wrap:anywhere;}
-.route-name{margin-top:4px;font-size:13px;font-weight:700;color:#224164;}
+.route-address{font-size:17px;font-weight:800;line-height:1.24;color:#111827;word-break:keep-all;overflow-wrap:anywhere;}
+.route-name{margin-top:4px;font-size:13px;font-weight:700;color:#374151;}
 .route-name.visit-name{font-size:14px;}
 .route-meta{margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:6px;}
 .pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;}
-.pill-primary{background:#deecff;border:1px solid #aac8f2;color:#104684;}
-.pill-neutral{background:#f0f6ff;border:1px solid #c4d8f7;color:#244a79;}
-.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #90b5ec;background:#deecff;color:#0f4b95;text-decoration:none;}
+.pill-primary{background:#e8f1ff;border:1px solid #c7d8ff;color:#1d4ed8;}
+.pill-neutral{background:#f3f4f6;border:1px solid #e5e7eb;color:#374151;}
+.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;}
 .nav-btn svg,.parking-guide svg{width:13px;height:13px;display:block;}
 .nav-btn.disabled,.parking-guide.disabled{opacity:.45;pointer-events:none;}
-.parking-inline{margin-top:8px;padding-top:8px;border-top:1px solid #e6edf5;}
-.parking-subtitle{margin:0 0 8px;font-size:12px;font-weight:800;color:#1f548e;}
-.parking-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #e6effb;}
+.parking-inline{margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0;}
+.parking-subtitle{margin:0 0 8px;font-size:12px;font-weight:800;color:#475569;}
+.parking-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #f1f5f9;}
 .parking-row:last-child{border-bottom:none;}
-.parking-name{min-width:0;max-width:58%;font-size:12px;color:#10345e;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.parking-name{min-width:0;max-width:58%;font-size:12px;color:#334155;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .parking-trip-chip{display:inline-flex;align-items:center;justify-content:center;height:22px;border-radius:999px;padding:0 8px;font-size:10px;font-weight:700;border:1px solid transparent;white-space:nowrap;}
-.parking-trip-chip.car{color:#0f488f;background:#deecff;border-color:#aac8f2;}
-.parking-trip-chip.walk{color:#0f6a53;background:#dff8ef;border-color:#a7e8d2;}
+.parking-trip-chip.car{color:#1e40af;background:#e8f1ff;border-color:#c7d8ff;}
+.parking-trip-chip.walk{color:#065f46;background:#e8f7ef;border-color:#c6e8d2;}
 .parking-trip-chip.car span::before{content:"차량 ";}
 .parking-trip-chip.walk span::before{content:"도보 ";}
-.parking-empty{font-size:12px;color:#4c6788;padding:4px 0;}
+.parking-empty{font-size:12px;color:#64748b;padding:4px 0;}
 .notice-box{margin-top:8px;padding:10px 12px;border-radius:9px;background:#fff4eb;border:1px solid #ffcfa1;color:#9a3412;font-size:12px;font-weight:700;line-height:1.45;white-space:pre-line;}
 .bottom-actions{width:100%;margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
-.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0 14px;border-radius:14px;border:1px solid #b9c7d8;background:#fff;color:#1e4273;font-size:14px;font-weight:700;cursor:pointer;}
+.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0 14px;border-radius:14px;border:1px solid #dbe2ea;background:#fff;color:#1f2937;font-size:14px;font-weight:700;cursor:pointer;}
 .action-btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
 .action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
 .action-btn svg{width:14px;height:14px;}
@@ -98,7 +99,9 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .visit-card{padding:11px 10px 10px;border-radius:16px;}
   .card-head{align-items:flex-start;gap:9px;}
   .route-meta{margin-top:7px;column-gap:5px;row-gap:5px;}
-  .connector{padding:6px 0 0 6px;margin:0 0 6px;}
+  .connector{padding:0 0 10px 0;margin:1px 0 8px;}
+  .connector::before{top:11px;}
+  .connector-pill{padding:0 8px;}
   .parking-row{gap:4px;}
   .parking-trip-chip{padding:0 6px;}
   .bottom-actions{flex-direction:column;}
@@ -120,7 +123,9 @@ body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 body.force-mobile .visit-card{padding:11px 10px 10px;border-radius:16px;}
 body.force-mobile .card-head{align-items:flex-start;gap:9px;}
 body.force-mobile .route-meta{margin-top:7px;column-gap:5px;row-gap:5px;}
-body.force-mobile .connector{padding:6px 0 0 6px;margin:0 0 6px;}
+body.force-mobile .connector{padding:0 0 10px 0;margin:1px 0 8px;}
+body.force-mobile .connector::before{top:11px;}
+body.force-mobile .connector-pill{padding:0 8px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 </style>
