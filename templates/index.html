@@ -8,156 +8,153 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
 :root{
-  --krds-primary:#003675;
-  --krds-primary-strong:#002850;
-  --krds-primary-soft:#e8f0fb;
-  --krds-bg:#f4f6f8;
-  --krds-border:#c6ccd4;
-  --krds-text:#1d1d1d;
-  --krds-sub:#4d5968;
-  --krds-danger:#d32f2f;
+  --krds-primary:#1d4ed8;
+  --krds-primary-strong:#1e40af;
+  --krds-primary-soft:#dbeafe;
+  --krds-bg:#f4f6fa;
+  --krds-border:#e2e8f0;
+  --krds-text:#111827;
+  --krds-sub:#64748b;
+  --krds-danger:#ef4444;
 }
 *{box-sizing:border-box;}
-body{margin:0;font-family:Pretendard,sans-serif;color:var(--krds-text);background:var(--krds-bg);line-height:1.45;}
-.gov-top{background:#0f172a;color:#fff;padding:8px 0;font-size:12px;font-weight:600;}
-.gov-top-inner{max-width:1080px;margin:0 auto;padding:0 18px;display:flex;align-items:center;gap:8px;}
-.gov-dot{width:7px;height:7px;border-radius:50%;background:#69a8ff;display:inline-block;}
-.container{max-width:1080px;margin:0 auto;padding:20px 18px 34px;}
-.hero{background:#fff;border:1px solid var(--krds-border);border-top:4px solid var(--krds-primary);border-radius:14px;padding:18px 20px;margin-bottom:16px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;}
-.hero-left{display:flex;align-items:center;gap:14px;min-width:0;}
-.header-logo{width:56px;height:56px;object-fit:contain;display:block;}
-.header-title{font-size:28px;font-weight:800;letter-spacing:-0.4px;line-height:1.1;}
-.header-sub{margin-top:3px;color:var(--krds-sub);font-weight:700;font-size:14px;}
-.profile-chip{display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding-top:2px;}
-.profile-top{font-size:15px;font-weight:700;color:#0f172a;}
-.profile-bottom{font-size:13px;font-weight:600;color:#475467;}
-.section-card{background:#fff;border:1px solid var(--krds-border);border-radius:12px;padding:16px 18px;margin-bottom:12px;}
-.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:10px;}
-.section-title{margin:0;font-size:20px;font-weight:800;color:#0b2f65;letter-spacing:-0.2px;}
-.section-desc{margin:2px 0 0;font-size:13px;color:var(--krds-sub);font-weight:600;}
+body{margin:0;font-family:Pretendard,sans-serif;color:var(--krds-text);background:var(--krds-bg);line-height:1.45;min-height:100vh;}
+.container{max-width:420px;margin:34px auto;padding:0 18px 28px;}
+.top-actions{display:flex;justify-content:flex-end;margin-bottom:10px;padding-right:2px;}
+.top-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#94a3b8;text-decoration:none;line-height:1;}
+.top-link:hover{color:#64748b;text-decoration:underline;}
+.page-card{background:#ffffff;border:1px solid var(--krds-border);border-radius:20px;padding:34px 24px 22px;box-shadow:0 10px 24px rgba(15,23,42,0.045);}
+.logo-wrap{display:flex;justify-content:center;align-items:center;margin-bottom:18px;}
+.logo-circle{width:138px;height:138px;border-radius:50%;background:#ffffff;display:flex;align-items:center;justify-content:center;}
+.logo-circle img{width:124px;height:124px;object-fit:contain;display:block;}
+.title-wrap{text-align:center;margin-bottom:22px;}
+.main-title{font-size:24px;font-weight:850;letter-spacing:-0.45px;color:#111827;line-height:1.2;}
+.sub-title{margin-top:7px;font-size:13px;color:#64748b;font-weight:700;letter-spacing:0.25px;}
+.user-summary{margin-top:14px;display:flex;flex-direction:column;gap:4px;align-items:center;}
+.user-name{font-size:15px;font-weight:800;color:#1f2937;}
+.user-date{font-size:13px;font-weight:700;color:#64748b;}
+.section-card{margin-bottom:12px;}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:12px;}
+.section-title{margin:0;font-size:18px;font-weight:800;color:#111827;letter-spacing:-0.3px;}
+.section-desc{margin:4px 0 0;font-size:13px;color:var(--krds-sub);font-weight:600;line-height:1.5;}
 input,select,button,textarea{font-family:Pretendard,sans-serif;}
-label{display:block;font-size:13px;color:#2f3c4f;margin-bottom:6px;font-weight:700;}
+label{display:block;font-size:12px;color:#6b7280;margin-bottom:7px;font-weight:700;}
 .required::after{content:" *";color:var(--krds-danger);}
-.card{position:relative;background:#fff;border:1px solid #d2d8e0;border-radius:10px;padding:15px;margin-bottom:10px;box-shadow:0 1px 0 rgba(17,24,39,.02);}
-.card h3{margin:0 0 12px;font-size:17px;color:#0b2f65;font-weight:800;}
-.grid-main{display:grid;grid-template-columns:1fr 2fr 170px;gap:12px;align-items:end;}
+.card{position:relative;background:#fff;border:1px solid var(--krds-border);border-radius:18px;padding:18px 16px 16px;margin-bottom:12px;box-shadow:0 6px 16px rgba(15,23,42,0.04);}
+.card h3{margin:0 0 14px;font-size:17px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
+.grid-main{display:grid;grid-template-columns:1fr;gap:12px;align-items:end;}
 .field{display:flex;flex-direction:column;}
-input,select{width:100%;height:44px;padding:0 12px;border:1px solid #bcc4cf;border-radius:8px;background:#fff;color:#111827;font-size:14px;font-weight:500;}
-input:focus,select:focus,textarea:focus{outline:2px solid #5b9dff;outline-offset:1px;border-color:#4a90f2;}
+input,select{width:100%;height:48px;padding:0 14px;border:1px solid #d4dce7;border-radius:13px;background:#f8fafd;color:#0f172a;font-size:14px;font-weight:600;transition:border-color .15s,box-shadow .15s,background .15s;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#5779b4;background:#ffffff;box-shadow:0 0 0 3px rgba(87,121,180,0.12);}
 input.error,select.error{border-color:var(--krds-danger)!important;}
 .address-row{display:flex;gap:8px;}
 .address-row input{flex:1;pointer-events:none;background:#f8fafc;}
-.address-row button{width:92px;flex:0 0 auto;}
-button{height:44px;border-radius:8px;border:1px solid transparent;padding:0 14px;font-size:14px;font-weight:700;cursor:pointer;}
+.address-row button{width:96px;flex:0 0 auto;}
+button{height:48px;border-radius:13px;border:1px solid transparent;padding:0 14px;font-size:14px;font-weight:800;cursor:pointer;transition:background .15s,transform .15s,border-color .15s;}
 .btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
 .btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
-.btn-secondary{background:#fff;border-color:#6f7f95;color:#233143;}
-.btn-secondary:hover{background:#f2f5f9;}
-.action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:4px;}
+.btn-secondary{background:#ffffff;border-color:#d4dce7;color:#334155;}
+.btn-secondary:hover{background:#f8fafc;border-color:#b9c7dc;}
+.action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px;}
 .action-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;}
 .action-btn svg{width:16px;height:16px;}
 .add-btn{width:100%;margin-top:8px;}
-.submit-btn{width:100%;margin-top:10px;height:48px;font-size:16px;}
-.delete-icon{position:absolute;top:10px;right:12px;font-size:18px;color:#8b98a9;cursor:pointer;user-select:none;}
+.submit-btn{width:100%;margin-top:12px;height:50px;font-size:15px;}
+.delete-icon{position:absolute;top:12px;right:14px;font-size:18px;color:#94a3b8;cursor:pointer;user-select:none;}
 .delete-icon:hover{color:#c62828;}
-.appointment-box{margin-top:12px;padding-top:11px;border-top:1px dashed #d2d8e0;}
-.appointment-check{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:700;color:#2f3c4f;}
+.appointment-box{margin-top:14px;padding-top:12px;border-top:1px dashed #dbe3ef;}
+.appointment-check{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:700;color:#334155;}
 .appointment-check input[type="checkbox"]{width:16px;height:16px;margin:0;min-height:0;}
-.time-select-area{margin-top:8px;display:none;}
+.time-select-area{margin-top:10px;display:none;}
 .time-row{display:flex;gap:8px;}
 .warning{display:none;margin-top:10px;font-size:13px;color:var(--krds-danger);font-weight:700;}
-.bottom-actions{margin-top:14px;display:flex;justify-content:flex-start;}
-.back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:8px;border:1px solid #9aa6b8;background:#fff;color:#1f2937;padding:0 12px;font-size:13px;font-weight:700;cursor:pointer;}
+.bottom-actions{margin-top:12px;display:flex;justify-content:center;}
+.back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;padding:0 4px;font-size:13px;font-weight:700;cursor:pointer;}
+.back-link:hover{color:#334155;text-decoration:underline;}
 .back-link svg{width:14px;height:14px;}
 .loading-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
-.loading-box{background:#fff;border:1px solid var(--krds-border);border-radius:14px;padding:22px 20px;min-width:260px;text-align:center;}
+.loading-box{background:#fff;border:1px solid var(--krds-border);border-radius:18px;padding:22px 20px;min-width:260px;text-align:center;}
 .spinner{width:42px;height:42px;border:4px solid #dbe3ef;border-top-color:var(--krds-primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.loading-text{font-size:15px;font-weight:700;color:#0f172a;}
+.loading-text{font-size:15px;font-weight:800;color:#0f172a;}
 .ocr-modal{position:fixed;inset:0;background:rgba(17,24,39,.65);display:none;align-items:center;justify-content:center;z-index:10000;padding:18px;}
 .ocr-modal.show{display:flex;}
-.ocr-modal-card{width:min(100%,620px);background:#fff;border:1px solid var(--krds-border);border-radius:12px;padding:18px;}
-.ocr-modal-title{margin:0;font-size:20px;font-weight:800;color:#0b2f65;}
+.ocr-modal-card{width:min(100%,620px);background:#fff;border:1px solid var(--krds-border);border-radius:18px;padding:18px;}
+.ocr-modal-title{margin:0;font-size:20px;font-weight:800;color:#111827;}
 .ocr-modal-desc{margin:8px 0 12px;font-size:13px;color:var(--krds-sub);font-weight:600;}
-.ocr-guide{margin:0 0 10px;font-size:12px;color:#59697f;line-height:1.5;}
-.ocr-manual-label{display:block;margin:0 0 6px;font-size:12px;font-weight:700;color:#334155;}
-.ocr-manual-input{width:100%;min-height:180px;padding:10px 12px;border:1px solid #bcc4cf;border-radius:8px;font-size:14px;resize:vertical;line-height:1.5;}
 .ocr-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
-.qr-reader{width:100%;min-height:260px;border-radius:10px;overflow:hidden;background:#111827;border:1px solid #d2d8e0;}
+.qr-reader{width:100%;min-height:260px;border-radius:14px;overflow:hidden;background:#111827;border:1px solid #d2d8e0;}
 .qr-help{margin:10px 0 0;font-size:12px;color:#5b6678;line-height:1.5;font-weight:600;}
-.ocr-page-btn,.ocr-gallery-btn{display:none;}
-.ocr-page-btn.show,.ocr-gallery-btn.show{display:inline-flex;}
-@media (max-width:900px){
-  .grid-main{grid-template-columns:1fr;}
-  .address-row{flex-direction:column;}
-  .address-row button{width:100%;}
-}
-@media (max-width:760px){
-  .gov-top-inner,.container{padding-left:12px;padding-right:12px;}
-  .container{padding-top:12px;}
-  .hero{padding:14px 12px;flex-direction:column;gap:10px;}
-  .header-title{font-size:22px;}
-  .header-sub{font-size:13px;}
-  .profile-chip{align-items:flex-start;}
-  .section-card{padding:14px 12px;}
-  .section-title{font-size:18px;}
+@media (max-width:560px){
+  .container{margin:22px auto;padding:0 14px 22px;}
+  .page-card{padding:28px 18px 18px;border-radius:18px;}
+  .logo-wrap{margin-bottom:16px;}
+  .logo-circle{width:124px;height:124px;}
+  .logo-circle img{width:112px;height:112px;}
+  .main-title{font-size:22px;}
+  .sub-title{font-size:12px;}
+  .section-title{font-size:17px;}
   .action-grid{grid-template-columns:1fr;}
   .time-row{flex-direction:column;}
 }
 </style>
 </head>
 <body>
-<div class="gov-top">
-  <div class="gov-top-inner">
-    <span class="gov-dot" aria-hidden="true"></span>
-    대한민국 공식 전자정부 누리집 스타일을 참고한 업무용 화면입니다.
-  </div>
-</div>
 <div class="container">
-  <section class="hero">
-    <div class="hero-left">
-      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
-      <div class="header-text">
-        <div class="header-title">국세청 체납관리단</div>
-        <div class="header-sub">SMART 경로탐색</div>
-      </div>
-    </div>
-    <div class="profile-chip" aria-label="사용자 정보">
-      <div class="profile-top">{{ user_name }} ({{ team_no }})</div>
-      <div class="profile-bottom">{{ trip_date|replace('-', '.') }}</div>
-    </div>
-  </section>
+  <div class="top-actions">
+    <a class="top-link" href="/" aria-label="시작 화면으로 이동">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="14" height="14"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      시작 화면
+    </a>
+  </div>
 
-  <section class="section-card">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">방문지 입력</h2>
-        <p class="section-desc">성명, 주소, 방문시간을 등록하면 경로를 자동으로 계산합니다.</p>
+  <div class="page-card">
+    <div class="logo-wrap">
+      <div class="logo-circle">
+        <img src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
       </div>
     </div>
 
-    <form id="routeForm" method="POST" action="/planner">
-      <div id="visits"></div>
+    <div class="title-wrap">
+      <div class="main-title">국세청 체납관리단</div>
+      <div class="sub-title">SMART 경로탐색</div>
+      <div class="user-summary" aria-label="사용자 정보">
+        <div class="user-name">{{ user_name }} ({{ team_no }})</div>
+        <div class="user-date">{{ trip_date|replace('-', '.') }}</div>
+      </div>
+    </div>
 
-      <div class="action-grid">
-        <button type="button" class="btn-secondary action-btn" id="qrScanBtn" style="display:none">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4M8 8h8v8H8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-          QR 스캔 추가
-        </button>
-        <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 방문지 추가</button>
+    <section class="section-card">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">방문지 입력</h2>
+          <p class="section-desc">성명, 주소, 방문시간을 등록하면 경로를 자동으로 계산합니다.</p>
+        </div>
       </div>
 
-      <button type="submit" class="btn-primary submit-btn" id="submitBtn">최적 경로 계산</button>
-    </form>
-  </section>
+      <form id="routeForm" method="POST" action="/planner">
+        <div id="visits"></div>
 
-  <div class="bottom-actions">
-    <button type="button" class="back-link" onclick="location.href='/'">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-      시작화면으로 이동
-    </button>
+        <div class="action-grid">
+          <button type="button" class="btn-secondary action-btn" id="qrScanBtn" style="display:none">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4M8 8h8v8H8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            QR 스캔 추가
+          </button>
+          <button type="button" class="btn-secondary add-btn" onclick="addVisit()">+ 방문지 추가</button>
+        </div>
+
+        <button type="submit" class="btn-primary submit-btn" id="submitBtn">최적 경로 계산</button>
+      </form>
+    </section>
+
+    <div class="bottom-actions">
+      <button type="button" class="back-link" onclick="location.href='/'">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        시작화면으로 이동
+      </button>
+    </div>
   </div>
 </div>
 
