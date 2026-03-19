@@ -17,9 +17,6 @@
 }
 *{box-sizing:border-box;}
 body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);}
-.gov-top{background:#0f172a;color:#fff;padding:8px 0;font-size:12px;font-weight:600;}
-.gov-top-inner{max-width:720px;margin:0 auto;padding:0 16px;display:flex;align-items:center;gap:8px;}
-.gov-dot{width:7px;height:7px;border-radius:50%;background:#69a8ff;display:inline-block;}
 .container{max-width:720px;margin:0 auto;padding:20px 16px 30px;}
 .top-actions{display:flex;justify-content:flex-end;margin-bottom:12px;}
 .admin-btn{font-size:13px;font-weight:700;color:#334155;text-decoration:none;}
@@ -42,25 +39,25 @@ select:focus,input[type="date"]:focus{outline:2px solid #5b9dff;outline-offset:1
 .date-picker-btn:hover{background:#f8fafc;}
 .date-picker-btn:focus{outline:2px solid #5b9dff;outline-offset:1px;border-color:#4a90f2;}
 .date-picker-btn svg{width:18px;height:18px;}
-.field-hint{margin:6px 0 0;font-size:12px;color:#59697f;font-weight:600;}
 .hidden{display:none;}
 .submit-btn{width:100%;height:48px;border:none;border-radius:8px;background:var(--krds-primary);color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
 .submit-btn:hover:enabled{background:var(--krds-primary-strong);}
 .submit-btn:disabled{background:#9aa6b8;cursor:not-allowed;}
 @media (max-width:640px){
-  .panel{padding:0;border:none;border-top:none;background:transparent;}
-  .main-title{font-size:24px;}
-  .brand img{width:56px;height:56px;}
+  .container{padding:10px 16px 24px;}
+  .top-actions{display:none;}
+  .panel{padding:28px 14px 18px;border-radius:18px;}
+  .brand{flex-direction:column;justify-content:center;text-align:center;gap:10px;margin-bottom:18px;}
+  .main-title{font-size:46px;line-height:1.08;letter-spacing:-1.2px;}
+  .sub-title{font-size:15px;}
+  .brand img{width:88px;height:88px;}
+  label{font-size:14px;}
+  select,input[type="date"],.date-picker-btn{height:50px;font-size:17px;}
+  .submit-btn{height:52px;font-size:20px;}
 }
 </style>
 </head>
 <body>
-<div class="gov-top">
-  <div class="gov-top-inner">
-    <span class="gov-dot" aria-hidden="true"></span>
-    대한민국 공식 전자정부 누리집 스타일을 참고한 업무용 화면입니다.
-  </div>
-</div>
 <div class="container">
   <div class="top-actions">
     <a href="{{ url_for('admin_settings_page') if session.get('is_admin') else url_for('admin_login') }}" class="admin-btn">관리자 설정</a>
@@ -100,14 +97,13 @@ select:focus,input[type="date"]:focus{outline:2px solid #5b9dff;outline-offset:1
       <div class="field hidden" id="dateField">
         <label class="required" for="tripDate">방문일자</label>
         <div class="date-input-group">
-          <input type="date" name="trip_date" id="tripDate" aria-describedby="tripDateHint" required>
-          <button type="button" id="openDatePicker" class="date-picker-btn" aria-label="방문일자 달력 열기">
+          <input type="date" name="trip_date" id="tripDate" required>
+          <button type="button" id="openDatePicker" class="date-picker-btn" aria-label="방문일자 선택">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M7 3v3M17 3v3M4 8h16M5 6h14a1 1 0 0 1 1 1v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
         </div>
-        <p class="field-hint" id="tripDateHint">YYYY-MM-DD 형식으로 입력하거나 달력에서 선택해 주세요.</p>
       </div>
 
       <button type="submit" class="submit-btn" id="submitBtn" disabled>경로 최적화 시작하기</button>
