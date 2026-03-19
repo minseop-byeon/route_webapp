@@ -182,8 +182,14 @@ body.force-mobile .action-btn{width:100%;}
         {% for v in route %}
           {% if loop.index > 1 and v.travel_km is not none and v.travel_min is not none %}
             <div class="connector">
-              <div class="connector-pill">이동시간 {{ v.travel_min }}분</div>
-              <div class="connector-pill">이동거리 {{ "%.1f"|format(v.travel_km|float) }}km</div>
+              {% set travel_km_val = v.travel_km|float %}
+              {% set travel_m_val = (travel_km_val * 1000)|round(0, 'common')|int %}
+              {% if travel_km_val >= 1 %}
+                {% set distance_text = "%.1f"|format(travel_km_val) ~ "km" %}
+              {% else %}
+                {% set distance_text = travel_m_val ~ "m" %}
+              {% endif %}
+              <div class="connector-pill">이동 {{ distance_text }}({{ v.travel_min }}분)</div>
             </div>
           {% endif %}
 
