@@ -37,7 +37,7 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
 .route-list{display:flex;flex-direction:column;gap:0;}
 .route-item{display:block;width:100%;}
-.connector{position:relative;display:flex;gap:8px;align-items:center;padding:0 0 0 12px;margin:14px 0 12px;}
+.connector{position:relative;display:flex;gap:8px;align-items:center;justify-content:center;padding:0;margin:14px 0 12px;}
 .connector::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#d5dde8;transform:translateY(-50%);}
 .connector-pill{
   position:relative;
@@ -69,11 +69,11 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .route-name{margin-top:6px;font-size:clamp(13px,3.5vw,15px);font-weight:700;color:#374151;}
 .route-name.visit-name{font-size:clamp(13px,3.5vw,15px);}
 .route-meta{margin-top:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;row-gap:7px;}
-.pill{display:inline-flex;height:30px;align-items:center;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;}
+.pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;}
 .pill-primary{background:#e8f1ff;border:1px solid #c7d8ff;color:#1d4ed8;}
 .pill-neutral{background:#f3f4f6;border:1px solid #e5e7eb;color:#374151;}
-.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;}
-.nav-btn svg,.parking-guide svg{width:15px;height:15px;display:block;}
+.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;}
+.nav-btn svg,.parking-guide svg{width:13px;height:13px;display:block;}
 .nav-btn.disabled,.parking-guide.disabled{opacity:.45;pointer-events:none;}
 .parking-inline{margin-top:10px;padding-top:10px;border-top:1px dashed #e2e8f0;}
 .parking-subtitle{margin:0 0 8px;font-size:12px;font-weight:800;color:#475569;}
@@ -118,11 +118,11 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .route-badge{width:42px;height:42px;font-size:20px;}
   .route-badge.word{font-size:17px;}
   .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
-  .connector{padding:0 0 0 10px;margin:13px 0 11px;}
+  .connector{padding:0;margin:13px 0 11px;}
   .connector-pill{height:29px;padding:0 12px;font-size:12px;line-height:1.1;}
-  .pill{height:29px;font-size:12px;padding:0 9px;}
-  .nav-btn,.parking-guide{width:28px;height:28px;}
-  .nav-btn svg,.parking-guide svg{width:14px;height:14px;}
+  .pill{height:23px;font-size:10.5px;padding:0 7px;}
+  .nav-btn,.parking-guide{width:23px;height:23px;}
+  .nav-btn svg,.parking-guide svg{width:12px;height:12px;}
   .parking-row{gap:4px;}
   .parking-trip-chip{padding:0 6px;}
   .bottom-actions{flex-direction:column;}
@@ -146,11 +146,11 @@ body.force-mobile .card-head{align-items:flex-start;gap:11px;}
 body.force-mobile .route-badge{width:42px;height:42px;font-size:20px;}
 body.force-mobile .route-badge.word{font-size:17px;}
 body.force-mobile .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
-body.force-mobile .connector{padding:0 0 0 10px;margin:13px 0 11px;}
+body.force-mobile .connector{padding:0;margin:13px 0 11px;}
 body.force-mobile .connector-pill{height:29px;padding:0 12px;font-size:12px;line-height:1.1;}
-body.force-mobile .pill{height:29px;font-size:12px;padding:0 9px;}
-body.force-mobile .nav-btn,body.force-mobile .parking-guide{width:28px;height:28px;}
-body.force-mobile .nav-btn svg,body.force-mobile .parking-guide svg{width:14px;height:14px;}
+body.force-mobile .pill{height:23px;font-size:10.5px;padding:0 7px;}
+body.force-mobile .nav-btn,body.force-mobile .parking-guide{width:23px;height:23px;}
+body.force-mobile .nav-btn svg,body.force-mobile .parking-guide svg{width:12px;height:12px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 </style>
