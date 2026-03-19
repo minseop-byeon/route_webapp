@@ -128,8 +128,12 @@ label{
 .krds-form-select{
   position:relative;
 }
+.custom-select{
+  position:relative;
+}
 
 select,
+.select-trigger,
 input[type="text"]{
   width:100%;
   height:48px;
@@ -152,6 +156,7 @@ input[type="text"]{
 }
 
 select:focus,
+.select-trigger:focus,
 input[type="text"]:focus{
   outline:none;
   border-color:#5779b4;
@@ -172,17 +177,7 @@ input[type="text"]:focus{
 }
 
 .krds-form-select::after{
-  content:"";
-  position:absolute;
-  top:50%;
-  right:17px;
-  width:9px;
-  height:9px;
-  border-right:2px solid #7f8ea6;
-  border-bottom:2px solid #7f8ea6;
-  transform:translateY(-65%) rotate(45deg);
-  pointer-events:none;
-  transition:border-color 0.15s;
+  content:none;
 }
 
 .krds-form-select:focus-within::after{
@@ -190,9 +185,78 @@ input[type="text"]:focus{
   border-bottom-color:#4f6c9c;
 }
 
-.krds-form-select.completed select{
+.krds-form-select.completed .select-trigger{
   background:#ffffff;
   border-color:#b9c7dc;
+}
+.select-trigger{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  cursor:pointer;
+  padding:0 14px;
+}
+.select-text{
+  color:#0f172a;
+}
+.custom-select.placeholder .select-text{
+  color:#475569;
+}
+.select-arrow{
+  width:9px;
+  height:9px;
+  border-right:2px solid #7f8ea6;
+  border-bottom:2px solid #7f8ea6;
+  transform:translateY(-2px) rotate(45deg);
+  transition:transform 0.15s ease;
+}
+.custom-select.open .select-arrow{
+  transform:translateY(2px) rotate(225deg);
+}
+.select-menu{
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  right:0;
+  margin:0;
+  padding:6px;
+  list-style:none;
+  border:1px solid #d4dce7;
+  border-radius:8px;
+  background:#ffffff;
+  box-shadow:0 8px 18px rgba(15,23,42,0.08);
+  z-index:40;
+  max-height:220px;
+  overflow:auto;
+}
+.select-option{
+  width:100%;
+  border:none;
+  background:transparent;
+  border-radius:6px;
+  padding:10px 10px 10px 28px;
+  font-size:14px;
+  font-weight:600;
+  color:#111827;
+  text-align:left;
+  cursor:pointer;
+  position:relative;
+}
+.select-option:hover{
+  background:#f1f5f9;
+}
+.select-option.selected{
+  background:#e9eef5;
+  color:#243b63;
+}
+.select-option.selected::before{
+  content:"✓";
+  position:absolute;
+  left:10px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#244a7c;
+  font-weight:800;
 }
 
 .date-wrap::after{
@@ -442,13 +506,18 @@ input[type="text"]:focus{
       <div class="form-group">
         <div class="field">
           <label class="required" for="teamSelect">조</label>
-          <div class="select-wrap krds-form-select">
-            <select name="team_no" id="teamSelect" required>
-              <option value="">선택</option>
+          <div class="select-wrap krds-form-select custom-select placeholder" id="teamSelectWrap">
+            <button type="button" class="select-trigger" id="teamSelectTrigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="select-text" id="teamSelectText">선택해주세요.</span>
+              <span class="select-arrow" aria-hidden="true"></span>
+            </button>
+            <ul class="select-menu hidden" id="teamSelectMenu" role="listbox">
+              <li><button type="button" class="select-option selected" data-value="">선택해주세요.</button></li>
               {% for team in team_options %}
-              <option value="{{ team }}">{{ team }}</option>
+              <li><button type="button" class="select-option" data-value="{{ team }}">{{ team }}</button></li>
               {% endfor %}
-            </select>
+            </ul>
+            <input type="hidden" name="team_no" id="teamSelect">
           </div>
         </div>
       </div>
@@ -456,10 +525,15 @@ input[type="text"]:focus{
       <div class="form-group hidden" id="userField">
         <div class="field">
           <label class="required" for="userSelect">사용자</label>
-          <div class="select-wrap krds-form-select">
-            <select name="user_name" id="userSelect" required>
-              <option value="">선택</option>
-            </select>
+          <div class="select-wrap krds-form-select custom-select placeholder" id="userSelectWrap">
+            <button type="button" class="select-trigger" id="userSelectTrigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="select-text" id="userSelectText">선택해주세요.</span>
+              <span class="select-arrow" aria-hidden="true"></span>
+            </button>
+            <ul class="select-menu hidden" id="userSelectMenu" role="listbox">
+              <li><button type="button" class="select-option selected" data-value="">선택해주세요.</button></li>
+            </ul>
+            <input type="hidden" name="user_name" id="userSelect">
           </div>
         </div>
       </div>
@@ -504,6 +578,14 @@ const teamUsers = {{ team_users | tojson }};
 
 const teamSelect = document.getElementById("teamSelect");
 const userSelect = document.getElementById("userSelect");
+const teamSelectWrap = document.getElementById("teamSelectWrap");
+const teamSelectTrigger = document.getElementById("teamSelectTrigger");
+const teamSelectText = document.getElementById("teamSelectText");
+const teamSelectMenu = document.getElementById("teamSelectMenu");
+const userSelectWrap = document.getElementById("userSelectWrap");
+const userSelectTrigger = document.getElementById("userSelectTrigger");
+const userSelectText = document.getElementById("userSelectText");
+const userSelectMenu = document.getElementById("userSelectMenu");
 const tripDate = document.getElementById("tripDate");
 const tripDateDisplay = document.getElementById("tripDateDisplay");
 const calendarTrigger = document.getElementById("calendarTrigger");
@@ -517,6 +599,66 @@ const dateField = document.getElementById("dateField");
 const submitBtn = document.getElementById("submitBtn");
 let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth();
+
+function closeCustomSelect(menu, wrap, trigger){
+  menu.classList.add("hidden");
+  wrap.classList.remove("open");
+  trigger.setAttribute("aria-expanded", "false");
+}
+
+function openCustomSelect(menu, wrap, trigger){
+  menu.classList.remove("hidden");
+  wrap.classList.add("open");
+  trigger.setAttribute("aria-expanded", "true");
+}
+
+function closeAllCustomSelects(){
+  closeCustomSelect(teamSelectMenu, teamSelectWrap, teamSelectTrigger);
+  closeCustomSelect(userSelectMenu, userSelectWrap, userSelectTrigger);
+}
+
+function renderUserOptions(team){
+  const users = (team && teamUsers[team]) ? teamUsers[team] : [];
+  const items = ['<li><button type="button" class="select-option selected" data-value="">선택해주세요.</button></li>'];
+  users.forEach((user) => {
+    items.push(`<li><button type="button" class="select-option" data-value="${user}">${user}</button></li>`);
+  });
+  userSelectMenu.innerHTML = items.join("");
+}
+
+function setCustomValue(selectEl, textEl, wrapEl, menuEl, value){
+  const options = menuEl.querySelectorAll(".select-option");
+  let selectedText = "선택해주세요.";
+  options.forEach((btn) => {
+    const isSelected = btn.dataset.value === value;
+    btn.classList.toggle("selected", isSelected);
+    if(isSelected){
+      selectedText = btn.textContent;
+    }
+  });
+  selectEl.value = value || "";
+  textEl.textContent = selectedText;
+  wrapEl.classList.toggle("placeholder", !value);
+}
+
+function bindCustomSelect(menuEl, wrapEl, triggerEl, onPick){
+  triggerEl.addEventListener("click", function(){
+    const isClosed = menuEl.classList.contains("hidden");
+    closeAllCustomSelects();
+    if(isClosed){
+      openCustomSelect(menuEl, wrapEl, triggerEl);
+    }
+  });
+
+  menuEl.addEventListener("click", function(event){
+    const optionBtn = event.target.closest(".select-option");
+    if(!optionBtn){
+      return;
+    }
+    onPick(optionBtn.dataset.value || "");
+    closeCustomSelect(menuEl, wrapEl, triggerEl);
+  });
+}
 
 function toDateString(year, month, day){
   const y = String(year);
@@ -618,11 +760,10 @@ function updateSelectCompleted(selectElement){
 
 teamSelect.addEventListener("change", function(){
   const team = this.value;
-
-  userSelect.innerHTML = '<option value="">선택</option>';
   userField.classList.add("hidden");
   dateField.classList.add("hidden");
-  userSelect.value = "";
+  setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, "");
+  renderUserOptions("");
   updateSelectCompleted(teamSelect);
   updateSelectCompleted(userSelect);
   setTripDate("");
@@ -632,13 +773,7 @@ teamSelect.addEventListener("change", function(){
     return;
   }
 
-  teamUsers[team].forEach(user => {
-    const opt = document.createElement("option");
-    opt.value = user;
-    opt.textContent = user;
-    userSelect.appendChild(opt);
-  });
-
+  renderUserOptions(team);
   userField.classList.remove("hidden");
   updateSelectCompleted(teamSelect);
   updateSubmitState();
@@ -663,6 +798,7 @@ tripDate.addEventListener("change", function(){
 });
 
 calendarTrigger.addEventListener("click", function(){
+  closeAllCustomSelects();
   if(calendarPopover.classList.contains("hidden")){
     openCalendar();
   }else{
@@ -689,11 +825,27 @@ calendarNext.addEventListener("click", function(){
 });
 
 document.addEventListener("click", function(event){
+  if(!event.target.closest(".custom-select")){
+    closeAllCustomSelects();
+  }
   if(!event.target.closest(".date-control")){
     closeCalendar();
   }
 });
 
+bindCustomSelect(teamSelectMenu, teamSelectWrap, teamSelectTrigger, (value) => {
+  setCustomValue(teamSelect, teamSelectText, teamSelectWrap, teamSelectMenu, value);
+  teamSelect.dispatchEvent(new Event("change"));
+});
+
+bindCustomSelect(userSelectMenu, userSelectWrap, userSelectTrigger, (value) => {
+  setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, value);
+  userSelect.dispatchEvent(new Event("change"));
+});
+
+renderUserOptions("");
+setCustomValue(teamSelect, teamSelectText, teamSelectWrap, teamSelectMenu, "");
+setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, "");
 updateSelectCompleted(teamSelect);
 updateSelectCompleted(userSelect);
 </script>
