@@ -49,19 +49,11 @@ label{display:block;font-size:12px;color:#6b7280;margin-bottom:7px;font-weight:7
 .card{position:relative;background:#fff;border:1px solid var(--krds-border);border-radius:18px;padding:15px 14px 14px;margin-bottom:10px;box-shadow:0 6px 16px rgba(15,23,42,0.04);}
 .visit-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
 .visit-index{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-width:38px;
-  height:24px;
-  padding:0 10px;
-  border-radius:999px;
-  border:1px solid #c7d8ff;
-  background:#eef4ff;
   color:#1d4ed8;
-  font-size:12px;
+  font-size:14px;
   font-weight:800;
   letter-spacing:0.2px;
+  line-height:1;
 }
 .grid-main{display:grid;grid-template-columns:1fr;gap:10px;align-items:end;}
 .field{display:flex;flex-direction:column;}
@@ -72,6 +64,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:#5779b4;backgr
 input.error,select.error{border-color:var(--krds-danger)!important;}
 .address-row{display:flex;gap:8px;}
 .address-row input{flex:1;pointer-events:none;background:#f8fafc;}
+.address-row{cursor:pointer;}
 .address-row button{width:96px;flex:0 0 auto;}
 button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12px;font-size:14px;font-weight:800;cursor:pointer;transition:background .15s,transform .15s,border-color .15s;}
 .btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
@@ -113,11 +106,11 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
 .back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;padding:0 4px;font-size:13px;font-weight:700;cursor:pointer;}
 .back-link:hover{color:#334155;text-decoration:underline;}
 .back-link svg{width:14px;height:14px;}
-.loading-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
-.loading-box{background:#fff;border:1px solid var(--krds-border);border-radius:18px;padding:22px 20px;min-width:260px;text-align:center;}
-.spinner{width:42px;height:42px;border:4px solid #dbe3ef;border-top-color:var(--krds-primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+.loading-overlay{position:fixed;inset:0;background:rgba(15,23,42,.36);display:none;align-items:center;justify-content:center;z-index:9999;padding:16px;}
+.loading-content{text-align:center;}
+.spinner{width:42px;height:42px;border:4px solid rgba(255,255,255,.3);border-top-color:#ffffff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.loading-text{font-size:15px;font-weight:800;color:#0f172a;}
+.loading-text{font-size:15px;font-weight:800;color:#ffffff;}
 .ocr-modal{position:fixed;inset:0;background:rgba(17,24,39,.65);display:none;align-items:center;justify-content:center;z-index:10000;padding:18px;}
 .ocr-modal.show{display:flex;}
 .ocr-modal-card{width:min(100%,620px);background:#fff;border:1px solid var(--krds-border);border-radius:18px;padding:18px;}
@@ -138,7 +131,7 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
   .section-title{font-size:17px;}
   .section-meta-value{font-size:16px;}
   .section-meta-unit{font-size:12px;}
-  .visit-index{min-width:34px;height:22px;padding:0 8px;font-size:11px;}
+  .visit-index{font-size:13px;}
   .action-grid{grid-template-columns:1fr;}
   .time-row{flex-direction:column;}
 }
@@ -196,7 +189,7 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
 </div>
 
 <div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-box">
+  <div class="loading-content">
     <div class="spinner"></div>
     <div class="loading-text">최적 경로를 계산하고 있습니다.</div>
   </div>
@@ -439,9 +432,9 @@ function renumber(){
   const cards = document.querySelectorAll(".card");
   count = cards.length;
   cards.forEach((card, idx) => {
-    const badge = card.querySelector(".visit-badge");
-    if(badge){
-      badge.innerText = String(idx + 1);
+    const index = card.querySelector(".visit-index");
+    if(index){
+      index.innerText = String(idx + 1).padStart(2, "0");
     }
   });
   updateVisitSummary();
@@ -697,6 +690,14 @@ function bindDraftEvents(scope){
     input.addEventListener("focus", () => openAddressField(input));
     input.addEventListener("click", (event) => {
       event.preventDefault();
+      openAddressField(input);
+    });
+  });
+
+  scope.querySelectorAll(".address-row").forEach((row) => {
+    row.addEventListener("click", (event) => {
+      event.preventDefault();
+      const input = row.querySelector('input[name="address"]');
       openAddressField(input);
     });
   });
