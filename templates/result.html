@@ -35,11 +35,27 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .section-card{background:transparent;border:none;border-radius:0;padding:0;}
 .section-title{margin:0 0 10px;font-size:21px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
-.route-list{display:flex;flex-direction:column;gap:12px;}
+.route-list{display:flex;flex-direction:column;gap:0;}
 .route-item{display:block;width:100%;}
-.connector{position:relative;display:flex;gap:6px;align-items:center;padding:0 0 8px 2px;margin:2px 0 12px;}
-.connector::before{content:"";position:absolute;left:0;right:0;top:11px;height:1px;background:#dbe2ea;}
-.connector-pill{position:relative;z-index:1;display:inline-flex;height:22px;align-items:center;padding:0 9px;border-radius:999px;background:#f2f4f8;border:1px solid #dbe2ea;color:#4b5563;font-size:11px;font-weight:700;}
+.connector{position:relative;display:flex;gap:6px;align-items:center;padding:0 0 0 2px;margin:10px 0;}
+.connector::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#dbe2ea;transform:translateY(-50%);}
+.connector-pill{
+  position:relative;
+  z-index:1;
+  display:inline-flex;
+  height:24px;
+  align-items:center;
+  justify-content:center;
+  padding:0 10px;
+  border-radius:999px;
+  background:#f2f4f8;
+  border:1px solid #dbe2ea;
+  color:#4b5563;
+  font-size:11px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:-0.1px;
+}
 .route-panel{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;}
 .route-badge{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 8px 16px rgba(29,78,216,.24);}
 .route-badge.start{background:#1d4ed8;}
@@ -99,9 +115,8 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .visit-card{padding:11px 10px 10px;border-radius:16px;}
   .card-head{align-items:flex-start;gap:9px;}
   .route-meta{margin-top:7px;column-gap:5px;row-gap:5px;}
-  .connector{padding:0 0 10px 0;margin:1px 0 8px;}
-  .connector::before{top:11px;}
-  .connector-pill{padding:0 8px;}
+  .connector{padding:0;margin:10px 0;}
+  .connector-pill{height:24px;padding:0 9px;font-size:10.5px;}
   .parking-row{gap:4px;}
   .parking-trip-chip{padding:0 6px;}
   .bottom-actions{flex-direction:column;}
@@ -123,9 +138,8 @@ body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 body.force-mobile .visit-card{padding:11px 10px 10px;border-radius:16px;}
 body.force-mobile .card-head{align-items:flex-start;gap:9px;}
 body.force-mobile .route-meta{margin-top:7px;column-gap:5px;row-gap:5px;}
-body.force-mobile .connector{padding:0 0 10px 0;margin:1px 0 8px;}
-body.force-mobile .connector::before{top:11px;}
-body.force-mobile .connector-pill{padding:0 8px;}
+body.force-mobile .connector{padding:0;margin:10px 0;}
+body.force-mobile .connector-pill{height:24px;padding:0 9px;font-size:10.5px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 </style>
