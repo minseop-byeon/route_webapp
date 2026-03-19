@@ -1799,6 +1799,98 @@ def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_add
     return order, best
 
 
+def choose_shortest_distance_order(visits, distance_matrix):
+    if not visits:
+        return []
+
+    order = nearest_neighbor_seed(visits, distance_matrix)
+    best_order = order[:]
+    best_distance = route_distance_with_return(order, distance_matrix)
+    n = len(visits)
+
+    min_outbound = []
+    for node in range(0, n + 1):
+        candidates = [distance_matrix[node][other] for other in range(0, n + 1) if other != node]
+        min_outbound.append(min(candidates) if candidates else 0)
+
+    def bound_distance(last_node, remaining, current_distance):
+        estimate = current_distance
+        if remaining:
+            estimate += min(distance_matrix[last_node][node] for node in remaining)
+            estimate += sum(min_outbound[node] for node in remaining)
+        else:
+            estimate += distance_matrix[last_node][0]
+        return estimate
+
+    def dfs(last_node, remaining, path, current_distance):
+        nonlocal best_order, best_distance
+        if not remaining:
+            total = current_distance + distance_matrix[last_node][0]
+            if total < best_distance:
+                best_distance = total
+                best_order = path[:]
+            return
+
+        if bound_distance(last_node, remaining, current_distance) >= best_distance:
+            return
+
+        for nxt in sorted(remaining, key=lambda node: (distance_matrix[last_node][node], node)):
+            path.append(nxt)
+            dfs(
+                nxt,
+                remaining - {nxt},
+                path,
+                current_distance + distance_matrix[last_node][nxt],
+            )
+            path.pop()
+
+    dfs(0, set(range(1, n + 1)), [], 0)
+    return best_order
+
+
+def build_phone_route_result(order, visits, distance_matrix, start_display_address=None, return_display_address=None):
+    route_view = [{
+        "type": "start",
+        "label": "S",
+        "name": get_start_name(),
+        "address": shorten_sido_name(start_display_address or get_start_address()),
+        "travel_km": None,
+    }]
+
+    total_distance_m = 0
+    prev = 0
+    for idx, node in enumerate(order, start=1):
+        visit = visits[node - 1]
+        travel_m = int(distance_matrix[prev][node])
+        total_distance_m += travel_m
+        route_view.append({
+            "type": "visit",
+            "label": str(idx),
+            "visit_id": visit.get("visit_id"),
+            "name": visit["name"],
+            "address": shorten_sido_name(visit.get("display_address") or visit["address"]),
+            "travel_km": round(travel_m / 1000, 1),
+        })
+        prev = node
+
+    return_distance_m = int(distance_matrix[prev][0]) if order else 0
+    total_distance_m += return_distance_m
+    route_view.append({
+        "type": "return",
+        "label": "F",
+        "name": get_return_name(),
+        "address": shorten_sido_name(return_display_address or get_return_address()),
+        "travel_km": round(return_distance_m / 1000, 1) if order else None,
+    })
+
+    return {
+        "route_view": route_view,
+        "total_distance_m": total_distance_m,
+        "departure_time": DAY_START,
+        "return_time": DAY_START,
+    }
+
+
 initialize_storage()
 
 
@@ -2248,11 +2340,16 @@ def planner():
                 continue
 
             try:
-                service_time = int(service_times_raw[i]) if i < len(service_times_raw) else 0
+                default_service = 5 if work_type == "visit" else 0
+                service_time = int(service_times_raw[i]) if i < len(service_times_raw) else default_service
             except Exception:
-                service_time = 0
+                service_time = 5 if work_type == "visit" else 0
 
-            has_appt = i < len(has_appointment_flags) and str(has_appointment_flags[i]).strip() == "1"
+            has_appt = (
+                work_type == "visit"
+                and i < len(has_appointment_flags)
+                and str(has_appointment_flags[i]).strip() == "1"
+            )
 
             appointment_minute = None
             if has_appt:
@@ -2342,15 +2439,25 @@ def planner():
                 dist_matrix[j][i] = d
                 time_matrix[j][i] = t
 
-        _, best = choose_best_schedule(
-            visits,
-            dist_matrix,
-            time_matrix,
-            start_display_address=start_display_address,
-            return_display_address=return_display_address,
-            coords=coords,
-            trip_date=trip_meta["trip_date"],
-        )
+        if work_type == "phone":
+            order = choose_shortest_distance_order(visits, dist_matrix)
+            best = build_phone_route_result(
+                order,
+                visits,
+                dist_matrix,
+                start_display_address=start_display_address,
+                return_display_address=return_display_address,
+            )
+        else:
+            _, best = choose_best_schedule(
+                visits,
+                dist_matrix,
+                time_matrix,
+                start_display_address=start_display_address,
+                return_display_address=return_display_address,
+                coords=coords,
+                trip_date=trip_meta["trip_date"],
+            )
 
         if best is None:
             payload = {
@@ -2433,7 +2540,8 @@ def result_page():
     missing_visit_meta = not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"]
     if ((work_type == "visit" and missing_visit_meta) or not payload):
         return redirect(url_for("start"))
-    return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key(), force_mobile=False)
+    template_name = "result_phone.html" if work_type == "phone" else "result.html"
+    return render_template(template_name, **payload, tmap_app_key=get_tmap_app_key(), force_mobile=False)
 
 
 @app.route("/healthz", methods=["GET"])
