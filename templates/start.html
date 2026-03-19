@@ -100,40 +100,49 @@ body{
   box-shadow:0 10px 24px rgba(15,23,42,0.045);
 }
 
-.brand-header{
+.logo-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.logo-circle{
+  width:138px;
+  height:138px;
+  border-radius:50%;
+  background:#ffffff;
   display:flex;
   align-items:center;
-  gap:10px;
-  margin-bottom:22px;
+  justify-content:center;
 }
 
-.brand-logo{
-  width:52px;
-  height:52px;
+.logo-circle img{
+  width:124px;
+  height:124px;
   object-fit:contain;
   display:block;
-  flex:0 0 auto;
 }
 
-.brand-text{
-  min-width:0;
+.title-wrap{
+  text-align:center;
+  margin-bottom:26px;
 }
 
 .main-title{
-  font-size:22px;
+  font-size:24px;
   font-weight:850;
-  letter-spacing:-0.35px;
+  letter-spacing:-0.45px;
   color:#111827;
-  line-height:1.12;
+  line-height:1.2;
 }
 
 .sub-title{
-  margin-top:3px;
-  font-size:12px;
+  margin-top:7px;
+  font-size:13px;
   color:#64748b;
   font-weight:700;
-  letter-spacing:0.1px;
-  line-height:1.1;
+  letter-spacing:0.25px;
 }
 
 .form-group{
@@ -496,22 +505,30 @@ input[type="text"]:focus{
     border-radius:18px;
   }
 
-  .brand-header{
-    margin-bottom:18px;
-    gap:8px;
+  .logo-wrap{
+    margin-bottom:16px;
   }
 
-  .brand-logo{
-    width:48px;
-    height:48px;
+  .logo-circle{
+    width:124px;
+    height:124px;
+  }
+
+  .logo-circle img{
+    width:112px;
+    height:112px;
+  }
+
+  .title-wrap{
+    margin-bottom:22px;
   }
 
   .main-title{
-    font-size:19px;
+    font-size:22px;
   }
 
   .sub-title{
-    font-size:11px;
+    font-size:12px;
   }
 
   select,
@@ -546,12 +563,15 @@ input[type="text"]:focus{
   </div>
 
   <div class="card">
-    <div class="brand-header">
-      <img class="brand-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
-      <div class="brand-text">
+    <div class="logo-wrap">
+      <div class="logo-circle">
+        <img src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
+      </div>
+    </div>
+
+    <div class="title-wrap">
       <div class="main-title">국세청 체납관리단</div>
       <div class="sub-title">SMART WORK</div>
-      </div>
     </div>
 
     <form id="startForm" method="POST">
