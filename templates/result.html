@@ -36,7 +36,7 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .section-title{margin:0 0 10px;font-size:21px;color:#09458f;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid #cedcf3;color:#355176;font-size:14px;text-align:center;}
 .route-list{display:flex;flex-direction:column;gap:12px;}
-.route-item{display:block;}
+.route-item{display:block;width:100%;}
 .connector{display:flex;gap:6px;align-items:center;padding:6px 0 0 8px;margin:0 0 6px;border-top:1px solid #d8dee6;}
 .connector-pill{display:inline-flex;height:22px;align-items:center;padding:0 8px;border-radius:999px;background:#eef3f8;border:1px solid #d8dee6;color:#425569;font-size:11px;font-weight:700;}
 .route-panel{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;}
@@ -44,7 +44,7 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .route-badge.start{background:#0d6ac7;}
 .route-badge.return{background:#356fb1;}
 .route-badge.word{font-size:12px;}
-.visit-card{background:var(--krds-surface);border:1px solid #cfd7e2;border-radius:18px;padding:12px 12px 11px;box-shadow:0 1px 0 rgba(16,36,62,.05);}
+.visit-card{width:100%;background:var(--krds-surface);border:1px solid #cfd7e2;border-radius:18px;padding:12px 12px 11px;box-shadow:0 1px 0 rgba(16,36,62,.05);}
 .card-head{display:flex;align-items:center;gap:10px;}
 .card-main{min-width:0;flex:1;}
 .route-address{font-size:17px;font-weight:800;line-height:1.24;color:#0f2e59;word-break:keep-all;overflow-wrap:anywhere;}
@@ -69,7 +69,7 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .parking-trip-chip.walk span::before{content:"도보 ";}
 .parking-empty{font-size:12px;color:#4c6788;padding:4px 0;}
 .notice-box{margin-top:8px;padding:10px 12px;border-radius:9px;background:#fff4eb;border:1px solid #ffcfa1;color:#9a3412;font-size:12px;font-weight:700;line-height:1.45;white-space:pre-line;}
-.bottom-actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
+.bottom-actions{width:100%;margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
 .action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0 14px;border-radius:14px;border:1px solid #b9c7d8;background:#fff;color:#1e4273;font-size:14px;font-weight:700;cursor:pointer;}
 .action-btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
 .action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
@@ -236,7 +236,6 @@ body.force-mobile .action-btn{width:100%;}
                 {% endif %}
               </div>
             </div>
-          </div>
           </div>
 
           {% if v.type == "return" and warning_message %}
