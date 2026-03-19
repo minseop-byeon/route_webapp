@@ -37,42 +37,42 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
 .route-list{display:flex;flex-direction:column;gap:0;}
 .route-item{display:block;width:100%;}
-.connector{position:relative;display:flex;gap:6px;align-items:center;padding:0 0 0 2px;margin:10px 0;}
-.connector::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#dbe2ea;transform:translateY(-50%);}
+.connector{position:relative;display:flex;gap:8px;align-items:center;padding:0 0 0 12px;margin:14px 0 12px;}
+.connector::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#d5dde8;transform:translateY(-50%);}
 .connector-pill{
   position:relative;
   z-index:1;
   display:inline-flex;
-  height:24px;
+  height:28px;
   align-items:center;
   justify-content:center;
-  padding:0 10px;
+  padding:0 11px;
   border-radius:999px;
-  background:#f2f4f8;
-  border:1px solid #dbe2ea;
+  background:#eef2f7;
+  border:1px solid #d2dae5;
   color:#4b5563;
-  font-size:11px;
+  font-size:12px;
   font-weight:700;
   line-height:1;
   letter-spacing:-0.1px;
 }
 .route-panel{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;}
-.route-badge{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 8px 16px rgba(29,78,216,.24);}
+.route-badge{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 10px 18px rgba(29,78,216,.24);}
 .route-badge.start{background:#1d4ed8;}
 .route-badge.return{background:#1e40af;}
-.route-badge.word{font-size:12px;}
-.visit-card{width:100%;background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:16px;padding:15px 12px 14px;box-shadow:0 10px 22px rgba(15,23,42,.06);}
-.card-head{display:flex;align-items:center;gap:10px;}
+.route-badge.word{font-size:18px;}
+.visit-card{width:100%;background:var(--krds-surface);border:1px solid #cfd8e3;border-radius:18px;padding:16px 14px 14px;box-shadow:none;}
+.card-head{display:flex;align-items:flex-start;gap:12px;}
 .card-main{min-width:0;flex:1;}
-.route-address{font-size:17px;font-weight:800;line-height:1.24;color:#111827;word-break:keep-all;overflow-wrap:anywhere;}
-.route-name{margin-top:6px;font-size:13px;font-weight:700;color:#374151;}
-.route-name.visit-name{font-size:14px;}
-.route-meta{margin-top:10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:7px;}
-.pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;}
+.route-address{font-size:clamp(17px,4.3vw,20px);font-weight:800;line-height:1.22;color:#111827;word-break:keep-all;overflow-wrap:anywhere;}
+.route-name{margin-top:6px;font-size:clamp(13px,3.5vw,15px);font-weight:700;color:#374151;}
+.route-name.visit-name{font-size:clamp(13px,3.5vw,15px);}
+.route-meta{margin-top:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;row-gap:7px;}
+.pill{display:inline-flex;height:30px;align-items:center;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;}
 .pill-primary{background:#e8f1ff;border:1px solid #c7d8ff;color:#1d4ed8;}
 .pill-neutral{background:#f3f4f6;border:1px solid #e5e7eb;color:#374151;}
-.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;}
-.nav-btn svg,.parking-guide svg{width:13px;height:13px;display:block;}
+.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;}
+.nav-btn svg,.parking-guide svg{width:15px;height:15px;display:block;}
 .nav-btn.disabled,.parking-guide.disabled{opacity:.45;pointer-events:none;}
 .parking-inline{margin-top:10px;padding-top:10px;border-top:1px dashed #e2e8f0;}
 .parking-subtitle{margin:0 0 8px;font-size:12px;font-weight:800;color:#475569;}
@@ -111,12 +111,17 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .summary-value{font-size:21px;}
   .summary-unit{font-size:14px;}
   .section-title{font-size:18px;}
-  .route-address{font-size:16px;}
-  .visit-card{padding:13px 10px 12px;border-radius:16px;}
-  .card-head{align-items:flex-start;gap:9px;}
-  .route-meta{margin-top:9px;column-gap:5px;row-gap:6px;}
-  .connector{padding:0;margin:10px 0;}
-  .connector-pill{height:24px;padding:0 9px;font-size:10.5px;}
+  .route-address{font-size:clamp(16px,4.4vw,19px);}
+  .visit-card{padding:15px 12px 13px;border-radius:18px;}
+  .card-head{align-items:flex-start;gap:11px;}
+  .route-badge{width:42px;height:42px;font-size:20px;}
+  .route-badge.word{font-size:17px;}
+  .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
+  .connector{padding:0 0 0 10px;margin:13px 0 11px;}
+  .connector-pill{height:27px;padding:0 10px;font-size:11.5px;}
+  .pill{height:29px;font-size:12px;padding:0 9px;}
+  .nav-btn,.parking-guide{width:28px;height:28px;}
+  .nav-btn svg,.parking-guide svg{width:14px;height:14px;}
   .parking-row{gap:4px;}
   .parking-trip-chip{padding:0 6px;}
   .bottom-actions{flex-direction:column;}
@@ -135,11 +140,16 @@ body.force-mobile .header-left{gap:6px;}
 body.force-mobile .header-title{font-size:18px;line-height:1.02;}
 body.force-mobile .header-sub{font-size:11px;line-height:1.02;}
 body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
-body.force-mobile .visit-card{padding:13px 10px 12px;border-radius:16px;}
-body.force-mobile .card-head{align-items:flex-start;gap:9px;}
-body.force-mobile .route-meta{margin-top:9px;column-gap:5px;row-gap:6px;}
-body.force-mobile .connector{padding:0;margin:10px 0;}
-body.force-mobile .connector-pill{height:24px;padding:0 9px;font-size:10.5px;}
+body.force-mobile .visit-card{padding:15px 12px 13px;border-radius:18px;}
+body.force-mobile .card-head{align-items:flex-start;gap:11px;}
+body.force-mobile .route-badge{width:42px;height:42px;font-size:20px;}
+body.force-mobile .route-badge.word{font-size:17px;}
+body.force-mobile .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
+body.force-mobile .connector{padding:0 0 0 10px;margin:13px 0 11px;}
+body.force-mobile .connector-pill{height:27px;padding:0 10px;font-size:11.5px;}
+body.force-mobile .pill{height:29px;font-size:12px;padding:0 9px;}
+body.force-mobile .nav-btn,body.force-mobile .parking-guide{width:28px;height:28px;}
+body.force-mobile .nav-btn svg,body.force-mobile .parking-guide svg{width:14px;height:14px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 </style>
