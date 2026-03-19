@@ -36,20 +36,33 @@ body{margin:0;font-family:Pretendard,sans-serif;color:var(--krds-text);backgroun
 .header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#003675;}
 .header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
 .page-card{padding:0 0 20px;}
-.summary-wrap{display:grid;grid-template-columns:1fr;gap:10px;margin:0 0 12px;}
-.summary-item{background:#ffffff;border:1px solid var(--krds-border);border-radius:10px;padding:13px 11px;box-shadow:none;}
-.summary-label{font-size:12px;color:#6b7280;font-weight:700;}
-.summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#111827;letter-spacing:-0.2px;}
-.summary-unit{margin-left:2px;font-size:18px;font-weight:700;}
 .section-card{margin-bottom:12px;}
 .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:0 0 10px;}
 .section-title{margin:0;font-size:18px;font-weight:800;color:#111827;letter-spacing:-0.3px;}
+.section-meta{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.section-meta-label{font-size:12px;color:#6b7280;font-weight:700;}
+.section-meta-value{font-size:18px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
+.section-meta-unit{font-size:13px;color:#475569;font-weight:700;}
 input,select,button,textarea{font-family:Pretendard,sans-serif;}
 label{display:block;font-size:12px;color:#6b7280;margin-bottom:7px;font-weight:700;}
 .required::after{content:" *";color:var(--krds-danger);}
 .card{position:relative;background:#fff;border:1px solid var(--krds-border);border-radius:18px;padding:15px 14px 14px;margin-bottom:10px;box-shadow:0 6px 16px rgba(15,23,42,0.04);}
-.visit-card-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
-.visit-badge{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 10px 18px rgba(29,78,216,.24);}
+.visit-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.visit-index{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:38px;
+  height:24px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid #c7d8ff;
+  background:#eef4ff;
+  color:#1d4ed8;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:0.2px;
+}
 .grid-main{display:grid;grid-template-columns:1fr;gap:10px;align-items:end;}
 .field{display:flex;flex-direction:column;}
 input,select{width:100%;height:42px;padding:0 12px;border:1px solid #d4dce7;border-radius:11px;background:#f8fafd;color:#0f172a;font-size:14px;font-weight:600;transition:border-color .15s,box-shadow .15s,background .15s;}
@@ -75,54 +88,23 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
 .appointment-box{margin-top:12px;padding-top:10px;border-top:1px dashed #dbe3ef;}
 .appointment-check{display:flex;align-items:flex-start;gap:10px;margin:0;font-size:13px;font-weight:700;color:var(--krds-form-check-text);line-height:1.45;cursor:pointer;}
 .appointment-check input[type="checkbox"]{
-  -webkit-appearance:none;
-  -moz-appearance:none;
-  appearance:none;
-  box-sizing:border-box;
-  position:relative;
-  width:20px;
-  height:20px;
+  width:18px;
+  height:18px;
   margin:0;
+  margin-top:1px;
   min-height:0;
-  flex:0 0 20px;
-  border:2px solid var(--krds-form-check-border);
-  border-radius:5px;
-  background:var(--krds-form-check-surface);
-  display:inline-block;
-  vertical-align:top;
+  flex:0 0 18px;
+  accent-color:var(--krds-form-check-border-checked);
   cursor:pointer;
-  transition:border-color .15s,background-color .15s,box-shadow .15s;
-}
-.appointment-check input[type="checkbox"]::before{
-  content:"";
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:10px;
-  height:6px;
-  border-left:2px solid var(--krds-form-check-icon);
-  border-bottom:2px solid var(--krds-form-check-icon);
-  transform:translate(-50%, -58%) rotate(-45deg) scale(0);
-  transition:transform .15s ease;
-}
-.appointment-check input[type="checkbox"]:checked{
-  border-color:var(--krds-form-check-border-checked);
-  background:var(--krds-form-check-surface-checked);
-}
-.appointment-check input[type="checkbox"]:checked::before{
-  transform:translate(-50%, -58%) rotate(-45deg) scale(1);
 }
 .appointment-check input[type="checkbox"]:focus-visible{
   outline:none;
   box-shadow:0 0 0 3px rgba(29,78,216,0.16);
+  border-radius:4px;
 }
 .appointment-check input[type="checkbox"]:disabled{
-  border-color:var(--krds-form-check-border-disabled);
-  background:#f8fafc;
+  accent-color:var(--krds-form-check-border-disabled);
   cursor:not-allowed;
-}
-.appointment-check input[type="checkbox"]:disabled::before{
-  border-color:var(--krds-form-check-icon-disabled);
 }
 .time-select-area{margin-top:8px;display:none;}
 .time-row{display:flex;gap:8px;}
@@ -153,11 +135,10 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
   .header-left{gap:4px;}
   .header-title{font-size:18px;line-height:1.02;}
   .header-sub{font-size:11px;line-height:1.02;}
-  .summary-item{padding:11px 9px;}
-  .summary-value{font-size:21px;}
-  .summary-unit{font-size:14px;}
   .section-title{font-size:17px;}
-  .visit-badge{width:42px;height:42px;font-size:20px;}
+  .section-meta-value{font-size:16px;}
+  .section-meta-unit{font-size:12px;}
+  .visit-index{min-width:34px;height:22px;padding:0 8px;font-size:11px;}
   .action-grid{grid-template-columns:1fr;}
   .time-row{flex-direction:column;}
 }
@@ -181,14 +162,12 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
         <div>
           <h2 class="section-title">방문지 입력</h2>
         </div>
-      </div>
-
-      <section class="summary-wrap" aria-label="방문지 요약">
-        <div class="summary-item">
-          <div class="summary-label">총 방문지</div>
-          <div class="summary-value"><span id="visitCountValue">0</span><span class="summary-unit">곳</span></div>
+        <div class="section-meta" aria-label="방문지 수">
+          <span class="section-meta-label">총 방문지</span>
+          <span class="section-meta-value" id="visitCountValue">0</span>
+          <span class="section-meta-unit">곳</span>
         </div>
-      </section>
+      </div>
 
       <form id="routeForm" method="POST" action="/planner">
         <div id="visits"></div>
@@ -398,7 +377,7 @@ function addVisit(){
   div.innerHTML = `
     <div class="delete-icon" onclick="removeVisit(this)">✕</div>
     <div class="visit-card-head">
-      <div class="visit-badge">${count}</div>
+      <div class="visit-index">${String(count).padStart(2, "0")}</div>
     </div>
 
     <div class="grid-main">
