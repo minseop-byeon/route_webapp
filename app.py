@@ -2471,8 +2471,22 @@ def planner():
             return redirect(url_for("result_page"))
 
         warning_message = ""
-        if best["return_time"] >= (16 * 60 + 20):
-            warning_message = "복귀 시간이 16:30에 가깝습니다.\n복귀가 늦지 않도록 주의하세요."
+        return_time_minute = int(best["return_time"])
+        caution_start = 16 * 60 + 20
+        caution_end = 16 * 60 + 30
+        if return_time_minute >= caution_start:
+            hh = return_time_minute // 60
+            mm = return_time_minute % 60
+            if return_time_minute <= caution_end:
+                warning_message = (
+                    f"예상 복귀시간이 {hh}시 {mm}분입니다.\n"
+                    "복귀가 늦지 않도록 주의해 주세요."
+                )
+            else:
+                warning_message = (
+                    f"예상 복귀시간이 {hh}시 {mm}분입니다.\n"
+                    "방문 일정을 조정하여 주세요."
+                )
 
         try:
             parking_items = (load_settings().get("parking", {}) or {}).get("items", [])
