@@ -78,7 +78,12 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media (max-width:760px){
-  .container{padding-left:16px;padding-right:16px;padding-top:calc(env(safe-area-inset-top, 0px) + 12px);}
+  .container{
+    width:calc(100% - 32px);
+    max-width:430px;
+    margin:0 auto;
+    padding:calc(env(safe-area-inset-top, 0px) + 12px) 0 30px;
+  }
   .hero{padding:0 0 8px;}
   .header-logo{width:48px;height:48px;}
   .hero-text{height:48px;}
@@ -99,7 +104,12 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .bottom-actions{flex-direction:column;}
   .action-btn{width:100%;}
 }
-body.force-mobile .container{max-width:430px;padding-top:calc(env(safe-area-inset-top, 0px) + 12px);}
+body.force-mobile .container{
+  width:calc(100% - 32px);
+  max-width:430px;
+  margin:0 auto;
+  padding:calc(env(safe-area-inset-top, 0px) + 12px) 0 30px;
+}
 body.force-mobile .hero{padding:0 0 8px;}
 body.force-mobile .header-logo{width:48px;height:48px;}
 body.force-mobile .hero-text{height:48px;}
