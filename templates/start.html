@@ -895,14 +895,13 @@ function restoreStartDraft(){
   const team = draft?.team || "";
   const user = draft?.user || "";
   const savedTripDate = draft?.tripDate || "";
-  const savedWorkType = draft?.workType || "";
-
-  setCustomValue(workTypeSelect, workTypeSelectText, workTypeSelectWrap, workTypeSelectMenu, savedWorkType);
-  workTypeSelect.dispatchEvent(new Event("change"));
-
   if(!team){
     return;
   }
+
+  // Keep the first screen neutral: only restore downstream fields.
+  setCustomValue(workTypeSelect, workTypeSelectText, workTypeSelectWrap, workTypeSelectMenu, "");
+  workTypeSelect.dispatchEvent(new Event("change"));
 
   setCustomValue(teamSelect, teamSelectText, teamSelectWrap, teamSelectMenu, team);
   teamSelect.dispatchEvent(new Event("change"));
@@ -931,9 +930,13 @@ workTypeSelect.addEventListener("change", function(){
   updateSelectCompleted(workTypeSelect);
 
   if(!this.value){
-    teamField.classList.remove("hidden");
+    teamField.classList.add("hidden");
+    setCustomValue(teamSelect, teamSelectText, teamSelectWrap, teamSelectMenu, "");
+    setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, "");
+    renderUserOptions("");
     userField.classList.add("hidden");
     dateField.classList.add("hidden");
+    setTripDate("");
     updateSubmitState();
     saveStartDraft();
     return;
