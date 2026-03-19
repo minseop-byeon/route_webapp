@@ -685,6 +685,8 @@ const calendarNext = document.getElementById("calendarNext");
 const userField = document.getElementById("userField");
 const dateField = document.getElementById("dateField");
 const submitBtn = document.getElementById("submitBtn");
+const START_DRAFT_KEY = "route_start_draft_v1";
+const START_DRAFT_STORAGE = window.localStorage;
 let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth();
 
@@ -759,6 +761,7 @@ function setTripDate(value){
   tripDate.value = value || "";
   tripDateDisplay.value = value || "";
   updateSubmitState();
+  saveStartDraft();
 }
 
 function openCalendar(){
@@ -838,6 +841,52 @@ function updateSubmitState(){
   submitBtn.disabled = !isReady;
 }
 
+function saveStartDraft(){
+  const draft = {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    team: teamSelect.value || "",
+    user: userSelect.value || "",
+    tripDate: tripDate.value || ""
+  };
+  START_DRAFT_STORAGE.setItem(START_DRAFT_KEY, JSON.stringify(draft));
+}
+
+function restoreStartDraft(){
+  const raw = START_DRAFT_STORAGE.getItem(START_DRAFT_KEY);
+  if(!raw){
+    return;
+  }
+
+  let draft;
+  try{
+    draft = JSON.parse(raw);
+  }catch{
+    return;
+  }
+
+  const team = draft?.team || "";
+  const user = draft?.user || "";
+  const savedTripDate = draft?.tripDate || "";
+
+  if(!team){
+    return;
+  }
+
+  setCustomValue(teamSelect, teamSelectText, teamSelectWrap, teamSelectMenu, team);
+  teamSelect.dispatchEvent(new Event("change"));
+
+  const users = Array.isArray(teamUsers[team]) ? teamUsers[team] : [];
+  if(user && users.includes(user)){
+    setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, user);
+    userSelect.dispatchEvent(new Event("change"));
+  }
+
+  if(savedTripDate && userSelect.value){
+    setTripDate(savedTripDate);
+  }
+}
+
 function updateSelectCompleted(selectElement){
   const wrapper = selectElement.closest(".krds-form-select");
   if(!wrapper){
@@ -858,6 +907,7 @@ teamSelect.addEventListener("change", function(){
     userField.classList.add("hidden");
     dateField.classList.add("hidden");
     updateSubmitState();
+    saveStartDraft();
     return;
   }
 
@@ -869,6 +919,7 @@ teamSelect.addEventListener("change", function(){
   }
   updateSelectCompleted(teamSelect);
   updateSubmitState();
+  saveStartDraft();
 });
 
 userSelect.addEventListener("change", function(){
@@ -882,11 +933,13 @@ userSelect.addEventListener("change", function(){
   }
 
   updateSubmitState();
+  saveStartDraft();
 });
 
 tripDate.addEventListener("change", function(){
   tripDateDisplay.value = tripDate.value;
   updateSubmitState();
+  saveStartDraft();
 });
 
 calendarTrigger.addEventListener("click", function(event){
@@ -945,6 +998,7 @@ setCustomValue(teamSelect, teamSelectText, teamSelectWrap, teamSelectMenu, "");
 setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, "");
 updateSelectCompleted(teamSelect);
 updateSelectCompleted(userSelect);
+restoreStartDraft();
 </script>
 </body>
 </html>

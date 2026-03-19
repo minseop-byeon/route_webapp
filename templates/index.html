@@ -231,6 +231,7 @@ let visitContainer = document.getElementById("visits");
 let form = document.getElementById("routeForm");
 let count = 0;
 const DRAFT_KEY = "route_visit_draft_v5";
+const DRAFT_STORAGE = window.localStorage;
 const visitCountValue = document.getElementById("visitCountValue");
 const qrScanBtn = document.getElementById("qrScanBtn");
 const qrScanModal = document.getElementById("qrScanModal");
@@ -726,7 +727,11 @@ function bindDraftEvents(scope){
 
 function saveDraft(){
   const cards = document.querySelectorAll(".card");
-  const draft = [];
+  const draft = {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    cards: []
+  };
 
   cards.forEach(card => {
     const name = card.querySelector('input[name="name"]')?.value || "";
@@ -737,24 +742,30 @@ function saveDraft(){
     const hour = card.querySelector('select[name="visit_hour"]')?.value || "";
     const minute = card.querySelector('select[name="visit_minute"]')?.value || "";
 
-    draft.push({ name, address, service, hasAppt, hour, minute });
+    draft.cards.push({ name, address, service, hasAppt, hour, minute });
   });
 
-  sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  DRAFT_STORAGE.setItem(DRAFT_KEY, JSON.stringify(draft));
 }
 
 function restoreDraft(){
-  const raw = sessionStorage.getItem(DRAFT_KEY);
+  const raw = DRAFT_STORAGE.getItem(DRAFT_KEY);
   if(!raw) return false;
 
-  let draft;
+  let draftPayload;
   try{
-    draft = JSON.parse(raw);
+    draftPayload = JSON.parse(raw);
   }catch{
     return false;
   }
 
-  if(!Array.isArray(draft) || draft.length === 0) return false;
+  const draft = Array.isArray(draftPayload)
+    ? draftPayload
+    : Array.isArray(draftPayload?.cards)
+      ? draftPayload.cards
+      : [];
+
+  if(draft.length === 0) return false;
 
   visitContainer.innerHTML = "";
   count = 0;
