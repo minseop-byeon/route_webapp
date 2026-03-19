@@ -332,6 +332,7 @@ input[type="text"]:focus{
 
 .date-control input[type="text"]{
   padding-right:52px;
+  cursor:pointer;
 }
 
 .calendar-trigger{
@@ -665,6 +666,7 @@ const userSelectText = document.getElementById("userSelectText");
 const userSelectMenu = document.getElementById("userSelectMenu");
 const tripDate = document.getElementById("tripDate");
 const tripDateDisplay = document.getElementById("tripDateDisplay");
+const dateControl = document.querySelector(".date-control");
 const calendarTrigger = document.getElementById("calendarTrigger");
 const calendarPopover = document.getElementById("calendarPopover");
 const calendarTitle = document.getElementById("calendarTitle");
@@ -878,13 +880,18 @@ tripDate.addEventListener("change", function(){
   updateSubmitState();
 });
 
-calendarTrigger.addEventListener("click", function(){
+calendarTrigger.addEventListener("click", function(event){
+  event.stopPropagation();
   closeAllCustomSelects();
-  if(calendarPopover.classList.contains("hidden")){
-    openCalendar();
-  }else{
-    closeCalendar();
+  openCalendar();
+});
+
+dateControl.addEventListener("click", function(event){
+  if(event.target.closest("#calendarPopover")){
+    return;
   }
+  closeAllCustomSelects();
+  openCalendar();
 });
 
 calendarPrev.addEventListener("click", function(){
