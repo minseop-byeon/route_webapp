@@ -125,6 +125,9 @@ label{
 .date-wrap{
   position:relative;
 }
+.krds-form-select{
+  position:relative;
+}
 
 select,
 input[type="text"]{
@@ -144,6 +147,9 @@ input[type="text"]{
   -webkit-appearance:none;
   -moz-appearance:none;
 }
+.krds-form-select select{
+  padding-right:52px;
+}
 
 select:focus,
 input[type="text"]:focus{
@@ -153,19 +159,19 @@ input[type="text"]:focus{
   box-shadow:0 0 0 3px rgba(87,121,180,0.12);
 }
 
-select:hover{
+.krds-form-select select:hover{
   border-color:#becadb;
   background:#ffffff;
 }
 
-select option{
+.krds-form-select select option{
   font-size:14px;
   font-weight:600;
   color:#111827;
   background:#ffffff;
 }
 
-.select-wrap::after{
+.krds-form-select::after{
   content:"";
   position:absolute;
   top:50%;
@@ -176,6 +182,17 @@ select option{
   border-bottom:2px solid #7f8ea6;
   transform:translateY(-65%) rotate(45deg);
   pointer-events:none;
+  transition:border-color 0.15s;
+}
+
+.krds-form-select:focus-within::after{
+  border-right-color:#4f6c9c;
+  border-bottom-color:#4f6c9c;
+}
+
+.krds-form-select.completed select{
+  background:#ffffff;
+  border-color:#b9c7dc;
 }
 
 .date-wrap::after{
@@ -425,7 +442,7 @@ select option{
       <div class="form-group">
         <div class="field">
           <label class="required" for="teamSelect">조</label>
-          <div class="select-wrap">
+          <div class="select-wrap krds-form-select">
             <select name="team_no" id="teamSelect" required>
               <option value="">선택</option>
               {% for team in team_options %}
@@ -439,7 +456,7 @@ select option{
       <div class="form-group hidden" id="userField">
         <div class="field">
           <label class="required" for="userSelect">사용자</label>
-          <div class="select-wrap">
+          <div class="select-wrap krds-form-select">
             <select name="user_name" id="userSelect" required>
               <option value="">선택</option>
             </select>
@@ -591,6 +608,14 @@ function updateSubmitState(){
   submitBtn.disabled = !isReady;
 }
 
+function updateSelectCompleted(selectElement){
+  const wrapper = selectElement.closest(".krds-form-select");
+  if(!wrapper){
+    return;
+  }
+  wrapper.classList.toggle("completed", !!selectElement.value);
+}
+
 teamSelect.addEventListener("change", function(){
   const team = this.value;
 
@@ -598,6 +623,8 @@ teamSelect.addEventListener("change", function(){
   userField.classList.add("hidden");
   dateField.classList.add("hidden");
   userSelect.value = "";
+  updateSelectCompleted(teamSelect);
+  updateSelectCompleted(userSelect);
   setTripDate("");
 
   if(!team || !teamUsers[team] || teamUsers[team].length === 0){
@@ -613,10 +640,12 @@ teamSelect.addEventListener("change", function(){
   });
 
   userField.classList.remove("hidden");
+  updateSelectCompleted(teamSelect);
   updateSubmitState();
 });
 
 userSelect.addEventListener("change", function(){
+  updateSelectCompleted(userSelect);
   setTripDate("");
 
   if(this.value){
@@ -664,6 +693,9 @@ document.addEventListener("click", function(event){
     closeCalendar();
   }
 });
+
+updateSelectCompleted(teamSelect);
+updateSelectCompleted(userSelect);
 </script>
 </body>
 </html>
