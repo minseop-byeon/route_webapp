@@ -206,16 +206,32 @@ body.force-mobile .action-btn{width:100%;}
     {% else %}
       <div class="route-list">
         {% for v in route %}
-          {% if loop.index > 1 and v.travel_km is not none and v.travel_min is not none %}
+          {% set connector_km = none %}
+          {% set connector_min = none %}
+          {% if loop.index > 1 %}
+            {% set prev = route[loop.index - 2] %}
+            {% if v.type == "wait" and loop.index < route|length %}
+              {% set nxt = route[loop.index] %}
+              {% if nxt.travel_km is not none and nxt.travel_min is not none %}
+                {% set connector_km = nxt.travel_km %}
+                {% set connector_min = nxt.travel_min %}
+              {% endif %}
+            {% elif v.travel_km is not none and v.travel_min is not none and prev.type != "wait" %}
+              {% set connector_km = v.travel_km %}
+              {% set connector_min = v.travel_min %}
+            {% endif %}
+          {% endif %}
+
+          {% if connector_km is not none and connector_min is not none %}
             <div class="connector">
-              {% set travel_km_val = v.travel_km|float %}
+              {% set travel_km_val = connector_km|float %}
               {% set travel_m_val = (travel_km_val * 1000)|round(0, 'common')|int %}
               {% if travel_km_val >= 1 %}
                 {% set distance_text = "%.1f"|format(travel_km_val) ~ "km" %}
               {% else %}
                 {% set distance_text = travel_m_val ~ "m" %}
               {% endif %}
-              <div class="connector-pill">이동 {{ distance_text }}({{ v.travel_min }}분)</div>
+              <div class="connector-pill">이동 {{ distance_text }}({{ connector_min }}분)</div>
             </div>
           {% endif %}
 
