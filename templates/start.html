@@ -307,16 +307,7 @@ input[type="text"]:focus{
 }
 
 .date-wrap::after{
-  content:"";
-  position:absolute;
-  top:50%;
-  right:14px;
-  width:16px;
-  height:16px;
-  transform:translateY(-50%);
-  border:2px solid #94a3b8;
-  border-radius:4px;
-  pointer-events:none;
+  content:none;
 }
 
 .date-control{
@@ -338,27 +329,19 @@ input[type="text"]:focus{
   background:transparent;
   padding:0;
   cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-.calendar-trigger::before{
-  content:"";
-  position:absolute;
-  top:6px;
-  left:7px;
-  width:16px;
-  height:16px;
-  border:2px solid #94a3b8;
-  border-radius:4px;
-}
-
-.calendar-trigger::after{
-  content:"";
-  position:absolute;
-  top:9px;
-  left:11px;
-  width:8px;
-  height:2px;
-  background:#94a3b8;
+.calendar-trigger svg{
+  width:18px;
+  height:18px;
+  stroke:#94a3b8;
+  stroke-width:2;
+  fill:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 
 .calendar-popover{
@@ -617,7 +600,12 @@ input[type="text"]:focus{
           <div class="date-wrap">
             <div class="date-control">
               <input type="text" id="tripDateDisplay" placeholder="YYYY-MM-DD" readonly>
-              <button type="button" id="calendarTrigger" class="calendar-trigger" aria-label="방문일자 달력 열기"></button>
+              <button type="button" id="calendarTrigger" class="calendar-trigger" aria-label="방문일자 달력 열기">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3.5" y="4.5" width="17" height="16" rx="3"></rect>
+                  <path d="M8 3.5v3M16 3.5v3M3.5 9.5h17"></path>
+                </svg>
+              </button>
               <input type="hidden" name="trip_date" id="tripDate" required>
               <div class="calendar-popover hidden" id="calendarPopover" aria-hidden="true">
                 <div class="calendar-header">
