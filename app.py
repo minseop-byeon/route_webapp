@@ -1618,6 +1618,7 @@ def is_lunch_required(departure_time, return_time):
 
 def build_departure_candidates(order, visits, time_matrix):
     candidates = {DAY_START}
+    appointment_anchors = set()
     if not order:
         return [DAY_START]
 
@@ -1632,6 +1633,8 @@ def build_departure_candidates(order, visits, time_matrix):
         visit = visits[node - 1]
         if visit["has_appointment"] and visit.get("appointment_minute") is not None:
             latest_departure = visit["appointment_minute"] - cumulative_min
+            if latest_departure >= DAY_START:
+                appointment_anchors.add(latest_departure)
             for offset in (0, -15, -30, -45, -60):
                 shifted = latest_departure + offset
                 if shifted >= DAY_START:
@@ -1654,7 +1657,7 @@ def build_departure_candidates(order, visits, time_matrix):
     }
     ordered = sorted(bounded)
     if len(ordered) <= 4:
-        return ordered
+        return sorted(set(ordered) | appointment_anchors)
 
     reduced = []
     for candidate in reversed(ordered):
@@ -1664,7 +1667,9 @@ def build_departure_candidates(order, visits, time_matrix):
             break
 
     reduced.append(DAY_START)
-    return sorted(set(reduced))
+    # Keep appointment-derived anchors so we can depart close to promised times
+    # even after candidate list reduction.
+    return sorted(set(reduced) | appointment_anchors)
 
 
 def simulate_order(order, visits, time_matrix, distance_matrix, start_display_address=None, return_display_address=None, coords=None, trip_date=None, start_time=DAY_START, leg_cache=None, route_cache=None):
