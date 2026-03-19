@@ -1851,10 +1851,14 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
             if visit["has_appointment"]:
                 target = visit["appointment_minute"]
                 if target is not None and arrival_time < target:
-                    # If we arrive before the promised time, insert a wait block and start the visit at appointment time.
-                    added_wait_count = append_wait_block(new_route, arrival_time, target, wait_label)
-                    added_wait_total = target - arrival_time
-                    arrival_time = target
+                    # Wait should be placed before departure (at current location), not after early arrival.
+                    # This keeps wait start aligned with previous stop end time.
+                    depart_for_target = target - travel_min
+                    if depart_time < depart_for_target:
+                        added_wait_count = append_wait_block(new_route, depart_time, depart_for_target, wait_label)
+                        added_wait_total = depart_for_target - depart_time
+                        depart_time = depart_for_target
+                    arrival_time = depart_time + travel_min
                 if arrival_time > target:
                     appt_violation += 1
                     appt_late += arrival_time - target
