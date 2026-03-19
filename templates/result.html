@@ -6,6 +6,7 @@
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/symbol.png') }}">
 <title>국세청 체납관리단 - SMART 경로탐색</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
 <style>
 :root{
   --krds-primary:#0050b3;
@@ -18,7 +19,7 @@
   --krds-accent:#00a0e9;
 }
 *{box-sizing:border-box;}
-body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);}
+body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;background:var(--krds-bg);color:var(--krds-text);}
 .container{max-width:1080px;margin:0 auto;padding:16px 16px 30px;}
 .hero{padding:0 0 10px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:8px;}
 .header-left{display:flex;align-items:stretch;gap:8px;min-width:0;}
@@ -31,20 +32,26 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:
 .summary-label{font-size:12px;color:#3f5f85;font-weight:700;}
 .summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#08366f;letter-spacing:-0.2px;}
 .summary-unit{margin-left:2px;font-size:18px;font-weight:700;}
-.section-card{background:transparent;border:none;border-radius:0;padding:0;}
+.section-card{background:#fff;border:1px solid #c5d7f5;border-radius:14px;padding:14px 12px;box-shadow:0 8px 20px rgba(0,66,153,.09);}
 .section-title{margin:0 0 10px;font-size:21px;color:#09458f;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid #cedcf3;color:#355176;font-size:14px;text-align:center;}
 .route-list{display:flex;flex-direction:column;gap:10px;}
 .connector{display:flex;gap:6px;align-items:center;padding-left:50px;}
 .connector-pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;background:#e8f2ff;border:1px solid #bdd2f3;color:#2a4f80;font-size:12px;font-weight:700;}
-.route-panel{background:var(--krds-surface);border:1px solid #c5d5f0;border-radius:12px;padding:12px;box-shadow:0 4px 14px rgba(0,66,153,.08);}
+.route-panel{background:var(--krds-surface);border:1px solid #c5d5f0;border-radius:12px;padding:12px;box-shadow:0 9px 22px rgba(0,66,153,.14);}
 .route-top{display:flex;align-items:flex-start;gap:10px;}
 .route-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 4px 10px rgba(0,80,179,.26);}
 .route-badge.start{background:#0d6ac7;}
 .route-badge.return{background:#356fb1;}
 .route-badge.word{font-size:12px;}
 .route-main{min-width:0;flex:1;}
-.visit-info-block{padding:8px 9px 9px;background:#f8fbff;border:1px solid #d8e6fa;border-radius:10px;}
+.route-panel.route-visit{padding:0;background:transparent;border:none;box-shadow:none;}
+.visit-stack{display:flex;flex-direction:column;gap:0;}
+.visit-card,
+.parking-card{background:var(--krds-surface);border:1px solid #c5d5f0;border-radius:12px;padding:10px 10px 9px;box-shadow:0 9px 22px rgba(0,66,153,.14);}
+.visit-card{position:relative;z-index:2;}
+.visit-link{position:relative;height:12px;}
+.visit-link::before{content:"";position:absolute;left:22px;right:22px;top:2px;height:8px;background:linear-gradient(180deg,#dce9fb 0%, #eaf3ff 100%);border-left:1px solid #c5d5f0;border-right:1px solid #c5d5f0;}
 .route-address{font-size:17px;font-weight:800;line-height:1.24;color:#0f2e59;word-break:keep-all;overflow-wrap:anywhere;}
 .route-name{margin-top:4px;font-size:13px;font-weight:700;color:#224164;}
 .route-name.visit-name{font-size:14px;}
@@ -55,8 +62,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:
 .nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #90b5ec;background:#deecff;color:#0f4b95;text-decoration:none;}
 .nav-btn svg,.parking-guide svg{width:13px;height:13px;display:block;}
 .nav-btn.disabled,.parking-guide.disabled{opacity:.45;pointer-events:none;}
-.parking-expand{position:relative;margin-top:9px;padding:9px 9px 2px;background:#fff;border:1px solid #c9dbf7;border-radius:10px;}
-.parking-expand::before{content:"";position:absolute;left:14px;top:-7px;width:12px;height:12px;background:#fff;border-left:1px solid #c9dbf7;border-top:1px solid #c9dbf7;transform:rotate(45deg);}
+.parking-card{padding-bottom:2px;}
 .parking-subtitle{margin:0 0 8px;font-size:12px;font-weight:800;color:#1f548e;}
 .parking-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #e6effb;}
 .parking-row:last-child{border-bottom:none;}
@@ -77,7 +83,7 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:
   .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media (max-width:760px){
-  .container{padding-left:10px;padding-right:10px;padding-top:calc(env(safe-area-inset-top, 0px) + 12px);}
+  .container{padding-left:16px;padding-right:16px;padding-top:calc(env(safe-area-inset-top, 0px) + 12px);}
   .hero{padding:0 0 8px;}
   .header-logo{width:48px;height:48px;}
   .hero-text{height:48px;}
@@ -90,7 +96,9 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:
   .section-title{font-size:18px;}
   .route-address{font-size:16px;}
   .route-panel{padding:10px;}
-  .visit-info-block{padding:7px 8px 8px;}
+  .visit-card,.parking-card{padding:8px 8px 7px;}
+  .visit-link{height:10px;}
+  .visit-link::before{left:14px;right:14px;top:1px;height:8px;}
   .connector{padding-left:44px;}
   .parking-row{gap:4px;}
   .parking-trip-chip{padding:0 6px;}
@@ -105,6 +113,9 @@ body.force-mobile .header-left{gap:6px;}
 body.force-mobile .header-title{font-size:18px;line-height:1.02;}
 body.force-mobile .header-sub{font-size:11px;line-height:1.02;}
 body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
+body.force-mobile .visit-card,body.force-mobile .parking-card{padding:8px 8px 7px;}
+body.force-mobile .visit-link{height:10px;}
+body.force-mobile .visit-link::before{left:14px;right:14px;top:1px;height:8px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 </style>
@@ -129,7 +140,7 @@ body.force-mobile .action-btn{width:100%;}
   </section>
 
   <section class="section-card">
-    <h3 class="section-title">최적 방문 순서</h3>
+    <h3 class="section-title">최적방문순서</h3>
     {% if route|length == 0 %}
       <div class="empty-box">경로를 생성할 수 없습니다. 입력 정보를 확인한 뒤 다시 시도해주세요.</div>
     {% else %}
@@ -158,43 +169,28 @@ body.force-mobile .action-btn{width:100%;}
                 {% endif %}
 
                 <div class="route-main">
-                  <div class="visit-info-block">
-                    {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
-                    {% if v.name %}
-                      {% set display_name = v.name %}
-                      {% if v.type == "visit" and v.name|length > 5 %}
-                        {% set display_name = v.name[:5] ~ "…" %}
-                      {% endif %}
-                      <div class="route-name{% if v.type == 'visit' %} visit-name{% endif %}" title="{{ v.name }}">{{ display_name }}</div>
-                    {% endif %}
-                    <div class="route-meta">
-                      <div class="pill pill-primary">
-                        {% if v.type == "start" %}
-                          출발 {{ v.arrival }}
-                        {% elif v.type == "return" %}
-                          도착 {{ v.arrival }}
-                        {% else %}
-                          {{ v.arrival }} ~ {{ v.end_time }}
-                        {% endif %}
-                      </div>
-                      {% if v.type == "visit" %}
-                        <div class="pill pill-neutral">방문 {{ v.service_time }}분</div>
-                        {% if v.appointment_time %}<div class="pill pill-neutral">약속 {{ v.appointment_time }}</div>{% endif %}
-                      {% elif v.type == "wait" %}
-                        <div class="pill pill-neutral">대기 {{ v.service_time }}분</div>
-                      {% elif v.type == "lunch" %}
-                        <div class="pill pill-neutral">점심 {{ v.service_time }}분</div>
-                      {% endif %}
-                      {% if v.type == "visit" or v.type == "return" %}
-                        <a class="nav-btn {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="길찾기" title="길찾기">
-                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
-                        </a>
-                      {% endif %}
-                    </div>
-                  </div>
-
                   {% if v.type == "visit" %}
-                    <div class="parking-expand">
+                    <div class="visit-stack">
+                      <div class="visit-card">
+                        {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
+                        {% if v.name %}
+                          {% set display_name = v.name %}
+                          {% if v.name|length > 5 %}
+                            {% set display_name = v.name[:5] ~ "…" %}
+                          {% endif %}
+                          <div class="route-name visit-name" title="{{ v.name }}">{{ display_name }}</div>
+                        {% endif %}
+                        <div class="route-meta">
+                          <div class="pill pill-primary">{{ v.arrival }} ~ {{ v.end_time }}</div>
+                          <div class="pill pill-neutral">방문 {{ v.service_time }}분</div>
+                          {% if v.appointment_time %}<div class="pill pill-neutral">약속 {{ v.appointment_time }}</div>{% endif %}
+                          <a class="nav-btn {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="길찾기" title="길찾기">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
+                          </a>
+                        </div>
+                      </div>
+                      <div class="visit-link" aria-hidden="true"></div>
+                      <div class="parking-card">
                       <div class="parking-subtitle">가까운 주차장</div>
                       {% if v.nearby_parkings and v.nearby_parkings|length > 0 %}
                         {% for parking in v.nearby_parkings %}
@@ -215,6 +211,35 @@ body.force-mobile .action-btn{width:100%;}
                       {% else %}
                         <div class="parking-empty">반경 1km 이내에 주차장이 없습니다.</div>
                       {% endif %}
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="visit-card">
+                      {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
+                      {% if v.name %}
+                        <div class="route-name" title="{{ v.name }}">{{ v.name }}</div>
+                      {% endif %}
+                      <div class="route-meta">
+                        <div class="pill pill-primary">
+                          {% if v.type == "start" %}
+                            출발 {{ v.arrival }}
+                          {% elif v.type == "return" %}
+                            도착 {{ v.arrival }}
+                          {% else %}
+                            {{ v.arrival }} ~ {{ v.end_time }}
+                          {% endif %}
+                        </div>
+                        {% if v.type == "wait" %}
+                          <div class="pill pill-neutral">대기 {{ v.service_time }}분</div>
+                        {% elif v.type == "lunch" %}
+                          <div class="pill pill-neutral">점심 {{ v.service_time }}분</div>
+                        {% endif %}
+                        {% if v.type == "return" %}
+                          <a class="nav-btn {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="길찾기" title="길찾기">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
+                          </a>
+                        {% endif %}
+                      </div>
                     </div>
                   {% endif %}
                 </div>
