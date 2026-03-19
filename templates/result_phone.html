@@ -11,16 +11,24 @@
 :root{
   --krds-primary:#1d4ed8;
   --krds-primary-strong:#1e40af;
-  --krds-bg:#f4f6fa;
+  --krds-bg:#eef3fb;
   --krds-surface:#ffffff;
-  --krds-border:#e2e8f0;
+  --krds-border:#d8e2f0;
   --krds-text:#111827;
   --krds-sub:#64748b;
+  --krds-panel:#f8fbff;
 }
 *{box-sizing:border-box;}
-body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;background:var(--krds-bg);color:var(--krds-text);}
-.container{max-width:1080px;margin:0 auto;padding:16px 16px 30px;}
-.hero{padding:0 0 10px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 8px -4px;}
+body{
+  margin:0;
+  font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(29,78,216,.08), transparent 26%),
+    linear-gradient(180deg, #f7faff 0%, var(--krds-bg) 100%);
+  color:var(--krds-text);
+}
+.container{max-width:1080px;margin:0 auto;padding:18px 16px 34px;}
+.hero{padding:0 0 12px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 10px -4px;}
 .header-left{display:flex;align-items:stretch;gap:3px;min-width:0;}
 .header-logo{width:56px;height:56px;object-fit:contain;display:block;flex:0 0 auto;}
 .hero-text{height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
@@ -29,29 +37,109 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .header-menu{width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;padding:0;color:#334155;cursor:default;flex:0 0 auto;}
 .header-menu svg{width:28px;height:28px;display:block;}
 .section-card{background:transparent;border:none;border-radius:0;padding:0;}
-.section-title{margin:0 14px 10px;font-size:21px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
-.empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
-.route-list{display:flex;flex-direction:column;gap:20px;}
-.visit-card{width:100%;background:var(--krds-surface);border:1px solid #cfd8e3;border-radius:18px;padding:16px 14px 14px;box-shadow:none;}
-.card-head{display:flex;align-items:flex-start;gap:12px;}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 10px 14px;}
+.section-title{margin:0;font-size:22px;color:#111827;font-weight:800;letter-spacing:-0.25px;}
+.section-desc{font-size:13px;color:var(--krds-sub);font-weight:700;white-space:nowrap;}
+.empty-box{padding:18px;border-radius:16px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;box-shadow:0 12px 26px rgba(15,23,42,.06);}
+.route-list{display:flex;flex-direction:column;gap:14px;}
+.visit-card{
+  width:100%;
+  background:linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+  border:1px solid var(--krds-border);
+  border-radius:22px;
+  padding:18px 16px 15px;
+  box-shadow:0 16px 30px rgba(15,23,42,.06);
+}
+.card-head{display:flex;align-items:flex-start;gap:14px;}
 .card-main{min-width:0;flex:1;}
-.route-badge{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 10px 18px rgba(29,78,216,.24);}
-.route-badge.start{background:#1d4ed8;}
-.route-badge.return{background:#1e40af;}
+.route-badge{
+  width:48px;
+  height:48px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:900;
+  color:#fff;
+  background:linear-gradient(135deg, var(--krds-primary) 0%, #2563eb 100%);
+  flex:0 0 auto;
+  box-shadow:0 12px 20px rgba(29,78,216,.24);
+}
+.route-badge.start{background:linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);}
+.route-badge.return{background:linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);}
 .route-badge.word{font-size:18px;}
-.route-address{font-size:clamp(17px,4.3vw,20px);font-weight:800;line-height:1.22;color:#111827;word-break:keep-all;overflow-wrap:anywhere;}
-.route-name{margin-top:6px;font-size:clamp(13px,3.5vw,15px);font-weight:700;color:#374151;}
-.route-meta{margin-top:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;row-gap:7px;}
-.nav-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;}
-.nav-btn svg{width:13px;height:13px;display:block;}
+.route-address{
+  font-size:clamp(18px,4.2vw,21px);
+  font-weight:850;
+  line-height:1.26;
+  color:#0f172a;
+  word-break:keep-all;
+  overflow-wrap:anywhere;
+}
+.route-name{
+  margin-top:8px;
+  font-size:clamp(13px,3.4vw,15px);
+  font-weight:700;
+  color:#475569;
+}
+.route-meta{
+  margin-top:13px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.route-chip{
+  display:inline-flex;
+  align-items:center;
+  height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  background:var(--krds-panel);
+  border:1px solid #dbe8fb;
+  color:#36517c;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.nav-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  border-radius:999px;
+  border:1px solid #bfdbfe;
+  background:#eff6ff;
+  color:#2563eb;
+  text-decoration:none;
+  transition:transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.nav-btn:hover{transform:translateY(-1px);background:#dbeafe;border-color:#93c5fd;}
+.nav-btn svg{width:14px;height:14px;display:block;}
 .nav-btn.disabled{opacity:.45;pointer-events:none;}
-.bottom-actions{width:100%;margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
-.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0 14px;border-radius:14px;border:1px solid #dbe2ea;background:#fff;color:#1f2937;font-size:14px;font-weight:700;cursor:pointer;}
+.bottom-actions{width:100%;margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;}
+.action-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  height:46px;
+  padding:0 14px;
+  border-radius:14px;
+  border:1px solid #dbe2ea;
+  background:#fff;
+  color:#1f2937;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
 .action-btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
 .action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
 .action-btn svg{width:14px;height:14px;}
 @media (max-width:760px){
-  .container{width:calc(100% - 32px);max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 12px) 0 30px;}
+  .container{width:calc(100% - 28px);max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 14px) 0 30px;}
   .hero{padding:0 0 8px;}
   .header-logo{width:48px;height:48px;}
   .hero-text{height:48px;}
@@ -60,16 +148,18 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .header-sub{font-size:11px;line-height:1.02;}
   .header-menu{width:48px;height:48px;}
   .header-menu svg{width:24px;height:24px;}
-  .section-title{font-size:18px;margin:0 14px 10px;}
-  .visit-card{padding:15px 12px 13px;border-radius:18px;}
-  .card-head{align-items:flex-start;gap:11px;}
-  .route-badge{width:42px;height:42px;font-size:21px;}
-  .route-badge.word{font-size:17px;}
-  .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
+  .section-head{margin:0 6px 12px;align-items:flex-start;flex-direction:column;}
+  .section-title{font-size:18px;}
+  .section-desc{white-space:normal;}
+  .visit-card{padding:16px 13px 14px;border-radius:20px;}
+  .card-head{align-items:flex-start;gap:12px;}
+  .route-badge{width:44px;height:44px;font-size:20px;border-radius:14px;}
+  .route-badge.word{font-size:16px;}
+  .route-meta{margin-top:11px;}
   .bottom-actions{flex-direction:column;}
   .action-btn{width:100%;}
 }
-body.force-mobile .container{width:calc(100% - 32px);max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 12px) 0 30px;}
+body.force-mobile .container{width:calc(100% - 28px);max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 14px) 0 30px;}
 body.force-mobile .hero{padding:0 0 8px;}
 body.force-mobile .header-logo{width:48px;height:48px;}
 body.force-mobile .hero-text{height:48px;}
@@ -78,11 +168,12 @@ body.force-mobile .header-title{font-size:18px;line-height:1.02;}
 body.force-mobile .header-sub{font-size:11px;line-height:1.02;}
 body.force-mobile .header-menu{width:48px;height:48px;}
 body.force-mobile .header-menu svg{width:24px;height:24px;}
-body.force-mobile .visit-card{padding:15px 12px 13px;border-radius:18px;}
-body.force-mobile .card-head{align-items:flex-start;gap:11px;}
-body.force-mobile .route-badge{width:42px;height:42px;font-size:21px;}
-body.force-mobile .route-badge.word{font-size:17px;}
-body.force-mobile .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
+body.force-mobile .section-head{margin:0 6px 12px;align-items:flex-start;flex-direction:column;}
+body.force-mobile .section-title{font-size:18px;}
+body.force-mobile .visit-card{padding:16px 13px 14px;border-radius:20px;}
+body.force-mobile .card-head{align-items:flex-start;gap:12px;}
+body.force-mobile .route-badge{width:44px;height:44px;font-size:20px;border-radius:14px;}
+body.force-mobile .route-badge.word{font-size:16px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 </style>
@@ -105,7 +196,11 @@ body.force-mobile .action-btn{width:100%;}
   </section>
 
   <section class="section-card">
-    <h3 class="section-title">최적방문순서</h3>
+    <div class="section-head">
+      <h3 class="section-title">최적방문순서</h3>
+      <div class="section-desc">전화 대상은 거리 기준으로 가장 가까운 순서로 정렬됩니다.</div>
+    </div>
+
     {% if route|length == 0 %}
       <div class="empty-box">경로를 생성할 수 없습니다. 입력 정보를 확인한 뒤 다시 시도해주세요.</div>
     {% else %}
@@ -124,13 +219,21 @@ body.force-mobile .action-btn{width:100%;}
               <div class="card-main">
                 {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
                 {% if v.name %}<div class="route-name" title="{{ v.name }}">{{ v.name }}</div>{% endif %}
-                {% if v.type == "visit" or v.type == "return" %}
-                  <div class="route-meta">
+                <div class="route-meta">
+                  {% if v.type == "start" %}
+                    <div class="route-chip">출발지</div>
+                  {% elif v.type == "return" %}
+                    <div class="route-chip">종료지</div>
+                  {% else %}
+                    <div class="route-chip">전화 {{ v.label }}번</div>
+                  {% endif %}
+
+                  {% if v.type == "visit" or v.type == "return" %}
                     <a class="nav-btn {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="길찾기" title="길찾기">
                       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
                     </a>
-                  </div>
-                {% endif %}
+                  {% endif %}
+                </div>
               </div>
             </div>
           </div>
