@@ -11,7 +11,7 @@
 :root{
   --krds-primary:#0050b3;
   --krds-primary-strong:#003b86;
-  --krds-bg:#f4f6f8;
+  --krds-bg:#eef2f6;
   --krds-surface:#ffffff;
   --krds-border:#c6d6f3;
   --krds-text:#10243e;
@@ -35,21 +35,22 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .section-card{background:transparent;border:none;border-radius:0;padding:0;}
 .section-title{margin:0 0 10px;font-size:21px;color:#09458f;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid #cedcf3;color:#355176;font-size:14px;text-align:center;}
-.route-list{display:flex;flex-direction:column;gap:8px;}
-.connector{display:flex;gap:6px;align-items:center;padding-left:50px;}
+.route-list{display:flex;flex-direction:column;gap:12px;}
+.route-item{display:block;}
+.connector{display:flex;gap:6px;align-items:center;padding:6px 0 0 8px;margin:0 0 6px;border-top:1px solid #d8dee6;}
 .connector-pill{display:inline-flex;height:22px;align-items:center;padding:0 8px;border-radius:999px;background:#eef3f8;border:1px solid #d8dee6;color:#425569;font-size:11px;font-weight:700;}
 .route-panel{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;}
 .route-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 4px 10px rgba(0,80,179,.26);}
 .route-badge.start{background:#0d6ac7;}
 .route-badge.return{background:#356fb1;}
 .route-badge.word{font-size:12px;}
-.visit-card{background:var(--krds-surface);border:1px solid #cfd7e2;border-radius:18px;padding:12px 12px 11px;box-shadow:none;}
-.card-head{display:flex;align-items:flex-start;gap:10px;}
+.visit-card{background:var(--krds-surface);border:1px solid #cfd7e2;border-radius:18px;padding:12px 12px 11px;box-shadow:0 1px 0 rgba(16,36,62,.05);}
+.card-head{display:flex;align-items:center;gap:10px;}
 .card-main{min-width:0;flex:1;}
 .route-address{font-size:17px;font-weight:800;line-height:1.24;color:#0f2e59;word-break:keep-all;overflow-wrap:anywhere;}
 .route-name{margin-top:4px;font-size:13px;font-weight:700;color:#224164;}
 .route-name.visit-name{font-size:14px;}
-.route-meta{margin-top:7px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.route-meta{margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:6px;}
 .pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;}
 .pill-primary{background:#deecff;border:1px solid #aac8f2;color:#104684;}
 .pill-neutral{background:#f0f6ff;border:1px solid #c4d8f7;color:#244a79;}
@@ -68,8 +69,8 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .parking-trip-chip.walk span::before{content:"도보 ";}
 .parking-empty{font-size:12px;color:#4c6788;padding:4px 0;}
 .notice-box{margin-top:8px;padding:10px 12px;border-radius:9px;background:#fff4eb;border:1px solid #ffcfa1;color:#9a3412;font-size:12px;font-weight:700;line-height:1.45;white-space:pre-line;}
-.bottom-actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;}
-.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 13px;border-radius:8px;border:1px solid #96b7ea;background:#fff;color:#1e4273;font-size:13px;font-weight:700;cursor:pointer;}
+.bottom-actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
+.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0 14px;border-radius:14px;border:1px solid #b9c7d8;background:#fff;color:#1e4273;font-size:14px;font-weight:700;cursor:pointer;}
 .action-btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
 .action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
 .action-btn svg{width:14px;height:14px;}
@@ -89,8 +90,10 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .summary-unit{font-size:14px;}
   .section-title{font-size:18px;}
   .route-address{font-size:16px;}
-  .visit-card{padding:10px 10px 9px;border-radius:16px;}
-  .connector{padding-left:44px;}
+  .visit-card{padding:11px 10px 10px;border-radius:16px;}
+  .card-head{align-items:flex-start;gap:9px;}
+  .route-meta{margin-top:7px;column-gap:5px;row-gap:5px;}
+  .connector{padding:6px 0 0 6px;margin:0 0 6px;}
   .parking-row{gap:4px;}
   .parking-trip-chip{padding:0 6px;}
   .bottom-actions{flex-direction:column;}
@@ -104,7 +107,10 @@ body.force-mobile .header-left{gap:6px;}
 body.force-mobile .header-title{font-size:18px;line-height:1.02;}
 body.force-mobile .header-sub{font-size:11px;line-height:1.02;}
 body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
-body.force-mobile .visit-card{padding:10px 10px 9px;border-radius:16px;}
+body.force-mobile .visit-card{padding:11px 10px 10px;border-radius:16px;}
+body.force-mobile .card-head{align-items:flex-start;gap:9px;}
+body.force-mobile .route-meta{margin-top:7px;column-gap:5px;row-gap:5px;}
+body.force-mobile .connector{padding:6px 0 0 6px;margin:0 0 6px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
 </style>
