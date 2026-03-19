@@ -7,6 +7,17 @@
 <title>국세청 체납관리단 - SMART 경로탐색</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
+:root{
+  --krds-form-select--color-background:#f8fafd;
+  --krds-form-select--color-background-active:#ffffff;
+  --krds-form-select--color-border:#d4dce7;
+  --krds-form-select--color-border-active:#5779b4;
+  --krds-form-select--color-text:#475569;
+  --krds-form-select--color-text-active:#0f172a;
+  --krds-form-select--color-option-selected-bg:#e7ecf3;
+  --krds-form-select--color-option-selected-text:#243b63;
+  --krds-form-select--color-check:#244a7c;
+}
 *{box-sizing:border-box;}
 
 html,body{
@@ -138,11 +149,11 @@ input[type="text"]{
   width:100%;
   height:48px;
   padding:0 44px 0 14px;
-  border:1px solid #d4dce7;
+  border:1px solid var(--krds-form-select--color-border);
   border-radius:13px;
-  background:#f8fafd;
+  background:var(--krds-form-select--color-background);
   font-size:14px;
-  color:#0f172a;
+  color:var(--krds-form-select--color-text-active);
   font-family:Pretendard,sans-serif;
   font-weight:600;
   line-height:48px;
@@ -159,8 +170,8 @@ select:focus,
 .select-trigger:focus,
 input[type="text"]:focus{
   outline:none;
-  border-color:#5779b4;
-  background:#ffffff;
+  border-color:var(--krds-form-select--color-border-active);
+  background:var(--krds-form-select--color-background-active);
   box-shadow:0 0 0 3px rgba(87,121,180,0.12);
 }
 
@@ -197,10 +208,10 @@ input[type="text"]:focus{
   padding:0 14px;
 }
 .select-text{
-  color:#0f172a;
+  color:var(--krds-form-select--color-text-active);
 }
 .custom-select.placeholder .select-text{
-  color:#475569;
+  color:var(--krds-form-select--color-text);
 }
 .select-arrow{
   width:9px;
@@ -221,9 +232,9 @@ input[type="text"]:focus{
   margin:0;
   padding:6px;
   list-style:none;
-  border:1px solid #d4dce7;
+  border:1px solid var(--krds-form-select--color-border);
   border-radius:8px;
-  background:#ffffff;
+  background:#f5f6f8;
   box-shadow:0 8px 18px rgba(15,23,42,0.08);
   z-index:40;
   max-height:220px;
@@ -233,8 +244,8 @@ input[type="text"]:focus{
   width:100%;
   border:none;
   background:transparent;
-  border-radius:6px;
-  padding:10px 10px 10px 28px;
+  border-radius:4px;
+  padding:10px 10px 10px 32px;
   font-size:14px;
   font-weight:600;
   color:#111827;
@@ -246,17 +257,19 @@ input[type="text"]:focus{
   background:#f1f5f9;
 }
 .select-option.selected{
-  background:#e9eef5;
-  color:#243b63;
+  background:var(--krds-form-select--color-option-selected-bg);
+  color:var(--krds-form-select--color-option-selected-text);
 }
 .select-option.selected::before{
-  content:"✓";
+  content:"";
   position:absolute;
-  left:10px;
+  left:13px;
   top:50%;
-  transform:translateY(-50%);
-  color:#244a7c;
-  font-weight:800;
+  width:9px;
+  height:5px;
+  border-left:2px solid var(--krds-form-select--color-check);
+  border-bottom:2px solid var(--krds-form-select--color-check);
+  transform:translateY(-62%) rotate(-45deg);
 }
 
 .date-wrap::after{
