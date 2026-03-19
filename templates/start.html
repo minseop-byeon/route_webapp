@@ -1062,7 +1062,7 @@ updateSelectCompleted(userSelect);
 restoreStartDraft();
 
 if(!workTypeSelect.value){
-  setCustomValue(workTypeSelect, workTypeSelectText, workTypeSelectWrap, workTypeSelectMenu, "{{ work_type or 'visit' }}");
+  setCustomValue(workTypeSelect, workTypeSelectText, workTypeSelectWrap, workTypeSelectMenu, "{{ work_type or '' }}");
   workTypeSelect.dispatchEvent(new Event("change"));
 }
 </script>
