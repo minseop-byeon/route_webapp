@@ -495,6 +495,40 @@ def parse_appointment_minute(hour_str: str, minute_str: str):
     return hh * 60 + mm
 
 
+def shorten_sido_name(address: str):
+    if address is None:
+        return address
+    s = str(address).strip()
+    if not s:
+        return s
+    replacements = [
+        ("제주특별자치도", "제주"),
+        ("강원특별자치도", "강원"),
+        ("전북특별자치도", "전북"),
+        ("서울특별시", "서울"),
+        ("부산광역시", "부산"),
+        ("대구광역시", "대구"),
+        ("인천광역시", "인천"),
+        ("광주광역시", "광주"),
+        ("대전광역시", "대전"),
+        ("울산광역시", "울산"),
+        ("세종특별자치시", "세종"),
+        ("경기도", "경기"),
+        ("강원도", "강원"),
+        ("충청북도", "충북"),
+        ("충청남도", "충남"),
+        ("전라북도", "전북"),
+        ("전라남도", "전남"),
+        ("경상북도", "경북"),
+        ("경상남도", "경남"),
+        ("제주도", "제주"),
+    ]
+    for full, short in replacements:
+        if s.startswith(full):
+            return short + s[len(full):]
+    return s
+
+
 def get_geocode_cache():
     return load_persistent_json("geocode_cache", GEOCODE_CACHE_FILE, {})
 
@@ -1340,7 +1374,7 @@ def append_wait_block(route_view, start_min, end_min, name="대기"):
     route_view.append({
         "type": "wait",
         "label": "W",
-        "name": name,
+        "name": "대기" if "대기" in str(name) else (name or "대기"),
         "address": "",
         "arrival": minutes_to_str(start_min),
         "end_time": minutes_to_str(end_min),
@@ -1371,7 +1405,7 @@ def add_visit_block(route_view, visit_no, visit, arrival_min, travel_m, travel_m
         "label": str(visit_no),
         "visit_id": visit.get("visit_id"),
         "name": visit["name"],
-        "address": visit.get("display_address") or visit["address"],
+        "address": shorten_sido_name(visit.get("display_address") or visit["address"]),
         "arrival": minutes_to_str(arrival_min),
         "end_time": minutes_to_str(arrival_min + visit["service_time"]),
         "service_time": visit["service_time"],
@@ -1385,8 +1419,8 @@ def add_return_block(route_view, arrival_min, travel_m, travel_min, return_addre
     route_view.append({
         "type": "return",
         "label": "R",
-        "name": return_name or get_return_name(),
-        "address": return_address or get_return_address(),
+        "name": "복귀",
+        "address": shorten_sido_name(return_address or get_return_address()),
         "arrival": minutes_to_str(arrival_min),
         "end_time": minutes_to_str(arrival_min),
         "service_time": 0,
@@ -1839,8 +1873,8 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
     initial_route = [{
         "type": "start",
         "label": "S",
-        "name": get_start_name(),
-        "address": start_display_address or get_start_address(),
+        "name": "출발",
+        "address": shorten_sido_name(start_display_address or get_start_address()),
         "arrival": minutes_to_str(start_time),
         "end_time": minutes_to_str(start_time),
         "service_time": 0,

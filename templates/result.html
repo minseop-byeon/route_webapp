@@ -68,6 +68,7 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .route-address{font-size:clamp(17px,4.3vw,20px);font-weight:800;line-height:1.22;color:#111827;word-break:keep-all;overflow-wrap:anywhere;}
 .route-name{margin-top:6px;font-size:clamp(13px,3.5vw,15px);font-weight:700;color:#374151;}
 .route-name.visit-name{font-size:clamp(13px,3.5vw,15px);}
+.route-name.emphasis{font-size:clamp(17px,4.3vw,20px);font-weight:800;line-height:1.22;color:#111827;margin-top:0;}
 .route-meta{margin-top:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;row-gap:7px;}
 .pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;}
 .pill-primary{background:#e8f1ff;border:1px solid #c7d8ff;color:#1d4ed8;}
@@ -220,7 +221,7 @@ body.force-mobile .action-btn{width:100%;}
                       {% if v.type == "visit" and v.name|length > 5 %}
                         {% set display_name = v.name[:5] ~ "…" %}
                       {% endif %}
-                      <div class="route-name{% if v.type == 'visit' %} visit-name{% endif %}" title="{{ v.name }}">{{ display_name }}</div>
+                      <div class="route-name{% if v.type == 'visit' %} visit-name{% endif %}{% if v.type == 'wait' or v.type == 'lunch' %} emphasis{% endif %}" title="{{ v.name }}">{{ display_name }}</div>
                     {% endif %}
                     <div class="route-meta">
                       <div class="pill pill-primary">
