@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -7,223 +7,123 @@
 <title>국세청 체납관리단 - SMART 경로탐색</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
-:root{--page-bg:#f3f6fb;}
+:root{
+  --krds-primary:#003675;
+  --krds-primary-strong:#002850;
+  --krds-bg:#f4f6f8;
+  --krds-border:#c6ccd4;
+  --krds-text:#1d1d1d;
+  --krds-sub:#526173;
+}
 *{box-sizing:border-box;}
-body{margin:0;font-family:Pretendard,sans-serif;background:var(--page-bg);color:#111827;}
-.container{max-width:920px;margin:36px auto;padding:0 18px 32px;}
-.header-row{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px;}
-.header-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1 1 auto;}
-.header-logo{width:64px;height:64px;object-fit:contain;display:block;flex:0 0 auto;}
-.header-title{font-size:23px;font-weight:800;line-height:1.05;letter-spacing:-0.5px;white-space:nowrap;}
-.header-sub{margin-top:4px;font-size:13px;font-weight:700;color:#5b6b7f;letter-spacing:-0.1px;}
-.menu-btn{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border:none;background:transparent;color:#0f172a;cursor:pointer;flex:0 0 auto;padding:0;}
-.menu-btn svg{width:40px;height:40px;display:block;}
-
-.card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;box-shadow:0 8px 22px rgba(15,23,42,.045);padding:16px;margin-bottom:14px;}
-.summary-grid{position:relative;overflow:hidden;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;background:linear-gradient(180deg,#eaf1ff 0%,#f5f8ff 100%);border:1px solid #d7e2f3;border-radius:30px;padding:14px 12px 10px;box-shadow:0 10px 18px rgba(15,23,42,.055);}
-.summary-grid::before{content:"";position:absolute;top:-66px;left:50%;transform:translateX(-50%);width:168px;height:116px;border-radius:0 0 84px 84px;background:rgba(255,255,255,.44);}
-.summary-grid::after{content:"";position:absolute;right:-10px;bottom:-16px;width:78px;height:54px;border-radius:16px;background:rgba(255,255,255,.3);}
-.summary-item{position:relative;z-index:1;padding:2px 8px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:54px;text-align:center;}
-.summary-item:not(:last-child){border-right:1px solid #d4dde7;}
-.summary-label{font-size:11px;color:#8a95a5;font-weight:700;line-height:1.15;letter-spacing:-0.1px;}
-.summary-value{margin-top:4px;font-size:30px;color:#0f172a;font-weight:850;letter-spacing:-0.35px;line-height:1;}
-.summary-unit{margin-left:3px;font-size:20px;font-weight:800;}
-.summary-item:nth-child(4){grid-column:1 / -1;border-right:none;border-top:1px solid #d4dde7;margin-top:6px;min-height:34px;padding-top:7px;display:flex;flex-direction:row;justify-content:center;align-items:center;gap:6px;}
-.summary-item:nth-child(4) .summary-label{font-size:0;}
-.summary-item:nth-child(4) .summary-label::before{content:"예상 복귀시간";font-size:11px;color:#7b8797;font-weight:700;}
-.summary-item:nth-child(4) .summary-value{margin-top:0;font-size:15px;letter-spacing:-0.1px;}
-
-.section-title{margin:0 0 12px 0;font-size:18px;font-weight:900;color:#0f172a;letter-spacing:-0.2px;text-align:left;}
-.notice-box{margin-top:8px;padding:11px 12px;border-radius:10px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;font-weight:800;line-height:1.5;white-space:pre-line;}
-.empty-box{padding:22px 16px;border-radius:14px;background:#f8fafc;border:1px dashed #cbd5e1;color:#64748b;text-align:center;font-size:14px;}
-.route-list{display:flex;flex-direction:column;gap:12px;padding:0 2px;}
-.route-item{position:relative;padding:0;margin:0;}
-.route-panel{position:relative;background:#fff;border:1px solid #dbe5f0;border-radius:16px;padding:15px 14px 13px 14px;box-shadow:0 6px 16px rgba(15,23,42,.035);}
-.route-panel.route-visit{overflow:hidden;border-color:#cfd9e8;}
-.route-top{display:flex;align-items:flex-start;gap:11px;}
-.route-badge{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;background:#1d4ed8;box-shadow:0 8px 18px rgba(29,78,216,.16);flex:0 0 auto;letter-spacing:-0.1px;}
-.route-badge.start{background:#1e40af;}
-.route-badge.return{background:#4f46e5;}
-.route-badge.word{font-size:12px;letter-spacing:-0.1px;}
-.route-main{min-width:0;flex:1 1 auto;}
-.route-address{font-size:18px;font-weight:800;line-height:1.25;color:#0f172a;letter-spacing:-0.25px;word-break:keep-all;overflow-wrap:anywhere;}
-.route-name{display:block;margin-top:5px;font-size:13px;font-weight:800;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);}
+.gov-top{background:#0f172a;color:#fff;padding:8px 0;font-size:12px;font-weight:600;}
+.gov-top-inner{max-width:1080px;margin:0 auto;padding:0 16px;display:flex;align-items:center;gap:8px;}
+.gov-dot{width:7px;height:7px;border-radius:50%;background:#69a8ff;display:inline-block;}
+.container{max-width:1080px;margin:0 auto;padding:18px 16px 30px;}
+.hero{background:#fff;border:1px solid var(--krds-border);border-top:4px solid var(--krds-primary);border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px;}
+.header-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.header-logo{width:56px;height:56px;object-fit:contain;display:block;}
+.header-title{font-size:27px;font-weight:800;line-height:1.1;letter-spacing:-0.3px;color:#0b2f65;}
+.header-sub{margin-top:3px;font-size:14px;font-weight:700;color:var(--krds-sub);}
+.summary-wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
+.summary-item{background:#fff;border:1px solid var(--krds-border);border-radius:10px;padding:14px 12px;}
+.summary-label{font-size:12px;color:#5e6c7d;font-weight:700;}
+.summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#10233d;letter-spacing:-0.2px;}
+.summary-unit{margin-left:2px;font-size:18px;font-weight:700;}
+.section-card{background:#fff;border:1px solid var(--krds-border);border-radius:12px;padding:16px;}
+.section-title{margin:0 0 10px;font-size:20px;color:#0b2f65;font-weight:800;letter-spacing:-0.2px;}
+.empty-box{padding:18px;border-radius:8px;background:#f8fafc;border:1px solid #dde3ea;color:#516072;font-size:14px;text-align:center;}
+.route-list{display:flex;flex-direction:column;gap:10px;}
+.connector{display:flex;gap:6px;align-items:center;padding-left:50px;}
+.connector-pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;background:#eef3f9;border:1px solid #d2dae5;color:#334155;font-size:12px;font-weight:700;}
+.route-panel{background:#fff;border:1px solid #cfd6df;border-radius:10px;padding:12px;}
+.route-top{display:flex;align-items:flex-start;gap:10px;}
+.route-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;}
+.route-badge.start{background:#1d4f91;}
+.route-badge.return{background:#435f86;}
+.route-badge.word{font-size:12px;}
+.route-main{min-width:0;flex:1;}
+.route-address{font-size:17px;font-weight:800;line-height:1.25;color:#162438;word-break:keep-all;overflow-wrap:anywhere;}
+.route-name{margin-top:4px;font-size:13px;font-weight:700;color:#344255;}
 .route-name.visit-name{font-size:14px;}
-.route-meta{margin-top:6px;display:flex;align-items:center;gap:4px;flex-wrap:nowrap;max-width:100%;overflow:hidden;}
-.route-meta .nav-btn{flex:0 0 auto;}
-.pill{display:inline-flex;align-items:center;justify-content:center;height:22px;padding:0 7px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;letter-spacing:-0.1px;}
-.pill-primary{background:#eff6ff;border:1px solid #dbeafe;color:#1d4ed8;}
-.pill-neutral{background:#f8fafc;border:1px solid #e2e8f0;color:#334155;}
-.nav-btn{display:none;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;}
-.nav-btn.disabled{opacity:.42;pointer-events:none;}
-.nav-btn svg{width:13px;height:13px;display:block;stroke-width:2.2;}
-
-.parking-expand{
-  margin-top:13px;
-  padding-top:11px;
-  border-top:none;
-  background-image:repeating-linear-gradient(to right, #9bb0cc 0 6px, transparent 6px 10px);
-  background-repeat:no-repeat;
-  background-size:66.666% 1px;
-  background-position:center top;
-  display:block;
-}
-.route-panel.route-visit{
-  overflow:hidden;
-}
-.route-panel.route-visit .parking-expand{
-  position:relative;
-  margin-left:-60px;
-  margin-right:-14px;
-  padding-left:14px;
-  padding-right:14px;
-}
-.route-panel.route-visit .parking-expand::before,
-.route-panel.route-visit .parking-expand::after{
-  content:"";
-  position:absolute;
-  top:-8px;
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  background:var(--page-bg);
-  border:1px solid #cfd9e8;
-  z-index:3;
-}
-.route-panel.route-visit .parking-expand::before{left:-8px;}
-.route-panel.route-visit .parking-expand::after{right:-8px;}
-.parking-subtitle{font-size:12px;font-weight:800;color:#334155;margin:0 0 9px 0;}
-.parking-empty{font-size:12px;color:#64748b;padding:3px 0 8px 0;}
-.parking-row{display:flex;align-items:center;gap:4px;padding:9px 0;border-bottom:1px solid #e2e8f0;}
+.route-meta{margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;}
+.pill-primary{background:#e7effa;border:1px solid #b9cbe5;color:#163f77;}
+.pill-neutral{background:#f5f7fa;border:1px solid #d2d8e0;color:#3b4657;}
+.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #b7c5d8;background:#edf2f8;color:#1f3f6b;text-decoration:none;}
+.nav-btn svg,.parking-guide svg{width:13px;height:13px;display:block;}
+.nav-btn.disabled,.parking-guide.disabled{opacity:.45;pointer-events:none;}
+.parking-expand{margin-top:10px;padding-top:10px;border-top:1px dashed #d2d8e0;}
+.parking-subtitle{margin:0 0 8px;font-size:12px;font-weight:800;color:#344255;}
+.parking-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #ecf0f4;}
 .parking-row:last-child{border-bottom:none;}
-.parking-name{min-width:0;max-width:58%;font-size:12px;color:#0f172a;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;}
-.parking-trip-chip{display:inline-flex;align-items:center;justify-content:center;height:21px;border-radius:999px;padding:0 7px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid transparent;}
-.parking-trip-chip svg{display:none;}
+.parking-name{min-width:0;max-width:58%;font-size:12px;color:#111827;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.parking-trip-chip{display:inline-flex;align-items:center;justify-content:center;height:22px;border-radius:999px;padding:0 8px;font-size:10px;font-weight:700;border:1px solid transparent;white-space:nowrap;}
+.parking-trip-chip.car{color:#163f77;background:#e7effa;border-color:#b9cbe5;}
+.parking-trip-chip.walk{color:#136246;background:#e6f6ef;border-color:#bce2d1;}
 .parking-trip-chip.car span::before{content:"차량 ";}
 .parking-trip-chip.walk span::before{content:"도보 ";}
-.parking-trip-chip.car{color:#1e40af;background:#e8f0ff;border-color:#bfd3ff;}
-.parking-trip-chip.walk{color:#065f46;background:#e7f8f0;border-color:#bde7d1;}
-.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;border:1px solid #bfdbfe;background:#eff6ff;color:#2563eb;text-decoration:none;flex:0 0 auto;}
-.parking-guide.disabled{opacity:.42;pointer-events:none;}
-.parking-guide svg{width:12px;height:12px;display:block;stroke-width:2.2;}
-
-.connector{position:relative;display:flex;align-items:center;gap:8px;padding:2px 0 2px 18px;margin:2px 0 0 18px;}
-.connector::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#d4dde7;transform:translateY(-50%);opacity:.9;}
-.connector-pill{position:relative;z-index:1;display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:10px;font-weight:700;}
-
-.bottom-actions{margin-top:20px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:12px;border:1px solid #dbe2ea;background:#fff;color:#0f172a;font-size:13px;font-weight:700;font-family:Pretendard,sans-serif;cursor:pointer;}
-.action-btn-primary{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
-.action-btn svg{width:15px;height:15px;flex:0 0 auto;}
-
-@media (min-width:761px){
-  .header-row{align-items:flex-start;margin-bottom:16px;}
-  .menu-btn{width:24px;height:24px;}
-  .menu-btn svg{width:22px;height:22px;}
-  .card{margin-bottom:16px;}
-  .summary-grid{background:#eef2f7;border:1px solid #d9e2ec;border-radius:26px;padding:12px 12px 10px;box-shadow:0 8px 16px rgba(15,23,42,.05);}
-  .summary-grid::before,.summary-grid::after{display:none;}
-  .route-panel.route-visit .parking-expand{margin-left:0;margin-right:0;padding-left:0;padding-right:0;}
-  .route-panel.route-visit .parking-expand::before,.route-panel.route-visit .parking-expand::after{display:none;}
+.parking-empty{font-size:12px;color:#64748b;padding:4px 0;}
+.notice-box{margin-top:8px;padding:10px 12px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;font-weight:700;line-height:1.45;white-space:pre-line;}
+.bottom-actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;}
+.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 13px;border-radius:8px;border:1px solid #9ba8b9;background:#fff;color:#1f2937;font-size:13px;font-weight:700;cursor:pointer;}
+.action-btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
+.action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
+.action-btn svg{width:14px;height:14px;}
+@media (max-width:860px){
+  .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
-
 @media (max-width:760px){
-  .container{margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 8px) 10px 22px;}
-  .header-logo{width:54px;height:54px;}
-  .header-title{font-size:17px;}
-  .header-sub{font-size:11px;}
-  .menu-btn{width:54px;height:54px;}
-  .menu-btn svg{width:38px;height:38px;}
-  .card{padding:0;border:none;box-shadow:none;background:transparent;margin-bottom:12px;}
-  .summary-grid{border-radius:24px;padding:11px 10px 9px;}
-  .summary-grid::before{top:-58px;width:152px;height:104px;border-radius:0 0 76px 76px;}
-  .summary-item{min-height:46px;padding:0 6px;}
-  .summary-label{font-size:10px;}
-  .summary-value{font-size:19px;}
-  .summary-unit{font-size:13px;}
-  .summary-item:nth-child(4) .summary-label::before{font-size:10px;}
-  .summary-item:nth-child(4) .summary-value{font-size:13px;}
-  .section-title{font-size:17px;}
-  .route-address{font-size:17px;}
-  .route-name{font-size:12px;}
-  .route-name.visit-name{font-size:13px;}
-  .route-panel{padding:13px 12px 12px 12px;}
-  .route-top{gap:10px;}
-  .route-meta{gap:3px;}
-  .pill,.connector-pill{height:20px;padding:0 6px;font-size:9px;}
-  .nav-btn{display:inline-flex;}
-  .parking-expand{margin-top:12px;padding-top:10px;}
-  .parking-subtitle{margin:0 0 8px 0;}
-  .parking-row{gap:2px;padding:8px 0;}
-  .parking-name{font-size:12px;}
-  .parking-trip-chip{height:20px;padding:0 5px;font-size:9px;}
+  .gov-top-inner,.container{padding-left:10px;padding-right:10px;}
+  .container{padding-top:10px;}
+  .hero{padding:13px 12px;}
+  .header-logo{width:48px;height:48px;}
+  .header-title{font-size:22px;}
+  .summary-item{padding:11px 10px;}
+  .summary-value{font-size:22px;}
+  .summary-unit{font-size:14px;}
+  .section-card{padding:12px;}
+  .section-title{font-size:18px;}
+  .route-address{font-size:16px;}
+  .connector{padding-left:44px;}
+  .parking-row{gap:4px;}
+  .parking-trip-chip{padding:0 6px;}
   .bottom-actions{flex-direction:column;}
   .action-btn{width:100%;}
 }
-
-body.force-mobile{background:#f3f6fb;}
-body.force-mobile .container{margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 8px) 10px 22px;max-width:430px;}
-body.force-mobile .header-logo{width:54px;height:54px;}
-body.force-mobile .header-title{font-size:17px;}
-body.force-mobile .header-sub{font-size:11px;}
-body.force-mobile .menu-btn{width:54px;height:54px;}
-body.force-mobile .menu-btn svg{width:38px;height:38px;}
-body.force-mobile .card{padding:0;border:none;box-shadow:none;background:transparent;margin-bottom:12px;}
-body.force-mobile .summary-grid{border-radius:24px;padding:11px 10px 9px;}
-body.force-mobile .summary-grid::before{top:-58px;width:152px;height:104px;border-radius:0 0 76px 76px;}
-body.force-mobile .summary-item{min-height:46px;padding:0 6px;}
-body.force-mobile .summary-label{font-size:10px;}
-body.force-mobile .summary-value{font-size:19px;}
-body.force-mobile .summary-unit{font-size:13px;}
-body.force-mobile .summary-item:nth-child(4) .summary-label::before{font-size:10px;}
-body.force-mobile .summary-item:nth-child(4) .summary-value{font-size:13px;}
-body.force-mobile .section-title{font-size:17px;}
-body.force-mobile .route-address{font-size:17px;}
-body.force-mobile .route-name{font-size:12px;}
-body.force-mobile .route-name.visit-name{font-size:13px;}
-body.force-mobile .route-panel{padding:13px 12px 12px 12px;}
-body.force-mobile .route-top{gap:10px;}
-body.force-mobile .route-meta{gap:3px;}
-body.force-mobile .pill, body.force-mobile .connector-pill{height:20px;padding:0 6px;font-size:9px;}
-body.force-mobile .nav-btn{display:inline-flex;}
-body.force-mobile .parking-expand{margin-top:12px;padding-top:10px;}
-body.force-mobile .parking-subtitle{margin:0 0 8px 0;}
-body.force-mobile .parking-row{gap:1px;padding:8px 0;}
-body.force-mobile .parking-name{font-size:12px;}
-body.force-mobile .parking-trip-chip{height:20px;padding:0 5px;font-size:9px;}
+body.force-mobile .container{max-width:430px;padding-top:10px;}
+body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
-body.force-mobile .route-panel.route-visit .parking-expand::before,
-body.force-mobile .route-panel.route-visit .parking-expand::after{display:block;background:var(--page-bg);}
 </style>
 </head>
 <body{% if force_mobile %} class="force-mobile"{% endif %}>
+<div class="gov-top">
+  <div class="gov-top-inner">
+    <span class="gov-dot" aria-hidden="true"></span>
+    대한민국 공식 전자정부 누리집 스타일을 참고한 업무용 화면입니다.
+  </div>
+</div>
 <div class="container">
-  <div class="header-row">
+  <section class="hero">
     <div class="header-left">
       <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
       <div>
         <div class="header-title">국세청 체납관리단</div>
-        <div class="header-sub">SMART 경로탐색</div>
+        <div class="header-sub">SMART 경로탐색 결과</div>
       </div>
     </div>
-    <button type="button" class="menu-btn" aria-label="menu">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
-      </svg>
-    </button>
-  </div>
+  </section>
 
-  <div class="card">
-    <div class="summary-grid">
-      <div class="summary-item"><div class="summary-label">총 방문지</div><div class="summary-value">{{ total_count }}<span class="summary-unit">곳</span></div></div>
-      <div class="summary-item"><div class="summary-label">총 이동거리</div><div class="summary-value">{{ "%.1f"|format(total_distance|float) if total_distance != "--" else total_distance }}<span class="summary-unit">km</span></div></div>
-      <div class="summary-item"><div class="summary-label">총 소요시간</div><div class="summary-value">{{ total_time }}<span class="summary-unit">분</span></div></div>
-      <div class="summary-item"><div class="summary-label">예상 복귀시간</div><div class="summary-value">{{ end_time }}</div></div>
-    </div>
-  </div>
+  <section class="summary-wrap" aria-label="경로 요약">
+    <div class="summary-item"><div class="summary-label">총 방문지</div><div class="summary-value">{{ total_count }}<span class="summary-unit">곳</span></div></div>
+    <div class="summary-item"><div class="summary-label">총 이동거리</div><div class="summary-value">{{ "%.1f"|format(total_distance|float) if total_distance != "--" else total_distance }}<span class="summary-unit">km</span></div></div>
+    <div class="summary-item"><div class="summary-label">총 소요시간</div><div class="summary-value">{{ total_time }}<span class="summary-unit">분</span></div></div>
+    <div class="summary-item"><div class="summary-label">예상 복귀시간</div><div class="summary-value">{{ end_time }}</div></div>
+  </section>
 
-  <div class="card">
+  <section class="section-card">
     <h3 class="section-title">최적 방문 순서</h3>
     {% if route|length == 0 %}
       <div class="empty-box">경로를 생성할 수 없습니다. 입력 정보를 확인한 뒤 다시 시도해주세요.</div>
@@ -247,9 +147,9 @@ body.force-mobile .route-panel.route-visit .parking-expand::after{display:block;
                 {% elif v.type == "visit" %}
                   <div class="route-badge">{{ v.label }}</div>
                 {% elif v.type == "wait" %}
-                  <div class="route-badge word" style="background:#f97316;">W</div>
+                  <div class="route-badge word" style="background:#c25a1d;">W</div>
                 {% elif v.type == "lunch" %}
-                  <div class="route-badge word" style="background:#059669;">L</div>
+                  <div class="route-badge word" style="background:#1b7a57;">L</div>
                 {% endif %}
 
                 <div class="route-main">
@@ -314,6 +214,7 @@ body.force-mobile .route-panel.route-visit .parking-expand::after{display:block;
               </div>
             </div>
           </div>
+
           {% if v.type == "return" and warning_message %}
             <div class="notice-box">{{ warning_message }}</div>
           {% endif %}
@@ -328,7 +229,7 @@ body.force-mobile .route-panel.route-visit .parking-expand::after{display:block;
       </button>
       <button type="button" class="action-btn action-btn-primary" onclick="location.href='/reset'">새로 시작하기</button>
     </div>
-  </div>
+  </section>
 </div>
 </body>
 </html>

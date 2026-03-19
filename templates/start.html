@@ -1,341 +1,111 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/symbol.png') }}">
 <title>국세청 체납관리단 - SMART 경로탐색</title>
-
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-
 <style>
+:root{
+  --krds-primary:#003675;
+  --krds-primary-strong:#002850;
+  --krds-bg:#f4f6f8;
+  --krds-border:#c6ccd4;
+  --krds-text:#1d1d1d;
+  --krds-sub:#516072;
+}
 *{box-sizing:border-box;}
-
-html, body{
-  margin:0;
-  padding:0;
-}
-
-body{
-  font-family:Pretendard,sans-serif;
-  background:#f4f6fa;
-  color:#111827;
-  min-height:100vh;
-}
-
-.container{
-  max-width:420px;
-  margin:34px auto;
-  padding:0 18px 28px;
-}
-
-.top-actions{
-  display:flex;
-  justify-content:flex-end;
-  margin-bottom:10px;
-  padding-right:2px;
-}
-
-.admin-btn{
-  font-size:12px;
-  font-weight:600;
-  color:#94a3b8;
-  text-decoration:none;
-  line-height:1;
-}
-
-.admin-btn:hover{
-  color:#64748b;
-  text-decoration:underline;
-}
-
-.card{
-  background:#ffffff;
-  border:1px solid #e2e8f0;
-  border-radius:20px;
-  padding:34px 24px 22px;
-  box-shadow:0 10px 24px rgba(15,23,42,0.045);
-}
-
-.logo-wrap{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  margin-bottom:18px;
-}
-
-.logo-circle{
-  width:126px;
-  height:126px;
-  border-radius:50%;
-  background:#ffffff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.logo-circle img{
-  width:112px;
-  height:112px;
-  object-fit:contain;
-  display:block;
-}
-
-.title-wrap{
-  text-align:center;
-  margin-bottom:26px;
-}
-
-.main-title{
-  font-size:24px;
-  font-weight:850;
-  letter-spacing:-0.45px;
-  color:#111827;
-  line-height:1.2;
-}
-
-.sub-title{
-  margin-top:7px;
-  font-size:13px;
-  color:#64748b;
-  font-weight:700;
-  letter-spacing:0.25px;
-}
-
-.form-group{
-  margin-bottom:15px;
-}
-
-.field{
-  display:flex;
-  flex-direction:column;
-}
-
-label{
-  font-size:12px;
-  color:#6b7280;
-  margin-bottom:7px;
-  font-weight:700;
-}
-
-.required::after{
-  content:" *";
-  color:#ef4444;
-}
-
-.select-wrap,
-.date-wrap{
-  position:relative;
-}
-
-select,
-input[type="date"]{
-  width:100%;
-  height:48px;
-  padding:0 44px 0 14px;
-  border:1px solid #dbe2ea;
-  border-radius:13px;
-  background:#ffffff;
-  font-size:14px;
-  color:#0f172a;
-  font-family:Pretendard,sans-serif;
-  font-weight:600;
-  line-height:48px;
-  transition:border-color 0.15s, box-shadow 0.15s, background 0.15s;
-  appearance:none;
-  -webkit-appearance:none;
-  -moz-appearance:none;
-}
-
-select:focus,
-input[type="date"]:focus{
-  outline:none;
-  border-color:#1d4ed8;
-  box-shadow:0 0 0 3px rgba(29,78,216,0.08);
-}
-
-.select-wrap::after{
-  content:"";
-  position:absolute;
-  top:50%;
-  right:16px;
-  width:9px;
-  height:9px;
-  border-right:2px solid #94a3b8;
-  border-bottom:2px solid #94a3b8;
-  transform:translateY(-65%) rotate(45deg);
-  pointer-events:none;
-}
-
-.date-wrap::after{
-  content:"";
-  position:absolute;
-  top:50%;
-  right:14px;
-  width:16px;
-  height:16px;
-  transform:translateY(-50%);
-  border:2px solid #94a3b8;
-  border-radius:4px;
-  pointer-events:none;
-}
-
-.date-wrap::before{
-  content:"";
-  position:absolute;
-  top:calc(50% - 5px);
-  right:18px;
-  width:8px;
-  height:2px;
-  background:#94a3b8;
-  pointer-events:none;
-  z-index:1;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator{
-  position:absolute;
-  right:10px;
-  width:24px;
-  height:24px;
-  opacity:0;
-  cursor:pointer;
-}
-
-.hidden{
-  display:none;
-}
-
-.submit-btn{
-  width:100%;
-  margin-top:10px;
-  border:none;
-  border-radius:13px;
-  padding:14px 16px;
-  cursor:pointer;
-  font-size:14px;
-  font-weight:800;
-  font-family:Pretendard,sans-serif;
-  background:#1d4ed8;
-  color:#ffffff;
-  transition:background 0.15s, transform 0.15s;
-}
-
-.submit-btn:hover:enabled{
-  background:#1e40af;
-}
-
-.submit-btn:disabled{
-  background:#94a3b8;
-  cursor:not-allowed;
-}
-
-@media (max-width:560px){
-  .container{
-    margin:22px auto;
-    padding:0 10px 22px;
-  }
-
-  .card{
-    padding:20px 0 12px;
-    border-radius:0;
-    border:none;
-    box-shadow:none;
-    background:transparent;
-  }
-
-  .logo-wrap{
-    margin-bottom:16px;
-  }
-
-  .logo-circle{
-    width:112px;
-    height:112px;
-  }
-
-  .logo-circle img{
-    width:100px;
-    height:100px;
-  }
-
-  .title-wrap{
-    margin-bottom:22px;
-  }
-
-  .main-title{
-    font-size:22px;
-  }
-
-  .sub-title{
-    font-size:12px;
-  }
-
-  select,
-  input[type="date"]{
-    height:46px;
-    line-height:46px;
-  }
+body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);}
+.gov-top{background:#0f172a;color:#fff;padding:8px 0;font-size:12px;font-weight:600;}
+.gov-top-inner{max-width:720px;margin:0 auto;padding:0 16px;display:flex;align-items:center;gap:8px;}
+.gov-dot{width:7px;height:7px;border-radius:50%;background:#69a8ff;display:inline-block;}
+.container{max-width:720px;margin:0 auto;padding:20px 16px 30px;}
+.top-actions{display:flex;justify-content:flex-end;margin-bottom:12px;}
+.admin-btn{font-size:13px;font-weight:700;color:#334155;text-decoration:none;}
+.admin-btn:hover{text-decoration:underline;}
+.panel{background:#fff;border:1px solid var(--krds-border);border-top:4px solid var(--krds-primary);border-radius:14px;padding:22px;}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.brand img{width:62px;height:62px;object-fit:contain;}
+.main-title{font-size:28px;font-weight:800;line-height:1.1;letter-spacing:-0.3px;color:#0b2f65;}
+.sub-title{margin-top:3px;font-size:14px;font-weight:700;color:var(--krds-sub);}
+.guide{margin:0 0 14px;padding:10px 12px;border-radius:8px;background:#f3f7fc;border:1px solid #d6deea;font-size:13px;color:#334155;font-weight:600;}
+.field{margin-bottom:14px;}
+label{display:block;font-size:13px;font-weight:700;color:#334155;margin-bottom:6px;}
+.required::after{content:" *";color:#d32f2f;}
+.select-wrap,.date-wrap{position:relative;}
+select,input[type="date"]{width:100%;height:46px;padding:0 42px 0 12px;border:1px solid #bcc4cf;border-radius:8px;background:#fff;font-size:14px;font-weight:600;color:#0f172a;appearance:none;-webkit-appearance:none;}
+select:focus,input[type="date"]:focus{outline:2px solid #5b9dff;outline-offset:1px;border-color:#4a90f2;}
+.select-wrap::after{content:"";position:absolute;top:50%;right:15px;width:8px;height:8px;border-right:2px solid #66758a;border-bottom:2px solid #66758a;transform:translateY(-65%) rotate(45deg);pointer-events:none;}
+.date-wrap::after{content:"";position:absolute;top:50%;right:12px;width:16px;height:16px;border:2px solid #66758a;border-radius:4px;transform:translateY(-50%);pointer-events:none;}
+.date-wrap::before{content:"";position:absolute;top:calc(50% - 5px);right:16px;width:8px;height:2px;background:#66758a;z-index:1;pointer-events:none;}
+input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;right:8px;width:26px;height:26px;opacity:0;cursor:pointer;}
+.hidden{display:none;}
+.submit-btn{width:100%;height:48px;border:none;border-radius:8px;background:var(--krds-primary);color:#fff;font-size:15px;font-weight:800;cursor:pointer;}
+.submit-btn:hover:enabled{background:var(--krds-primary-strong);}
+.submit-btn:disabled{background:#9aa6b8;cursor:not-allowed;}
+@media (max-width:640px){
+  .panel{padding:16px 14px;}
+  .main-title{font-size:24px;}
+  .brand img{width:56px;height:56px;}
 }
 </style>
 </head>
-
 <body>
+<div class="gov-top">
+  <div class="gov-top-inner">
+    <span class="gov-dot" aria-hidden="true"></span>
+    대한민국 공식 전자정부 누리집 스타일을 참고한 업무용 화면입니다.
+  </div>
+</div>
 <div class="container">
-
   <div class="top-actions">
     <a href="{{ url_for('admin_settings_page') if session.get('is_admin') else url_for('admin_login') }}" class="admin-btn">관리자 설정</a>
   </div>
 
-  <div class="card">
-    <div class="logo-wrap">
-      <div class="logo-circle">
-        <img src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
+  <section class="panel">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
+      <div>
+        <div class="main-title">국세청 체납관리단</div>
+        <div class="sub-title">SMART 경로탐색</div>
       </div>
     </div>
 
-    <div class="title-wrap">
-      <div class="main-title">국세청 체납관리단</div>
-      <div class="sub-title">SMART 경로탐색</div>
-    </div>
+    <p class="guide">조, 사용자, 날짜를 선택하면 방문 경로 최적화를 시작할 수 있습니다.</p>
 
     <form id="startForm" method="POST">
-      <div class="form-group">
-        <div class="field">
-          <label class="required" for="teamSelect">조 선택</label>
-          <div class="select-wrap">
-            <select name="team_no" id="teamSelect" required>
-              <option value="">선택</option>
-              {% for team in team_options %}
-              <option value="{{ team }}">{{ team }}</option>
-              {% endfor %}
-            </select>
-          </div>
+      <div class="field">
+        <label class="required" for="teamSelect">조 선택</label>
+        <div class="select-wrap">
+          <select name="team_no" id="teamSelect" required>
+            <option value="">선택</option>
+            {% for team in team_options %}
+            <option value="{{ team }}">{{ team }}</option>
+            {% endfor %}
+          </select>
         </div>
       </div>
 
-      <div class="form-group hidden" id="userField">
-        <div class="field">
-          <label class="required" for="userSelect">사용자명</label>
-          <div class="select-wrap">
-            <select name="user_name" id="userSelect" required>
-              <option value="">선택</option>
-            </select>
-          </div>
+      <div class="field hidden" id="userField">
+        <label class="required" for="userSelect">사용자명</label>
+        <div class="select-wrap">
+          <select name="user_name" id="userSelect" required>
+            <option value="">선택</option>
+          </select>
         </div>
       </div>
 
-      <div class="form-group hidden" id="dateField">
-        <div class="field">
-          <label class="required" for="tripDate">방문 날짜</label>
-          <div class="date-wrap">
-            <input type="date" name="trip_date" id="tripDate" required>
-          </div>
+      <div class="field hidden" id="dateField">
+        <label class="required" for="tripDate">방문 날짜</label>
+        <div class="date-wrap">
+          <input type="date" name="trip_date" id="tripDate" required>
         </div>
       </div>
 
       <button type="submit" class="submit-btn" id="submitBtn" disabled>경로 최적화 시작하기</button>
     </form>
-  </div>
-
+  </section>
 </div>
 
 <script>
