@@ -16,7 +16,6 @@
   --krds-border:#d8e2f0;
   --krds-text:#111827;
   --krds-sub:#64748b;
-  --krds-panel:#f8fbff;
 }
 *{box-sizing:border-box;}
 body{
@@ -37,9 +36,7 @@ body{
 .header-menu{width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;padding:0;color:#334155;cursor:default;flex:0 0 auto;}
 .header-menu svg{width:28px;height:28px;display:block;}
 .section-card{background:transparent;border:none;border-radius:0;padding:0;}
-.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:0 10px 14px;}
-.section-title{margin:0;font-size:22px;color:#111827;font-weight:800;letter-spacing:-0.25px;}
-.section-desc{font-size:13px;color:var(--krds-sub);font-weight:700;white-space:nowrap;}
+.section-title{margin:0 10px 14px;font-size:22px;color:#111827;font-weight:800;letter-spacing:-0.25px;}
 .empty-box{padding:18px;border-radius:16px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;box-shadow:0 12px 26px rgba(15,23,42,.06);}
 .route-list{display:flex;flex-direction:column;gap:14px;}
 .visit-card{
@@ -53,22 +50,22 @@ body{
 .card-head{display:flex;align-items:flex-start;gap:14px;}
 .card-main{min-width:0;flex:1;}
 .route-badge{
-  width:48px;
-  height:48px;
-  border-radius:16px;
+  width:44px;
+  height:44px;
+  border-radius:50%;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:22px;
-  font-weight:900;
+  font-size:21px;
+  font-weight:800;
   color:#fff;
-  background:linear-gradient(135deg, var(--krds-primary) 0%, #2563eb 100%);
+  background:var(--krds-primary);
   flex:0 0 auto;
-  box-shadow:0 12px 20px rgba(29,78,216,.24);
+  box-shadow:0 10px 18px rgba(29,78,216,.24);
 }
-.route-badge.start{background:linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);}
-.route-badge.return{background:linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);}
-.route-badge.word{font-size:18px;}
+.route-badge.start{background:#1d4ed8;}
+.route-badge.return{background:#1e40af;}
+.route-badge.word{font-size:17px;}
 .route-address{
   font-size:clamp(18px,4.2vw,21px);
   font-weight:850;
@@ -89,19 +86,6 @@ body{
   align-items:center;
   gap:8px;
   flex-wrap:wrap;
-}
-.route-chip{
-  display:inline-flex;
-  align-items:center;
-  height:28px;
-  padding:0 10px;
-  border-radius:999px;
-  background:var(--krds-panel);
-  border:1px solid #dbe8fb;
-  color:#36517c;
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.02em;
 }
 .nav-btn{
   display:inline-flex;
@@ -148,12 +132,10 @@ body{
   .header-sub{font-size:11px;line-height:1.02;}
   .header-menu{width:48px;height:48px;}
   .header-menu svg{width:24px;height:24px;}
-  .section-head{margin:0 6px 12px;align-items:flex-start;flex-direction:column;}
-  .section-title{font-size:18px;}
-  .section-desc{white-space:normal;}
+  .section-title{margin:0 6px 12px;font-size:18px;}
   .visit-card{padding:16px 13px 14px;border-radius:20px;}
   .card-head{align-items:flex-start;gap:12px;}
-  .route-badge{width:44px;height:44px;font-size:20px;border-radius:14px;}
+  .route-badge{width:42px;height:42px;font-size:20px;}
   .route-badge.word{font-size:16px;}
   .route-meta{margin-top:11px;}
   .bottom-actions{flex-direction:column;}
@@ -168,11 +150,10 @@ body.force-mobile .header-title{font-size:18px;line-height:1.02;}
 body.force-mobile .header-sub{font-size:11px;line-height:1.02;}
 body.force-mobile .header-menu{width:48px;height:48px;}
 body.force-mobile .header-menu svg{width:24px;height:24px;}
-body.force-mobile .section-head{margin:0 6px 12px;align-items:flex-start;flex-direction:column;}
-body.force-mobile .section-title{font-size:18px;}
+body.force-mobile .section-title{margin:0 6px 12px;font-size:18px;}
 body.force-mobile .visit-card{padding:16px 13px 14px;border-radius:20px;}
 body.force-mobile .card-head{align-items:flex-start;gap:12px;}
-body.force-mobile .route-badge{width:44px;height:44px;font-size:20px;border-radius:14px;}
+body.force-mobile .route-badge{width:42px;height:42px;font-size:20px;}
 body.force-mobile .route-badge.word{font-size:16px;}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
@@ -196,11 +177,7 @@ body.force-mobile .action-btn{width:100%;}
   </section>
 
   <section class="section-card">
-    <div class="section-head">
-      <h3 class="section-title">최적방문순서</h3>
-      <div class="section-desc">전화 대상은 거리 기준으로 가장 가까운 순서로 정렬됩니다.</div>
-    </div>
-
+    <h3 class="section-title">최적방문순서</h3>
     {% if route|length == 0 %}
       <div class="empty-box">경로를 생성할 수 없습니다. 입력 정보를 확인한 뒤 다시 시도해주세요.</div>
     {% else %}
@@ -218,22 +195,21 @@ body.force-mobile .action-btn{width:100%;}
 
               <div class="card-main">
                 {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
-                {% if v.name %}<div class="route-name" title="{{ v.name }}">{{ v.name }}</div>{% endif %}
-                <div class="route-meta">
-                  {% if v.type == "start" %}
-                    <div class="route-chip">출발지</div>
-                  {% elif v.type == "return" %}
-                    <div class="route-chip">종료지</div>
-                  {% else %}
-                    <div class="route-chip">전화 {{ v.label }}번</div>
-                  {% endif %}
+                {% if v.type == "start" %}
+                  <div class="route-name">출발</div>
+                {% elif v.type == "return" %}
+                  <div class="route-name">복귀</div>
+                {% elif v.name %}
+                  <div class="route-name" title="{{ v.name }}">{{ v.name }}</div>
+                {% endif %}
 
-                  {% if v.type == "visit" or v.type == "return" %}
+                {% if v.type == "visit" or v.type == "return" %}
+                  <div class="route-meta">
                     <a class="nav-btn {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="길찾기" title="길찾기">
                       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
                     </a>
-                  {% endif %}
-                </div>
+                  </div>
+                {% endif %}
               </div>
             </div>
           </div>
