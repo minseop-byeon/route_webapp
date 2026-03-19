@@ -11,7 +11,7 @@
 :root{
   --krds-primary:#0050b3;
   --krds-primary-strong:#003b86;
-  --krds-bg:#edf3ff;
+  --krds-bg:#f4f6f8;
   --krds-surface:#ffffff;
   --krds-border:#c6d6f3;
   --krds-text:#10243e;
@@ -28,17 +28,17 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#0a3f82;}
 .header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
 .summary-wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
-.summary-item{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:12px;padding:14px 12px;box-shadow:0 4px 12px rgba(0,66,153,.08);}
+.summary-item{background:var(--krds-surface);border:1px solid #d8dee6;border-radius:10px;padding:13px 11px;box-shadow:none;}
 .summary-label{font-size:12px;color:#3f5f85;font-weight:700;}
 .summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#08366f;letter-spacing:-0.2px;}
 .summary-unit{margin-left:2px;font-size:18px;font-weight:700;}
-.section-card{background:#fff;border:1px solid #c5d7f5;border-radius:14px;padding:14px 12px;box-shadow:0 8px 20px rgba(0,66,153,.09);}
+.section-card{background:#fff;border:1px solid #d8dee6;border-radius:10px;padding:12px 10px;box-shadow:none;}
 .section-title{margin:0 0 10px;font-size:21px;color:#09458f;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid #cedcf3;color:#355176;font-size:14px;text-align:center;}
-.route-list{display:flex;flex-direction:column;gap:10px;}
+.route-list{display:flex;flex-direction:column;gap:8px;}
 .connector{display:flex;gap:6px;align-items:center;padding-left:50px;}
-.connector-pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;background:#e8f2ff;border:1px solid #bdd2f3;color:#2a4f80;font-size:12px;font-weight:700;}
-.route-panel{background:var(--krds-surface);border:1px solid #c5d5f0;border-radius:12px;padding:12px;box-shadow:0 9px 22px rgba(0,66,153,.14);}
+.connector-pill{display:inline-flex;height:22px;align-items:center;padding:0 8px;border-radius:999px;background:#eef3f8;border:1px solid #d8dee6;color:#425569;font-size:11px;font-weight:700;}
+.route-panel{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;}
 .route-top{display:flex;align-items:flex-start;gap:10px;}
 .route-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 4px 10px rgba(0,80,179,.26);}
 .route-badge.start{background:#0d6ac7;}
@@ -48,10 +48,10 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .route-panel.route-visit{padding:0;background:transparent;border:none;box-shadow:none;}
 .visit-stack{display:flex;flex-direction:column;gap:0;}
 .visit-card,
-.parking-card{background:var(--krds-surface);border:1px solid #c5d5f0;border-radius:12px;padding:10px 10px 9px;box-shadow:0 9px 22px rgba(0,66,153,.14);}
+.parking-card{background:var(--krds-surface);border:1px solid #d8dee6;border-radius:10px;padding:10px 10px 9px;box-shadow:none;}
 .visit-card{position:relative;z-index:2;}
 .visit-link{position:relative;height:12px;}
-.visit-link::before{content:"";position:absolute;left:22px;right:22px;top:2px;height:8px;background:linear-gradient(180deg,#dce9fb 0%, #eaf3ff 100%);border-left:1px solid #c5d5f0;border-right:1px solid #c5d5f0;}
+.visit-link::before{content:"";position:absolute;left:22px;right:22px;top:2px;height:8px;background:#f7f9fb;border-left:1px solid #d8dee6;border-right:1px solid #d8dee6;}
 .route-address{font-size:17px;font-weight:800;line-height:1.24;color:#0f2e59;word-break:keep-all;overflow-wrap:anywhere;}
 .route-name{margin-top:4px;font-size:13px;font-weight:700;color:#224164;}
 .route-name.visit-name{font-size:14px;}
@@ -95,7 +95,6 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .summary-unit{font-size:14px;}
   .section-title{font-size:18px;}
   .route-address{font-size:16px;}
-  .route-panel{padding:10px;}
   .visit-card,.parking-card{padding:8px 8px 7px;}
   .visit-link{height:10px;}
   .visit-link::before{left:14px;right:14px;top:1px;height:8px;}
@@ -140,7 +139,7 @@ body.force-mobile .action-btn{width:100%;}
   </section>
 
   <section class="section-card">
-    <h3 class="section-title">최적방문순서</h3>
+    <h3 class="section-title">최적 방문 순서</h3>
     {% if route|length == 0 %}
       <div class="empty-box">경로를 생성할 수 없습니다. 입력 정보를 확인한 뒤 다시 시도해주세요.</div>
     {% else %}
