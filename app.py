@@ -3,10 +3,7 @@ import requests
 import os
 import json
 import logging
-import copy
 import math
-import base64
-import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -33,7 +30,6 @@ GUEST_TEAM_NAME = "게스트"
 GUEST_USER_NAME = "게스트"
 TMAP_DEFAULT_APP_KEY = os.getenv("TMAP_APP_KEY", "DBAKOdGMlm8X0TANyuGFI3GP7aMYWmb77v2JfnAA")
 DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
-GOOGLE_VISION_API_KEY = (os.getenv("GOOGLE_VISION_API_KEY") or "").strip()
 
 DEFAULT_SETTINGS = {
     "mail": {
@@ -50,7 +46,6 @@ DEFAULT_SETTINGS = {
         "client_id": "",
         "client_secret": "",
         "tmap_app_key": TMAP_DEFAULT_APP_KEY,
-        "google_vision_api_key": ""
     },
     "user": {
         "start_name": "",
@@ -427,12 +422,6 @@ def get_tmap_app_key():
     return (settings.get("api", {}).get("tmap_app_key") or TMAP_DEFAULT_APP_KEY).strip()
 
 
-def get_google_vision_api_key():
-    settings = load_settings()
-    configured = (settings.get("api", {}).get("google_vision_api_key") or "").strip()
-    return configured or GOOGLE_VISION_API_KEY
-
-
 def get_admin_password():
     settings = load_settings()
     return (settings.get("admin", {}).get("admin_password") or ADMIN_PASSWORD).strip()
@@ -677,130 +666,6 @@ def geocode(address: str):
         return (x, y), None
     except Exception:
         return None, f"지오코딩 결과 파싱 실패: {query}"
-
-
-def normalize_ocr_line(text):
-    return re.sub(r"\s+", " ", str(text or "").replace("\r", "\n")).strip()
-
-
-def extract_ocr_address_candidates(text):
-    normalized = normalize_ocr_line(text)
-    if not normalized:
-        return []
-
-    source_lines = [
-        normalize_ocr_line(line)
-        for line in str(text or "").splitlines()
-        if normalize_ocr_line(line)
-    ]
-    source = list(dict.fromkeys([normalized] + source_lines))
-    patterns = [
-        re.compile(r"(?:서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)[^,\n]{4,80}?(?:로|길|대로)\s*\d[\d-]*"),
-        re.compile(r"(?:[가-힣]+\s+)?[가-힣]+(?:시|도)?\s*[가-힣]+(?:구|군|시)\s+[가-힣0-9]+(?:로|길|대로)\s*\d[\d-]*"),
-        re.compile(r"[가-힣0-9]+(?:로|길|대로)\s*\d[\d-]*(?:\s*[가-힣A-Za-z0-9-]+){0,3}"),
-    ]
-
-    candidates = []
-    for item in source:
-        for pattern in patterns:
-            for match in pattern.findall(item):
-                candidate = normalize_ocr_line(match)
-                if len(candidate) >= 6:
-                    candidates.append(candidate)
-    return list(dict.fromkeys(candidates))
-
-
-def extract_ocr_address_like_lines(text):
-    lines = []
-    for line in str(text or "").splitlines():
-        normalized = normalize_ocr_line(line)
-        if not normalized:
-            continue
-        if not re.search(r"[가-힣]", normalized) or not re.search(r"\d", normalized):
-            continue
-        if re.search(r"(?:로|길|대로)\s*\d", normalized) or re.fullmatch(r"[가-힣0-9\s-]{6,}", normalized):
-            lines.append(normalized)
-    return list(dict.fromkeys(lines))
-
-
-def call_google_vision_ocr(image_bytes):
-    api_key = get_google_vision_api_key()
-    if not api_key:
-        return None, "GOOGLE_VISION_API_KEY가 설정되지 않았습니다."
-
-    encoded = base64.b64encode(image_bytes).decode("ascii")
-    payload = {
-        "requests": [{
-            "image": {"content": encoded},
-            "features": [{"type": "DOCUMENT_TEXT_DETECTION"}],
-            "imageContext": {"languageHints": ["ko", "en"]},
-        }]
-    }
-
-    try:
-        resp = requests.post(
-            "https://vision.googleapis.com/v1/images:annotate",
-            params={"key": api_key},
-            json=payload,
-            timeout=45,
-        )
-    except requests.RequestException as e:
-        return None, f"Google Vision OCR 요청 실패: {e}"
-
-    if resp.status_code != 200:
-        try:
-            data = resp.json()
-            message = (
-                (data.get("error") or {}).get("message")
-                or (data.get("error") or {}).get("status")
-                or resp.text
-            )
-        except Exception:
-            message = resp.text
-        return None, f"Google Vision OCR HTTP {resp.status_code}: {message}"
-
-    try:
-        data = resp.json()
-    except Exception:
-        return None, "Google Vision OCR 응답이 JSON 형식이 아닙니다."
-
-    response = ((data.get("responses") or [{}])[0]) if isinstance(data, dict) else {}
-    if response.get("error"):
-        return None, (response.get("error") or {}).get("message") or "Google Vision OCR 응답 오류"
-
-    text = (
-        ((response.get("fullTextAnnotation") or {}).get("text"))
-        or (((response.get("textAnnotations") or [{}])[0]).get("description"))
-        or ""
-    ).strip()
-    return text, None
-
-
-def extract_valid_ocr_addresses(text):
-    candidates = extract_ocr_address_candidates(text)
-    if not candidates:
-        candidates = extract_ocr_address_like_lines(text)
-
-    validated = []
-    seen = set()
-    for candidate in candidates[:20]:
-        coord, meta, _ = geocode_with_meta(candidate)
-        if not coord:
-            continue
-        display_address = ((meta or {}).get("display_address") or candidate).strip()
-        if display_address and display_address not in seen:
-            seen.add(display_address)
-            validated.append(display_address)
-
-    if validated:
-        return validated
-
-    fallback = []
-    for candidate in candidates[:20]:
-        if candidate not in seen:
-            seen.add(candidate)
-            fallback.append(candidate)
-    return fallback
 
 
 def estimate_matrix_leg(start, goal):
@@ -2295,35 +2160,6 @@ def save_admin_settings_section():
         return jsonify({"success": False, "message": f"저장 중 오류가 발생했습니다: {e}"}), 500
 
 
-@app.route("/planner/ocr-addresses", methods=["POST"])
-def planner_ocr_addresses():
-    file = request.files.get("image")
-    if not file or not getattr(file, "filename", ""):
-        return jsonify({"success": False, "message": "OCR할 이미지 파일을 선택해 주세요."}), 400
-
-    try:
-        image_bytes = file.read()
-    except Exception:
-        image_bytes = b""
-
-    if not image_bytes:
-        return jsonify({"success": False, "message": "업로드된 이미지 내용을 읽지 못했습니다."}), 400
-
-    if len(image_bytes) > 12 * 1024 * 1024:
-        return jsonify({"success": False, "message": "이미지 파일이 너무 큽니다. 12MB 이하 파일을 사용해 주세요."}), 400
-
-    text, error = call_google_vision_ocr(image_bytes)
-    if error:
-        return jsonify({"success": False, "message": error}), 502
-
-    addresses = extract_valid_ocr_addresses(text)
-    return jsonify({
-        "success": True,
-        "addresses": addresses,
-        "raw_text": text,
-    })
-
-
 @app.route("/planner/resolve-qr-items", methods=["POST"])
 def planner_resolve_qr_items():
     payload = request.get_json(silent=True) or {}
@@ -2564,182 +2400,6 @@ def result_page():
     if not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"] or not payload:
         return redirect(url_for("start"))
     return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key(), force_mobile=False)
-
-
-@app.route("/result/demo", methods=["GET"])
-def result_demo_page():
-    case_id = (request.args.get("case") or "default").strip().lower()
-    payload = build_result_demo_payload(case_id)
-    payload["force_mobile"] = True
-    return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key())
-
-
-def build_result_demo_payload(case_id="default"):
-    base = {
-        "team_no": "1조",
-        "user_name": "데모 사용자",
-        "trip_date": "2026-03-18",
-        "total_count": 2,
-        "total_distance": 32.4,
-        "total_time": 385,
-        "end_time": "16:25",
-        "warning_message": "복귀 시간이 16:30에 가깝습니다.\n복귀가 늦지 않도록 주의하세요.",
-        "route": [
-            {
-                "type": "start",
-                "label": "S",
-                "name": "출발지명",
-                "address": "서울특별시 종로구 사직로 161",
-                "arrival": "10:00",
-                "end_time": "10:00",
-                "service_time": 0,
-                "travel_km": None,
-                "travel_min": None,
-            },
-            {
-                "type": "visit",
-                "label": "1",
-                "name": "홍길동",
-                "address": "서울특별시 용산구 한강대로 405",
-                "arrival": "10:35",
-                "end_time": "11:10",
-                "service_time": 35,
-                "travel_km": 8.4,
-                "travel_min": 35,
-                "appointment_time": "10:40",
-                "nearby_parkings": [
-                    {
-                        "name": "서울역 공영주차장",
-                        "address": "서울특별시 용산구 청파로 378",
-                        "distance_m": 320,
-                        "drive_min": 3,
-                        "walk_min": 5,
-                    },
-                    {
-                        "name": "남영역 민영주차장",
-                        "address": "서울특별시 용산구 한강대로 270",
-                        "distance_m": 870,
-                        "drive_min": 5,
-                        "walk_min": 11,
-                    },
-                ],
-            },
-            {
-                "type": "wait",
-                "label": "W",
-                "name": "대기",
-                "address": "",
-                "arrival": "11:10",
-                "end_time": "11:30",
-                "service_time": 20,
-                "travel_km": None,
-                "travel_min": None,
-            },
-            {
-                "type": "lunch",
-                "label": "L",
-                "name": "점심",
-                "address": "",
-                "arrival": "11:30",
-                "end_time": "12:30",
-                "service_time": 60,
-                "travel_km": None,
-                "travel_min": None,
-            },
-            {
-                "type": "visit",
-                "label": "2",
-                "name": "김철수",
-                "address": "서울특별시 송파구 올림픽로 300",
-                "arrival": "13:10",
-                "end_time": "14:00",
-                "service_time": 50,
-                "travel_km": 14.2,
-                "travel_min": 40,
-                "appointment_time": None,
-                "nearby_parkings": [],
-            },
-            {
-                "type": "return",
-                "label": "R",
-                "name": "복귀지명",
-                "address": "서울특별시 종로구 사직로 161",
-                "arrival": "16:25",
-                "end_time": "16:25",
-                "service_time": 0,
-                "travel_km": 9.8,
-                "travel_min": 55,
-            },
-        ],
-    }
-    payload = copy.deepcopy(base)
-
-    if case_id == "no-warning":
-        payload["end_time"] = "15:45"
-        payload["total_time"] = 325
-        payload["warning_message"] = ""
-        payload["route"][-1]["arrival"] = "15:45"
-        payload["route"][-1]["end_time"] = "15:45"
-        payload["route"][-1]["travel_min"] = 40
-        payload["route"][-1]["travel_km"] = 7.2
-        payload["route"][-2]["end_time"] = "14:40"
-    elif case_id == "long-name":
-        payload["route"][1]["name"] = "가나다라마바사아자차"
-        payload["route"][1]["address"] = "서울특별시 마포구 성암로 28 (가칭행복주택)"
-        payload["route"][1]["appointment_time"] = "10:30"
-        payload["route"][1]["nearby_parkings"] = []
-        payload["route"][4]["name"] = "홍길동"
-    elif case_id == "no-parking":
-        payload["route"][1]["nearby_parkings"] = []
-        payload["route"][4]["nearby_parkings"] = []
-    elif case_id == "minimal":
-        payload["total_count"] = 0
-        payload["total_distance"] = 3.6
-        payload["total_time"] = 40
-        payload["end_time"] = "10:40"
-        payload["warning_message"] = ""
-        payload["route"] = [
-            {
-                "type": "start",
-                "label": "S",
-                "name": "출발지명",
-                "address": "서울특별시 종로구 사직로 161",
-                "arrival": "10:00",
-                "end_time": "10:00",
-                "service_time": 0,
-                "travel_km": None,
-                "travel_min": None,
-            },
-            {
-                "type": "return",
-                "label": "R",
-                "name": "복귀지명",
-                "address": "서울특별시 종로구 사직로 161",
-                "arrival": "10:40",
-                "end_time": "10:40",
-                "service_time": 0,
-                "travel_km": 3.6,
-                "travel_min": 40,
-            },
-        ]
-
-    return payload
-
-
-@app.route("/result/demo/all", methods=["GET"])
-def result_demo_all_page():
-    cases = [
-        {"id": "default", "label": "기본(경고+주차장)"},
-        {"id": "no-warning", "label": "경고 없음"},
-        {"id": "long-name", "label": "긴 체납자명"},
-        {"id": "no-parking", "label": "주차장 없음"},
-        {"id": "minimal", "label": "최소 경로"},
-    ]
-    selected_case = (request.args.get("case") or "default").strip().lower()
-    valid_ids = {item["id"] for item in cases}
-    if selected_case not in valid_ids:
-        selected_case = "default"
-    return render_template("result_demo_all.html", cases=cases, selected_case=selected_case)
 
 
 @app.route("/healthz", methods=["GET"])
