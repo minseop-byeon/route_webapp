@@ -587,6 +587,24 @@ input[type="text"]:focus{
     <form id="startForm" method="POST">
       <div class="form-group">
         <div class="field">
+          <label class="required" for="workTypeSelect">체납관리단</label>
+          <div class="select-wrap krds-form-select custom-select placeholder" id="workTypeSelectWrap">
+            <button type="button" class="select-trigger" id="workTypeSelectTrigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="select-text" id="workTypeSelectText">선택</span>
+              <span class="select-arrow" aria-hidden="true"></span>
+            </button>
+            <ul class="select-menu hidden" id="workTypeSelectMenu" role="listbox">
+              <li><button type="button" class="select-option selected" data-value="">선택</button></li>
+              <li><button type="button" class="select-option" data-value="visit">방문</button></li>
+              <li><button type="button" class="select-option" data-value="phone">전화</button></li>
+            </ul>
+            <input type="hidden" name="work_type" id="workTypeSelect" value="{{ work_type or 'visit' }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" id="teamField">
+        <div class="field">
           <label class="required" for="teamSelect">조</label>
           <div class="select-wrap krds-form-select custom-select placeholder" id="teamSelectWrap">
             <button type="button" class="select-trigger" id="teamSelectTrigger" aria-haspopup="listbox" aria-expanded="false">
@@ -632,7 +650,7 @@ input[type="text"]:focus{
                   <path d="M8 3.5v3M16 3.5v3M3.5 9.5h17"></path>
                 </svg>
               </button>
-              <input type="hidden" name="trip_date" id="tripDate" required>
+              <input type="hidden" name="trip_date" id="tripDate">
               <div class="calendar-popover hidden" id="calendarPopover" aria-hidden="true">
                 <div class="calendar-header">
                   <button type="button" class="calendar-nav" id="calendarPrev" aria-label="이전 달">‹</button>
@@ -663,6 +681,11 @@ input[type="text"]:focus{
 <script>
 const teamUsers = {{ team_users | tojson }};
 
+const workTypeSelect = document.getElementById("workTypeSelect");
+const workTypeSelectWrap = document.getElementById("workTypeSelectWrap");
+const workTypeSelectTrigger = document.getElementById("workTypeSelectTrigger");
+const workTypeSelectText = document.getElementById("workTypeSelectText");
+const workTypeSelectMenu = document.getElementById("workTypeSelectMenu");
 const teamSelect = document.getElementById("teamSelect");
 const userSelect = document.getElementById("userSelect");
 const teamSelectWrap = document.getElementById("teamSelectWrap");
@@ -684,6 +707,7 @@ const calendarPrev = document.getElementById("calendarPrev");
 const calendarNext = document.getElementById("calendarNext");
 const userField = document.getElementById("userField");
 const dateField = document.getElementById("dateField");
+const teamField = document.getElementById("teamField");
 const submitBtn = document.getElementById("submitBtn");
 const START_DRAFT_KEY = "route_start_draft_v1";
 const START_DRAFT_STORAGE = window.localStorage;
@@ -703,6 +727,7 @@ function openCustomSelect(menu, wrap, trigger){
 }
 
 function closeAllCustomSelects(){
+  closeCustomSelect(workTypeSelectMenu, workTypeSelectWrap, workTypeSelectTrigger);
   closeCustomSelect(teamSelectMenu, teamSelectWrap, teamSelectTrigger);
   closeCustomSelect(userSelectMenu, userSelectWrap, userSelectTrigger);
 }
@@ -837,7 +862,8 @@ function renderCalendar(){
 }
 
 function updateSubmitState(){
-  const isReady = !!(teamSelect.value && userSelect.value && tripDate.value);
+  const isPhoneMode = workTypeSelect.value === "phone";
+  const isReady = isPhoneMode || !!(workTypeSelect.value === "visit" && teamSelect.value && userSelect.value && tripDate.value);
   submitBtn.disabled = !isReady;
 }
 
@@ -845,6 +871,7 @@ function saveStartDraft(){
   const draft = {
     version: 1,
     savedAt: new Date().toISOString(),
+    workType: workTypeSelect.value || "",
     team: teamSelect.value || "",
     user: userSelect.value || "",
     tripDate: tripDate.value || ""
@@ -868,6 +895,10 @@ function restoreStartDraft(){
   const team = draft?.team || "";
   const user = draft?.user || "";
   const savedTripDate = draft?.tripDate || "";
+  const savedWorkType = draft?.workType || "";
+
+  setCustomValue(workTypeSelect, workTypeSelectText, workTypeSelectWrap, workTypeSelectMenu, savedWorkType);
+  workTypeSelect.dispatchEvent(new Event("change"));
 
   if(!team){
     return;
@@ -895,6 +926,26 @@ function updateSelectCompleted(selectElement){
   wrapper.classList.toggle("completed", !!selectElement.value);
 }
 
+workTypeSelect.addEventListener("change", function(){
+  const isVisitMode = this.value === "visit";
+  updateSelectCompleted(workTypeSelect);
+
+  if(!this.value){
+    teamField.classList.remove("hidden");
+    userField.classList.add("hidden");
+    dateField.classList.add("hidden");
+    updateSubmitState();
+    saveStartDraft();
+    return;
+  }
+
+  teamField.classList.toggle("hidden", !isVisitMode);
+  userField.classList.toggle("hidden", !isVisitMode || !teamSelect.value);
+  dateField.classList.toggle("hidden", !isVisitMode || !userSelect.value);
+  updateSubmitState();
+  saveStartDraft();
+});
+
 teamSelect.addEventListener("change", function(){
   const team = this.value;
   setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, "");
@@ -903,7 +954,7 @@ teamSelect.addEventListener("change", function(){
   updateSelectCompleted(userSelect);
   setTripDate("");
 
-  if(!team){
+  if(!team || workTypeSelect.value !== "visit"){
     userField.classList.add("hidden");
     dateField.classList.add("hidden");
     updateSubmitState();
@@ -926,7 +977,7 @@ userSelect.addEventListener("change", function(){
   updateSelectCompleted(userSelect);
   setTripDate("");
 
-  if(this.value){
+  if(this.value && workTypeSelect.value === "visit"){
     dateField.classList.remove("hidden");
   }else{
     dateField.classList.add("hidden");
@@ -983,6 +1034,11 @@ document.addEventListener("click", function(event){
   }
 });
 
+bindCustomSelect(workTypeSelectMenu, workTypeSelectWrap, workTypeSelectTrigger, (value) => {
+  setCustomValue(workTypeSelect, workTypeSelectText, workTypeSelectWrap, workTypeSelectMenu, value);
+  workTypeSelect.dispatchEvent(new Event("change"));
+});
+
 bindCustomSelect(teamSelectMenu, teamSelectWrap, teamSelectTrigger, (value) => {
   setCustomValue(teamSelect, teamSelectText, teamSelectWrap, teamSelectMenu, value);
   teamSelect.dispatchEvent(new Event("change"));
@@ -994,11 +1050,18 @@ bindCustomSelect(userSelectMenu, userSelectWrap, userSelectTrigger, (value) => {
 });
 
 renderUserOptions("");
+setCustomValue(workTypeSelect, workTypeSelectText, workTypeSelectWrap, workTypeSelectMenu, "");
 setCustomValue(teamSelect, teamSelectText, teamSelectWrap, teamSelectMenu, "");
 setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, "");
+updateSelectCompleted(workTypeSelect);
 updateSelectCompleted(teamSelect);
 updateSelectCompleted(userSelect);
 restoreStartDraft();
+
+if(!workTypeSelect.value){
+  setCustomValue(workTypeSelect, workTypeSelectText, workTypeSelectWrap, workTypeSelectMenu, "{{ work_type or 'visit' }}");
+  workTypeSelect.dispatchEvent(new Event("change"));
+}
 </script>
 </body>
 </html>

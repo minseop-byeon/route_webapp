@@ -914,6 +914,7 @@ def get_route_info(start, goal, prediction_time=None, route_cache=None):
 
 def get_trip_meta():
     return {
+        "work_type": session.get("work_type", "visit"),
         "user_name": session.get("user_name", ""),
         "team_no": session.get("team_no", ""),
         "trip_date": session.get("trip_date", "")
@@ -1808,13 +1809,15 @@ def start():
     team_options = list(team_users.keys())
 
     if request.method == "POST":
+        work_type = request.form.get("work_type", "visit").strip()
         user_name = request.form.get("user_name", "").strip()
         team_no = request.form.get("team_no", "").strip()
         trip_date = request.form.get("trip_date", "").strip()
 
-        if not user_name or not team_no or not trip_date or not is_valid_team_user_selection(team_users, team_no, user_name):
+        if work_type not in {"visit", "phone"}:
             return render_template(
                 "start.html",
+                work_type="visit",
                 user_name="",
                 team_no="",
                 trip_date="",
@@ -1822,12 +1825,30 @@ def start():
                 team_users=team_users
             )
 
+        if work_type == "visit" and (
+            not user_name
+            or not team_no
+            or not trip_date
+            or not is_valid_team_user_selection(team_users, team_no, user_name)
+        ):
+            return render_template(
+                "start.html",
+                work_type=work_type,
+                user_name="",
+                team_no="",
+                trip_date="",
+                team_options=team_options,
+                team_users=team_users
+            )
+
+        session["work_type"] = work_type
         session["user_name"] = user_name
         session["team_no"] = team_no
         session["trip_date"] = trip_date
         session.pop("last_result_payload", None)
         return redirect(url_for("planner"))
 
+    session.pop("work_type", None)
     session.pop("user_name", None)
     session.pop("team_no", None)
     session.pop("trip_date", None)
@@ -1835,6 +1856,7 @@ def start():
 
     return render_template(
         "start.html",
+        work_type="visit",
         user_name="",
         team_no="",
         trip_date="",
@@ -2202,7 +2224,11 @@ def planner_resolve_qr_items():
 def planner():
     trip_meta = get_trip_meta()
 
-    if not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"]:
+    work_type = trip_meta["work_type"] if trip_meta["work_type"] in {"visit", "phone"} else "visit"
+    if work_type == "visit":
+        if not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"]:
+            return redirect(url_for("start"))
+    elif not trip_meta["work_type"]:
         return redirect(url_for("start"))
 
     if request.method == "POST":
@@ -2390,14 +2416,22 @@ def planner():
 
         return redirect(url_for("result_page"))
 
-    return render_template("index.html", team_no=trip_meta["team_no"], user_name=trip_meta["user_name"], trip_date=trip_meta["trip_date"])
+    return render_template(
+        "index.html",
+        team_no=trip_meta["team_no"],
+        user_name=trip_meta["user_name"],
+        trip_date=trip_meta["trip_date"],
+        work_type=work_type,
+    )
 
 
 @app.route("/result", methods=["GET"])
 def result_page():
     trip_meta = get_trip_meta()
     payload = session.get("last_result_payload")
-    if not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"] or not payload:
+    work_type = trip_meta["work_type"] if trip_meta["work_type"] in {"visit", "phone"} else "visit"
+    missing_visit_meta = not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"]
+    if ((work_type == "visit" and missing_visit_meta) or not payload):
         return redirect(url_for("start"))
     return render_template("result.html", **payload, tmap_app_key=get_tmap_app_key(), force_mobile=False)
 

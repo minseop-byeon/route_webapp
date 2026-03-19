@@ -227,6 +227,8 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
 <script>
+const WORK_TYPE = "{{ work_type or 'visit' }}";
+const IS_PHONE_MODE = WORK_TYPE === "phone";
 let visitContainer = document.getElementById("visits");
 let form = document.getElementById("routeForm");
 let count = 0;
@@ -404,14 +406,17 @@ function addVisit(){
         </div>
       </div>
 
+      ${IS_PHONE_MODE ? "" : `
       <div class="field">
         <label>방문 소요 시간</label>
         <select name="service_time">
           ${generateServiceOptions()}
         </select>
       </div>
+      `}
     </div>
 
+    ${IS_PHONE_MODE ? "" : `
     <div class="appointment-box">
       <input type="hidden" name="has_appointment_flag" value="0">
 
@@ -427,6 +432,7 @@ function addVisit(){
         </div>
       </div>
     </div>
+    `}
 
     <div class="warning">입력되지 않은 항목이 있습니다</div>
   `;
@@ -468,6 +474,9 @@ function updateDeleteButtons(){
 function toggleTime(cb){
   const card = cb.closest(".card");
   const box = cb.closest(".appointment-box");
+  if(!box){
+    return;
+  }
   const timeArea = box.querySelector(".time-select-area");
   const hiddenFlag = box.querySelector('input[name="has_appointment_flag"]');
   const hourEl = box.querySelector('select[name="visit_hour"]');
@@ -636,8 +645,12 @@ function clearWarning(card){
     warning.style.display = "none";
     name.classList.remove("error");
     address.classList.remove("error");
-    hourEl.classList.remove("error");
-    minuteEl.classList.remove("error");
+    if(hourEl){
+      hourEl.classList.remove("error");
+    }
+    if(minuteEl){
+      minuteEl.classList.remove("error");
+    }
   }
 }
 
@@ -655,8 +668,12 @@ function validateForm(e){
 
     name.classList.remove("error");
     address.classList.remove("error");
-    hourEl.classList.remove("error");
-    minuteEl.classList.remove("error");
+    if(hourEl){
+      hourEl.classList.remove("error");
+    }
+    if(minuteEl){
+      minuteEl.classList.remove("error");
+    }
 
     if(!name.value.trim()){
       name.classList.add("error");
@@ -668,7 +685,7 @@ function validateForm(e){
       localError = true;
     }
 
-    const hasAppointment = hiddenFlag.value === "1";
+    const hasAppointment = hiddenFlag && hiddenFlag.value === "1";
     if(hasAppointment){
       if(!hourEl.value){
         hourEl.classList.add("error");
@@ -736,7 +753,7 @@ function saveDraft(){
   cards.forEach(card => {
     const name = card.querySelector('input[name="name"]')?.value || "";
     const address = card.querySelector('input[name="address"]')?.value || "";
-    const service = card.querySelector('select[name="service_time"]')?.value || "5";
+    const service = card.querySelector('select[name="service_time"]')?.value || "";
     const checkbox = card.querySelector('.appointment-toggle');
     const hasAppt = checkbox ? checkbox.checked : false;
     const hour = card.querySelector('select[name="visit_hour"]')?.value || "";
