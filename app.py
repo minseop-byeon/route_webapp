@@ -1805,21 +1805,29 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
 
             appt_violation = appointment_violation_count
             appt_late = appointment_late_total
+            added_wait_count = 0
+            added_wait_total = 0
+            new_route = clone_route(pre["route"])
 
             if visit["has_appointment"]:
                 target = visit["appointment_minute"]
+                if target is not None and arrival_time < target:
+                    # If we arrive before the promised time, insert a wait block and start the visit at appointment time.
+                    added_wait_count = append_wait_block(new_route, arrival_time, target, wait_label)
+                    added_wait_total = target - arrival_time
+                    arrival_time = target
                 if arrival_time > target:
                     appt_violation += 1
                     appt_late += arrival_time - target
 
-            new_route = clone_route(pre["route"])
             add_visit_block(new_route, visit_no + 1, visit, arrival_time, travel_m, travel_min)
             new_time = arrival_time + visit["service_time"]
 
             dfs(
                 idx + 1, node, new_time, pre["lunch_used"], new_route,
                 total_distance_m + travel_m, total_travel_min + travel_min,
-                wait_count + pre["wait_count"], wait_total + pre["wait_total"],
+                wait_count + pre["wait_count"] + added_wait_count,
+                wait_total + pre["wait_total"] + added_wait_total,
                 appt_violation, appt_late, visit_no + 1
             )
 
