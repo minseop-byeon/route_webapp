@@ -252,15 +252,27 @@ input[type="text"]:focus{
   position:absolute;
   top:50%;
   right:16px;
-  width:9px;
-  height:9px;
+  width:18px;
+  height:18px;
+  transform:translateY(-50%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.select-arrow::before{
+  content:"";
+  width:8px;
+  height:8px;
   border-right:2px solid #7f8ea6;
   border-bottom:2px solid #7f8ea6;
-  transform:translateY(-50%) rotate(45deg);
+  transform:rotate(45deg);
   transition:transform 0.15s ease;
 }
 .custom-select.open .select-arrow{
-  transform:translateY(-50%) rotate(225deg);
+  transform:translateY(-50%);
+}
+.custom-select.open .select-arrow::before{
+  transform:rotate(225deg);
 }
 .select-menu{
   position:absolute;
