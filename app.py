@@ -1817,7 +1817,7 @@ def start():
         if work_type not in {"visit", "phone"}:
             return render_template(
                 "start.html",
-                work_type="visit",
+                work_type="",
                 user_name="",
                 team_no="",
                 trip_date="",
@@ -1856,7 +1856,7 @@ def start():
 
     return render_template(
         "start.html",
-        work_type="visit",
+        work_type="",
         user_name="",
         team_no="",
         trip_date="",

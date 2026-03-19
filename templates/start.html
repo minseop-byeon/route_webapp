@@ -598,12 +598,12 @@ input[type="text"]:focus{
               <li><button type="button" class="select-option" data-value="visit">방문</button></li>
               <li><button type="button" class="select-option" data-value="phone">전화</button></li>
             </ul>
-            <input type="hidden" name="work_type" id="workTypeSelect" value="{{ work_type or 'visit' }}">
+            <input type="hidden" name="work_type" id="workTypeSelect" value="{{ work_type or '' }}">
           </div>
         </div>
       </div>
 
-      <div class="form-group" id="teamField">
+      <div class="form-group hidden" id="teamField">
         <div class="field">
           <label class="required" for="teamSelect">조</label>
           <div class="select-wrap krds-form-select custom-select placeholder" id="teamSelectWrap">
