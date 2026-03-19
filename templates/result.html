@@ -21,11 +21,11 @@
 *{box-sizing:border-box;}
 body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;background:var(--krds-bg);color:var(--krds-text);}
 .container{max-width:1080px;margin:0 auto;padding:16px 16px 30px;}
-.hero{padding:0 0 10px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:8px;}
-.header-left{display:flex;align-items:stretch;gap:8px;min-width:0;margin-left:-6px;}
+.hero{padding:0 0 10px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 8px -4px;}
+.header-left{display:flex;align-items:stretch;gap:3px;min-width:0;}
 .header-logo{width:56px;height:56px;object-fit:contain;display:block;flex:0 0 auto;}
 .hero-text{height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
-.header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#0a3f82;}
+.header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#003675;}
 .header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
 .summary-wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
 .summary-item{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:10px;padding:13px 11px;box-shadow:none;}
@@ -58,7 +58,7 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   word-spacing:0.4px;
 }
 .route-panel{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;}
-.route-badge{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 10px 18px rgba(29,78,216,.24);}
+.route-badge{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 10px 18px rgba(29,78,216,.24);}
 .route-badge.start{background:#1d4ed8;}
 .route-badge.return{background:#1e40af;}
 .route-badge.word{font-size:18px;}
@@ -105,7 +105,7 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .hero{padding:0 0 8px;}
   .header-logo{width:48px;height:48px;}
   .hero-text{height:48px;}
-  .header-left{gap:6px;margin-left:-4px;}
+  .header-left{gap:2px;}
   .header-title{font-size:18px;line-height:1.02;}
   .header-sub{font-size:11px;line-height:1.02;}
   .summary-item{padding:11px 9px;}
@@ -115,7 +115,7 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .route-address{font-size:clamp(16px,4.4vw,19px);}
   .visit-card{padding:15px 12px 13px;border-radius:18px;}
   .card-head{align-items:flex-start;gap:11px;}
-  .route-badge{width:42px;height:42px;font-size:20px;}
+  .route-badge{width:42px;height:42px;font-size:21px;}
   .route-badge.word{font-size:17px;}
   .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
   .route-list{gap:14px;}
@@ -138,14 +138,14 @@ body.force-mobile .container{
 body.force-mobile .hero{padding:0 0 8px;}
 body.force-mobile .header-logo{width:48px;height:48px;}
 body.force-mobile .hero-text{height:48px;}
-body.force-mobile .header-left{gap:6px;margin-left:-4px;}
+body.force-mobile .header-left{gap:2px;}
 body.force-mobile .header-title{font-size:18px;line-height:1.02;}
 body.force-mobile .header-sub{font-size:11px;line-height:1.02;}
 body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 body.force-mobile .section-title{margin-left:-4px;}
 body.force-mobile .visit-card{padding:15px 12px 13px;border-radius:18px;}
 body.force-mobile .card-head{align-items:flex-start;gap:11px;}
-body.force-mobile .route-badge{width:42px;height:42px;font-size:20px;}
+body.force-mobile .route-badge{width:42px;height:42px;font-size:21px;}
 body.force-mobile .route-badge.word{font-size:17px;}
 body.force-mobile .route-meta{margin-top:10px;column-gap:6px;row-gap:6px;}
 body.force-mobile .route-list{gap:14px;}
