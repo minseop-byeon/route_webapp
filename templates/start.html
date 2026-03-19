@@ -837,21 +837,25 @@ function updateSelectCompleted(selectElement){
 
 teamSelect.addEventListener("change", function(){
   const team = this.value;
-  userField.classList.add("hidden");
-  dateField.classList.add("hidden");
   setCustomValue(userSelect, userSelectText, userSelectWrap, userSelectMenu, "");
   renderUserOptions("");
   updateSelectCompleted(teamSelect);
   updateSelectCompleted(userSelect);
   setTripDate("");
 
-  if(!team || !teamUsers[team] || teamUsers[team].length === 0){
+  if(!team){
+    userField.classList.add("hidden");
+    dateField.classList.add("hidden");
     updateSubmitState();
     return;
   }
 
+  const users = Array.isArray(teamUsers[team]) ? teamUsers[team] : [];
   renderUserOptions(team);
   userField.classList.remove("hidden");
+  if(users.length === 0){
+    closeCustomSelect(userSelectMenu, userSelectWrap, userSelectTrigger);
+  }
   updateSelectCompleted(teamSelect);
   updateSubmitState();
 });
