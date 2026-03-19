@@ -127,7 +127,7 @@ label{
 }
 
 select,
-input[type="date"]{
+input[type="text"]{
   width:100%;
   height:48px;
   padding:0 44px 0 14px;
@@ -146,7 +146,7 @@ input[type="date"]{
 }
 
 select:focus,
-input[type="date"]:focus{
+input[type="text"]:focus{
   outline:none;
   border-color:#1d4ed8;
   box-shadow:0 0 0 3px rgba(29,78,216,0.08);
@@ -178,25 +178,135 @@ input[type="date"]:focus{
   pointer-events:none;
 }
 
-.date-wrap::before{
+.date-control{
+  position:relative;
+}
+
+.date-control input[type="text"]{
+  padding-right:52px;
+}
+
+.calendar-trigger{
+  position:absolute;
+  top:50%;
+  right:10px;
+  transform:translateY(-50%);
+  width:30px;
+  height:30px;
+  border:none;
+  background:transparent;
+  padding:0;
+  cursor:pointer;
+}
+
+.calendar-trigger::before{
   content:"";
   position:absolute;
-  top:calc(50% - 5px);
-  right:18px;
+  top:6px;
+  left:7px;
+  width:16px;
+  height:16px;
+  border:2px solid #94a3b8;
+  border-radius:4px;
+}
+
+.calendar-trigger::after{
+  content:"";
+  position:absolute;
+  top:9px;
+  left:11px;
   width:8px;
   height:2px;
   background:#94a3b8;
-  pointer-events:none;
-  z-index:1;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator{
+.calendar-popover{
   position:absolute;
-  right:10px;
+  top:calc(100% + 8px);
+  left:0;
+  width:236px;
+  background:#f2f4f4;
+  border:1px solid #d6dfda;
+  border-radius:4px;
+  padding:12px 10px 10px;
+  z-index:30;
+  box-shadow:0 8px 18px rgba(15,23,42,0.08);
+}
+
+.calendar-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
+.calendar-title{
+  font-size:13px;
+  font-weight:800;
+  color:#333;
+}
+
+.calendar-nav{
   width:24px;
   height:24px;
-  opacity:0;
+  border:1px solid #ccd5d0;
+  border-radius:4px;
+  background:#fff;
+  color:#4b5563;
   cursor:pointer;
+  font-size:14px;
+  line-height:1;
+}
+
+.calendar-weekdays,
+.calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:4px;
+}
+
+.calendar-weekdays{
+  margin-bottom:6px;
+}
+
+.calendar-weekday{
+  text-align:center;
+  font-size:10px;
+  font-weight:700;
+  color:#5b5f63;
+  padding:2px 0;
+}
+
+.calendar-day{
+  width:28px;
+  height:28px;
+  margin:0 auto;
+  border:none;
+  border-radius:8px;
+  background:transparent;
+  font-size:12px;
+  font-weight:700;
+  color:#222;
+  cursor:pointer;
+}
+
+.calendar-day.other-month{
+  color:#a7aeb6;
+}
+
+.calendar-day.selected{
+  background:#63666a;
+  color:#fff;
+}
+
+.calendar-day.today{
+  border:1px solid #6d737a;
+  background:#f8f9f8;
+}
+
+.calendar-day:focus{
+  outline:2px solid #5b9dff;
+  outline-offset:1px;
 }
 
 .hidden{
@@ -269,9 +379,13 @@ input[type="date"]::-webkit-calendar-picker-indicator{
   }
 
   select,
-  input[type="date"]{
+  input[type="text"]{
     height:46px;
     line-height:46px;
+  }
+
+  .calendar-popover{
+    width:230px;
   }
 }
 </style>
@@ -291,7 +405,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 
     <div class="title-wrap">
       <div class="main-title">국세청 체납관리단</div>
-      <div class="sub-title">SMART 경로탐색</div>
+      <div class="sub-title">SMART WORK</div>
     </div>
 
     <form id="startForm" method="POST">
@@ -324,7 +438,28 @@ input[type="date"]::-webkit-calendar-picker-indicator{
         <div class="field">
           <label class="required" for="tripDate">방문일자</label>
           <div class="date-wrap">
-            <input type="date" name="trip_date" id="tripDate" required>
+            <div class="date-control">
+              <input type="text" id="tripDateDisplay" placeholder="YYYY-MM-DD" readonly>
+              <button type="button" id="calendarTrigger" class="calendar-trigger" aria-label="방문일자 달력 열기"></button>
+              <input type="hidden" name="trip_date" id="tripDate" required>
+              <div class="calendar-popover hidden" id="calendarPopover" aria-hidden="true">
+                <div class="calendar-header">
+                  <button type="button" class="calendar-nav" id="calendarPrev" aria-label="이전 달">‹</button>
+                  <div class="calendar-title" id="calendarTitle"></div>
+                  <button type="button" class="calendar-nav" id="calendarNext" aria-label="다음 달">›</button>
+                </div>
+                <div class="calendar-weekdays">
+                  <span class="calendar-weekday">일</span>
+                  <span class="calendar-weekday">월</span>
+                  <span class="calendar-weekday">화</span>
+                  <span class="calendar-weekday">수</span>
+                  <span class="calendar-weekday">목</span>
+                  <span class="calendar-weekday">금</span>
+                  <span class="calendar-weekday">토</span>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -340,9 +475,103 @@ const teamUsers = {{ team_users | tojson }};
 const teamSelect = document.getElementById("teamSelect");
 const userSelect = document.getElementById("userSelect");
 const tripDate = document.getElementById("tripDate");
+const tripDateDisplay = document.getElementById("tripDateDisplay");
+const calendarTrigger = document.getElementById("calendarTrigger");
+const calendarPopover = document.getElementById("calendarPopover");
+const calendarTitle = document.getElementById("calendarTitle");
+const calendarGrid = document.getElementById("calendarGrid");
+const calendarPrev = document.getElementById("calendarPrev");
+const calendarNext = document.getElementById("calendarNext");
 const userField = document.getElementById("userField");
 const dateField = document.getElementById("dateField");
 const submitBtn = document.getElementById("submitBtn");
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth();
+
+function toDateString(year, month, day){
+  const y = String(year);
+  const m = String(month + 1).padStart(2, "0");
+  const d = String(day).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function setTripDate(value){
+  tripDate.value = value || "";
+  tripDateDisplay.value = value || "";
+  updateSubmitState();
+}
+
+function openCalendar(){
+  const selected = tripDate.value ? new Date(tripDate.value) : new Date();
+  calendarYear = selected.getFullYear();
+  calendarMonth = selected.getMonth();
+  renderCalendar();
+  calendarPopover.classList.remove("hidden");
+  calendarPopover.setAttribute("aria-hidden", "false");
+}
+
+function closeCalendar(){
+  calendarPopover.classList.add("hidden");
+  calendarPopover.setAttribute("aria-hidden", "true");
+}
+
+function renderCalendar(){
+  const firstDay = new Date(calendarYear, calendarMonth, 1);
+  const startDay = firstDay.getDay();
+  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+  const prevMonthDays = new Date(calendarYear, calendarMonth, 0).getDate();
+  const today = new Date();
+  const selected = tripDate.value;
+
+  calendarTitle.textContent = `${calendarYear}년 ${calendarMonth + 1}월`;
+  calendarGrid.innerHTML = "";
+
+  for(let i = 0; i < 42; i++){
+    let dayNumber;
+    let monthOffset = 0;
+
+    if(i < startDay){
+      dayNumber = prevMonthDays - startDay + i + 1;
+      monthOffset = -1;
+    }else if(i >= startDay + daysInMonth){
+      dayNumber = i - (startDay + daysInMonth) + 1;
+      monthOffset = 1;
+    }else{
+      dayNumber = i - startDay + 1;
+    }
+
+    const dateObj = new Date(calendarYear, calendarMonth + monthOffset, dayNumber);
+    const dateStr = toDateString(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+
+    const dayBtn = document.createElement("button");
+    dayBtn.type = "button";
+    dayBtn.className = "calendar-day";
+    dayBtn.textContent = String(dayNumber);
+    dayBtn.dataset.date = dateStr;
+    dayBtn.setAttribute("aria-label", dateStr);
+
+    if(monthOffset !== 0){
+      dayBtn.classList.add("other-month");
+    }
+    if(selected && selected === dateStr){
+      dayBtn.classList.add("selected");
+    }
+    if(
+      dateObj.getFullYear() === today.getFullYear() &&
+      dateObj.getMonth() === today.getMonth() &&
+      dateObj.getDate() === today.getDate()
+    ){
+      dayBtn.classList.add("today");
+    }
+
+    dayBtn.addEventListener("click", () => {
+      setTripDate(dateStr);
+      closeCalendar();
+    });
+
+    calendarGrid.appendChild(dayBtn);
+  }
+}
 
 function updateSubmitState(){
   const isReady = !!(teamSelect.value && userSelect.value && tripDate.value);
@@ -356,7 +585,7 @@ teamSelect.addEventListener("change", function(){
   userField.classList.add("hidden");
   dateField.classList.add("hidden");
   userSelect.value = "";
-  tripDate.value = "";
+  setTripDate("");
 
   if(!team || !teamUsers[team] || teamUsers[team].length === 0){
     updateSubmitState();
@@ -375,7 +604,7 @@ teamSelect.addEventListener("change", function(){
 });
 
 userSelect.addEventListener("change", function(){
-  tripDate.value = "";
+  setTripDate("");
 
   if(this.value){
     dateField.classList.remove("hidden");
@@ -387,7 +616,40 @@ userSelect.addEventListener("change", function(){
 });
 
 tripDate.addEventListener("change", function(){
+  tripDateDisplay.value = tripDate.value;
   updateSubmitState();
+});
+
+calendarTrigger.addEventListener("click", function(){
+  if(calendarPopover.classList.contains("hidden")){
+    openCalendar();
+  }else{
+    closeCalendar();
+  }
+});
+
+calendarPrev.addEventListener("click", function(){
+  calendarMonth -= 1;
+  if(calendarMonth < 0){
+    calendarMonth = 11;
+    calendarYear -= 1;
+  }
+  renderCalendar();
+});
+
+calendarNext.addEventListener("click", function(){
+  calendarMonth += 1;
+  if(calendarMonth > 11){
+    calendarMonth = 0;
+    calendarYear += 1;
+  }
+  renderCalendar();
+});
+
+document.addEventListener("click", function(event){
+  if(!event.target.closest(".date-control")){
+    closeCalendar();
+  }
 });
 </script>
 </body>
