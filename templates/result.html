@@ -27,6 +27,8 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
 .hero-text{height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
 .header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#003675;}
 .header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
+.header-menu{width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;padding:0;color:#334155;cursor:default;flex:0 0 auto;}
+.header-menu svg{width:22px;height:22px;display:block;}
 .summary-wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
 .summary-item{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:10px;padding:13px 11px;box-shadow:none;}
 .summary-label{font-size:12px;color:#6b7280;font-weight:700;}
@@ -109,6 +111,8 @@ body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sa
   .header-left{gap:2px;}
   .header-title{font-size:18px;line-height:1.02;}
   .header-sub{font-size:11px;line-height:1.02;}
+  .header-menu{width:48px;height:48px;}
+  .header-menu svg{width:20px;height:20px;}
   .summary-item{padding:11px 9px;}
   .summary-value{font-size:21px;}
   .summary-unit{font-size:14px;}
@@ -142,6 +146,8 @@ body.force-mobile .hero-text{height:48px;}
 body.force-mobile .header-left{gap:2px;}
 body.force-mobile .header-title{font-size:18px;line-height:1.02;}
 body.force-mobile .header-sub{font-size:11px;line-height:1.02;}
+body.force-mobile .header-menu{width:48px;height:48px;}
+body.force-mobile .header-menu svg{width:20px;height:20px;}
 body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 body.force-mobile .section-title{margin-left:-4px;}
 body.force-mobile .visit-card{padding:15px 12px 13px;border-radius:18px;}
@@ -169,6 +175,11 @@ body.force-mobile .action-btn{width:100%;}
         <div class="header-sub">SMART WORK</div>
       </div>
     </div>
+    <button type="button" class="header-menu" aria-label="메뉴">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+      </svg>
+    </button>
   </section>
 
   <section class="summary-wrap" aria-label="경로 요약">
