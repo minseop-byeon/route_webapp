@@ -8,64 +8,68 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
 :root{
-  --krds-primary:#003675;
-  --krds-primary-strong:#002850;
-  --krds-bg:#f4f6f8;
-  --krds-border:#c6ccd4;
-  --krds-text:#1d1d1d;
-  --krds-sub:#526173;
+  --krds-primary:#0050b3;
+  --krds-primary-strong:#003b86;
+  --krds-bg:#edf3ff;
+  --krds-surface:#ffffff;
+  --krds-border:#c6d6f3;
+  --krds-text:#10243e;
+  --krds-sub:#4b6382;
+  --krds-accent:#00a0e9;
 }
 *{box-sizing:border-box;}
 body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);}
 .container{max-width:1080px;margin:0 auto;padding:16px 16px 30px;}
 .hero{padding:0 0 10px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:8px;}
-.header-left{display:flex;align-items:stretch;gap:10px;min-width:0;}
+.header-left{display:flex;align-items:stretch;gap:8px;min-width:0;}
 .header-logo{width:56px;height:56px;object-fit:contain;display:block;flex:0 0 auto;}
-.hero-text{height:56px;display:flex;flex-direction:column;justify-content:space-between;}
-.header-title{font-size:27px;font-weight:800;line-height:1.1;letter-spacing:-0.3px;color:#0b2f65;}
-.header-sub{font-size:14px;font-weight:700;color:var(--krds-sub);}
+.hero-text{height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
+.header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#0a3f82;}
+.header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
 .summary-wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
-.summary-item{background:#fff;border:1px solid var(--krds-border);border-radius:10px;padding:14px 12px;}
-.summary-label{font-size:12px;color:#5e6c7d;font-weight:700;}
-.summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#10233d;letter-spacing:-0.2px;}
+.summary-item{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:12px;padding:14px 12px;box-shadow:0 4px 12px rgba(0,66,153,.08);}
+.summary-label{font-size:12px;color:#3f5f85;font-weight:700;}
+.summary-value{margin-top:4px;font-size:27px;font-weight:800;color:#08366f;letter-spacing:-0.2px;}
 .summary-unit{margin-left:2px;font-size:18px;font-weight:700;}
 .section-card{background:transparent;border:none;border-radius:0;padding:0;}
-.section-title{margin:0 0 10px;font-size:20px;color:#0b2f65;font-weight:800;letter-spacing:-0.2px;}
-.empty-box{padding:18px;border-radius:8px;background:#f8fafc;border:1px solid #dde3ea;color:#516072;font-size:14px;text-align:center;}
+.section-title{margin:0 0 10px;font-size:21px;color:#09458f;font-weight:800;letter-spacing:-0.2px;}
+.empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid #cedcf3;color:#355176;font-size:14px;text-align:center;}
 .route-list{display:flex;flex-direction:column;gap:10px;}
 .connector{display:flex;gap:6px;align-items:center;padding-left:50px;}
-.connector-pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;background:#eef3f9;border:1px solid #d2dae5;color:#334155;font-size:12px;font-weight:700;}
-.route-panel{background:#fff;border:1px solid #cfd6df;border-radius:10px;padding:12px;}
+.connector-pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;background:#e8f2ff;border:1px solid #bdd2f3;color:#2a4f80;font-size:12px;font-weight:700;}
+.route-panel{background:var(--krds-surface);border:1px solid #c5d5f0;border-radius:12px;padding:12px;box-shadow:0 4px 14px rgba(0,66,153,.08);}
 .route-top{display:flex;align-items:flex-start;gap:10px;}
-.route-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;}
-.route-badge.start{background:#1d4f91;}
-.route-badge.return{background:#435f86;}
+.route-badge{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:var(--krds-primary);flex:0 0 auto;box-shadow:0 4px 10px rgba(0,80,179,.26);}
+.route-badge.start{background:#0d6ac7;}
+.route-badge.return{background:#356fb1;}
 .route-badge.word{font-size:12px;}
 .route-main{min-width:0;flex:1;}
-.route-address{font-size:17px;font-weight:800;line-height:1.25;color:#162438;word-break:keep-all;overflow-wrap:anywhere;}
-.route-name{margin-top:4px;font-size:13px;font-weight:700;color:#344255;}
+.visit-info-block{padding:8px 9px 9px;background:#f8fbff;border:1px solid #d8e6fa;border-radius:10px;}
+.route-address{font-size:17px;font-weight:800;line-height:1.24;color:#0f2e59;word-break:keep-all;overflow-wrap:anywhere;}
+.route-name{margin-top:4px;font-size:13px;font-weight:700;color:#224164;}
 .route-name.visit-name{font-size:14px;}
-.route-meta{margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.route-meta{margin-top:7px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .pill{display:inline-flex;height:24px;align-items:center;padding:0 8px;border-radius:999px;font-size:11px;font-weight:700;}
-.pill-primary{background:#e7effa;border:1px solid #b9cbe5;color:#163f77;}
-.pill-neutral{background:#f5f7fa;border:1px solid #d2d8e0;color:#3b4657;}
-.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #b7c5d8;background:#edf2f8;color:#1f3f6b;text-decoration:none;}
+.pill-primary{background:#deecff;border:1px solid #aac8f2;color:#104684;}
+.pill-neutral{background:#f0f6ff;border:1px solid #c4d8f7;color:#244a79;}
+.nav-btn,.parking-guide{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;border:1px solid #90b5ec;background:#deecff;color:#0f4b95;text-decoration:none;}
 .nav-btn svg,.parking-guide svg{width:13px;height:13px;display:block;}
 .nav-btn.disabled,.parking-guide.disabled{opacity:.45;pointer-events:none;}
-.parking-expand{margin-top:10px;padding-top:10px;border-top:1px dashed #d2d8e0;}
-.parking-subtitle{margin:0 0 8px;font-size:12px;font-weight:800;color:#344255;}
-.parking-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #ecf0f4;}
+.parking-expand{position:relative;margin-top:9px;padding:9px 9px 2px;background:#fff;border:1px solid #c9dbf7;border-radius:10px;}
+.parking-expand::before{content:"";position:absolute;left:14px;top:-7px;width:12px;height:12px;background:#fff;border-left:1px solid #c9dbf7;border-top:1px solid #c9dbf7;transform:rotate(45deg);}
+.parking-subtitle{margin:0 0 8px;font-size:12px;font-weight:800;color:#1f548e;}
+.parking-row{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid #e6effb;}
 .parking-row:last-child{border-bottom:none;}
-.parking-name{min-width:0;max-width:58%;font-size:12px;color:#111827;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.parking-name{min-width:0;max-width:58%;font-size:12px;color:#10345e;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .parking-trip-chip{display:inline-flex;align-items:center;justify-content:center;height:22px;border-radius:999px;padding:0 8px;font-size:10px;font-weight:700;border:1px solid transparent;white-space:nowrap;}
-.parking-trip-chip.car{color:#163f77;background:#e7effa;border-color:#b9cbe5;}
-.parking-trip-chip.walk{color:#136246;background:#e6f6ef;border-color:#bce2d1;}
+.parking-trip-chip.car{color:#0f488f;background:#deecff;border-color:#aac8f2;}
+.parking-trip-chip.walk{color:#0f6a53;background:#dff8ef;border-color:#a7e8d2;}
 .parking-trip-chip.car span::before{content:"차량 ";}
 .parking-trip-chip.walk span::before{content:"도보 ";}
-.parking-empty{font-size:12px;color:#64748b;padding:4px 0;}
-.notice-box{margin-top:8px;padding:10px 12px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:12px;font-weight:700;line-height:1.45;white-space:pre-line;}
+.parking-empty{font-size:12px;color:#4c6788;padding:4px 0;}
+.notice-box{margin-top:8px;padding:10px 12px;border-radius:9px;background:#fff4eb;border:1px solid #ffcfa1;color:#9a3412;font-size:12px;font-weight:700;line-height:1.45;white-space:pre-line;}
 .bottom-actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;}
-.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 13px;border-radius:8px;border:1px solid #9ba8b9;background:#fff;color:#1f2937;font-size:13px;font-weight:700;cursor:pointer;}
+.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:42px;padding:0 13px;border-radius:8px;border:1px solid #96b7ea;background:#fff;color:#1e4273;font-size:13px;font-weight:700;cursor:pointer;}
 .action-btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
 .action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
 .action-btn svg{width:14px;height:14px;}
@@ -73,28 +77,33 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:
   .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media (max-width:760px){
-  .container{padding-left:10px;padding-right:10px;}
-  .container{padding-top:10px;}
+  .container{padding-left:10px;padding-right:10px;padding-top:calc(env(safe-area-inset-top, 0px) + 12px);}
   .hero{padding:0 0 8px;}
   .header-logo{width:48px;height:48px;}
   .hero-text{height:48px;}
-  .header-title{font-size:22px;}
-  .summary-item{padding:11px 10px;}
-  .summary-value{font-size:22px;}
+  .header-left{gap:6px;}
+  .header-title{font-size:18px;line-height:1.02;}
+  .header-sub{font-size:11px;line-height:1.02;}
+  .summary-item{padding:11px 9px;}
+  .summary-value{font-size:21px;}
   .summary-unit{font-size:14px;}
-  .section-card{padding:12px;}
   .section-title{font-size:18px;}
   .route-address{font-size:16px;}
+  .route-panel{padding:10px;}
+  .visit-info-block{padding:7px 8px 8px;}
   .connector{padding-left:44px;}
   .parking-row{gap:4px;}
   .parking-trip-chip{padding:0 6px;}
   .bottom-actions{flex-direction:column;}
   .action-btn{width:100%;}
 }
-body.force-mobile .container{max-width:430px;padding-top:10px;}
+body.force-mobile .container{max-width:430px;padding-top:calc(env(safe-area-inset-top, 0px) + 12px);}
 body.force-mobile .hero{padding:0 0 8px;}
 body.force-mobile .header-logo{width:48px;height:48px;}
 body.force-mobile .hero-text{height:48px;}
+body.force-mobile .header-left{gap:6px;}
+body.force-mobile .header-title{font-size:18px;line-height:1.02;}
+body.force-mobile .header-sub{font-size:11px;line-height:1.02;}
 body.force-mobile .summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
 body.force-mobile .bottom-actions{flex-direction:column;}
 body.force-mobile .action-btn{width:100%;}
@@ -149,37 +158,39 @@ body.force-mobile .action-btn{width:100%;}
                 {% endif %}
 
                 <div class="route-main">
-                  {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
-                  {% if v.name %}
-                    {% set display_name = v.name %}
-                    {% if v.type == "visit" and v.name|length > 5 %}
-                      {% set display_name = v.name[:5] ~ "…" %}
+                  <div class="visit-info-block">
+                    {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
+                    {% if v.name %}
+                      {% set display_name = v.name %}
+                      {% if v.type == "visit" and v.name|length > 5 %}
+                        {% set display_name = v.name[:5] ~ "…" %}
+                      {% endif %}
+                      <div class="route-name{% if v.type == 'visit' %} visit-name{% endif %}" title="{{ v.name }}">{{ display_name }}</div>
                     {% endif %}
-                    <div class="route-name{% if v.type == 'visit' %} visit-name{% endif %}" title="{{ v.name }}">{{ display_name }}</div>
-                  {% endif %}
-                  <div class="route-meta">
-                    <div class="pill pill-primary">
-                      {% if v.type == "start" %}
-                        출발 {{ v.arrival }}
-                      {% elif v.type == "return" %}
-                        도착 {{ v.arrival }}
-                      {% else %}
-                        {{ v.arrival }} ~ {{ v.end_time }}
+                    <div class="route-meta">
+                      <div class="pill pill-primary">
+                        {% if v.type == "start" %}
+                          출발 {{ v.arrival }}
+                        {% elif v.type == "return" %}
+                          도착 {{ v.arrival }}
+                        {% else %}
+                          {{ v.arrival }} ~ {{ v.end_time }}
+                        {% endif %}
+                      </div>
+                      {% if v.type == "visit" %}
+                        <div class="pill pill-neutral">방문 {{ v.service_time }}분</div>
+                        {% if v.appointment_time %}<div class="pill pill-neutral">약속 {{ v.appointment_time }}</div>{% endif %}
+                      {% elif v.type == "wait" %}
+                        <div class="pill pill-neutral">대기 {{ v.service_time }}분</div>
+                      {% elif v.type == "lunch" %}
+                        <div class="pill pill-neutral">점심 {{ v.service_time }}분</div>
+                      {% endif %}
+                      {% if v.type == "visit" or v.type == "return" %}
+                        <a class="nav-btn {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="길찾기" title="길찾기">
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
+                        </a>
                       {% endif %}
                     </div>
-                    {% if v.type == "visit" %}
-                      <div class="pill pill-neutral">방문 {{ v.service_time }}분</div>
-                      {% if v.appointment_time %}<div class="pill pill-neutral">약속 {{ v.appointment_time }}</div>{% endif %}
-                    {% elif v.type == "wait" %}
-                      <div class="pill pill-neutral">대기 {{ v.service_time }}분</div>
-                    {% elif v.type == "lunch" %}
-                      <div class="pill pill-neutral">점심 {{ v.service_time }}분</div>
-                    {% endif %}
-                    {% if v.type == "visit" or v.type == "return" %}
-                      <a class="nav-btn {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ v.address|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="길찾기" title="길찾기">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
-                      </a>
-                    {% endif %}
                   </div>
 
                   {% if v.type == "visit" %}
