@@ -37,7 +37,7 @@ body{margin:0;font-family:Pretendard,sans-serif;color:var(--krds-text);backgroun
 .header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
 .page-card{padding:0 0 20px;}
 .section-card{margin-bottom:12px;}
-.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:0 14px 10px;}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:0 0 10px;}
 .section-title{margin:0;font-size:18px;font-weight:800;color:#111827;letter-spacing:-0.3px;}
 input,select,button,textarea{font-family:Pretendard,sans-serif;}
 label{display:block;font-size:12px;color:#6b7280;margin-bottom:7px;font-weight:700;}
@@ -72,28 +72,31 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
   -webkit-appearance:none;
   -moz-appearance:none;
   appearance:none;
-  width:18px;
-  height:18px;
+  box-sizing:border-box;
+  position:relative;
+  width:20px;
+  height:20px;
   margin:0;
-  margin-top:1px;
   min-height:0;
-  flex:0 0 18px;
-  border:1.5px solid var(--krds-form-check-border);
+  flex:0 0 20px;
+  border:2px solid var(--krds-form-check-border);
   border-radius:5px;
   background:var(--krds-form-check-surface);
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
+  display:inline-block;
+  vertical-align:top;
   cursor:pointer;
   transition:border-color .15s,background-color .15s,box-shadow .15s;
 }
 .appointment-check input[type="checkbox"]::before{
   content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
   width:10px;
   height:6px;
   border-left:2px solid var(--krds-form-check-icon);
   border-bottom:2px solid var(--krds-form-check-icon);
-  transform:translateY(-1px) rotate(-45deg) scale(0);
+  transform:translate(-50%, -58%) rotate(-45deg) scale(0);
   transition:transform .15s ease;
 }
 .appointment-check input[type="checkbox"]:checked{
@@ -101,7 +104,7 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
   background:var(--krds-form-check-surface-checked);
 }
 .appointment-check input[type="checkbox"]:checked::before{
-  transform:translateY(-1px) rotate(-45deg) scale(1);
+  transform:translate(-50%, -58%) rotate(-45deg) scale(1);
 }
 .appointment-check input[type="checkbox"]:focus-visible{
   outline:none;
@@ -118,7 +121,7 @@ button{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12p
 .time-select-area{margin-top:8px;display:none;}
 .time-row{display:flex;gap:8px;}
 .warning{display:none;margin-top:10px;font-size:13px;color:var(--krds-danger);font-weight:700;}
-.bottom-actions{margin-top:12px;display:flex;justify-content:center;}
+.bottom-actions{margin-top:12px;display:flex;justify-content:flex-start;}
 .back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;padding:0 4px;font-size:13px;font-weight:700;cursor:pointer;}
 .back-link:hover{color:#334155;text-decoration:underline;}
 .back-link svg{width:14px;height:14px;}
