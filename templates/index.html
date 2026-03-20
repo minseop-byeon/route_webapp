@@ -276,12 +276,12 @@ function parseQrPayload(rawText){
     }catch(error){
     }
   }
-  text = text.replace(/[\r\n]+/g, "");
-  if(!text.startsWith("RT1|")){
-    throw new Error(`지원하지 않는 QR 형식입니다.\n인식값: ${text.slice(0, 80) || "(비어 있음)"}`);
+  let pairs = [];
+  if(text.startsWith("RT1|")){
+    pairs = text.replace(/[\r\n]+/g, "").split("|").slice(1).filter(Boolean);
+  }else{
+    pairs = text.split(/\r?\n+/).map((line) => line.trim()).filter(Boolean);
   }
-
-  const pairs = text.split("|").slice(1).filter(Boolean);
   if(!pairs.length){
     throw new Error("QR 코드에 항목이 없습니다.");
   }
