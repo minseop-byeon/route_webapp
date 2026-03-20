@@ -18,45 +18,59 @@
   --krds-danger:#ef4444;
 }
 *{box-sizing:border-box;}
-body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);min-height:100vh;position:relative;}
+body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);min-height:100dvh;position:relative;line-height:1.45;}
 body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--mobile-top-safe);background:linear-gradient(180deg, rgba(244,246,250,.98) 0%, rgba(244,246,250,.88) 72%, rgba(244,246,250,0) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);pointer-events:none;z-index:1200;opacity:0;}
-.container{max-width:420px;margin:34px auto;padding:0 16px 28px;}
+.container{max-width:420px;margin:0 auto;padding:34px 16px 28px;}
 .hero{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
 .hero-left{display:flex;align-items:center;gap:10px;}
 .hero-logo{width:54px;height:54px;object-fit:contain;}
 .hero-title{font-size:20px;font-weight:900;color:#003675;line-height:1.05;}
 .hero-sub{font-size:12px;font-weight:800;color:var(--krds-sub);}
 .hero-menu{width:48px;height:48px;border:none;background:transparent;color:#334155;}
-.section-title{margin:0 0 10px;font-size:22px;font-weight:900;letter-spacing:-0.03em;}
-.section-desc{margin:0 0 16px;font-size:13px;line-height:1.55;color:var(--krds-sub);font-weight:700;}
-.summary-card,.card{background:#fff;border:1px solid var(--krds-border);border-radius:20px;box-shadow:0 10px 24px rgba(15,23,42,.05);}
-.summary-card{padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
-.summary-label{font-size:12px;color:#64748b;font-weight:800;}
-.summary-value{font-size:24px;font-weight:900;color:#0f172a;}
-.summary-unit{font-size:13px;font-weight:800;color:#475569;margin-left:3px;}
+.page-card{padding:0 0 20px;}
+.section-card{margin-bottom:12px;}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:0 14px 10px;}
+.section-title{margin:0;font-size:18px;font-weight:800;color:#111827;letter-spacing:-0.3px;}
+.section-meta{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.section-meta-label{font-size:12px;color:#6b7280;font-weight:700;}
+.section-meta-value{font-size:18px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
+.section-meta-unit{font-size:13px;color:#475569;font-weight:700;}
+.summary-card,.card{background:#fff;border:1px solid var(--krds-border);border-radius:18px;box-shadow:0 6px 16px rgba(15,23,42,.04);}
+.summary-card{padding:14px 14px 12px;margin-top:10px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+.summary-block{min-width:0;}
+.summary-label{font-size:12px;color:#64748b;font-weight:700;margin-bottom:6px;}
+.summary-value{font-size:18px;font-weight:800;color:#111827;letter-spacing:-0.2px;}
+.summary-unit{font-size:13px;font-weight:700;color:#475569;margin-left:2px;}
 .card{padding:16px 14px 14px;margin-bottom:12px;}
 .card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;}
 .card-index{font-size:14px;font-weight:900;color:#1d4ed8;}
 .delete-btn{border:none;background:transparent;color:#94a3b8;font-size:18px;cursor:pointer;}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
-label{font-size:12px;color:#64748b;font-weight:800;}
+label{font-size:12px;color:#6b7280;font-weight:700;}
 .required::after{content:" *";color:var(--krds-danger);}
 input,select,button{font-family:Pretendard,sans-serif;}
-input,select{width:100%;height:44px;padding:0 12px;border:1px solid #d4dce7;border-radius:12px;background:#f8fafd;color:#0f172a;font-size:14px;font-weight:600;}
+input,select{width:100%;height:42px;padding:0 12px;border:1px solid #d4dce7;border-radius:11px;background:#f8fafd;color:#0f172a;font-size:14px;font-weight:600;transition:border-color .15s,box-shadow .15s,background .15s;}
+select{-webkit-appearance:none;-moz-appearance:none;appearance:none;padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M5 7l4 4 4-4' fill='none' stroke='%237f8ea6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:16px 16px;}
+select::-ms-expand{display:none;}
 input:focus,select:focus{outline:none;border-color:#5779b4;background:#fff;box-shadow:0 0 0 3px rgba(87,121,180,.12);}
 .address-row{display:flex;gap:8px;}
 .address-row input{flex:1;pointer-events:none;background:#f8fafc;}
 .address-row button{width:96px;}
-.btn{height:44px;border-radius:12px;border:1px solid transparent;font-size:14px;font-weight:900;cursor:pointer;}
+.btn{height:42px;border-radius:11px;border:1px solid transparent;padding:0 12px;font-size:14px;font-weight:800;cursor:pointer;transition:background .15s,transform .15s,border-color .15s;}
 .btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
 .btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
 .btn-secondary{background:#fff;border-color:#d4dce7;color:#334155;}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
-.full-btn{width:100%;margin-top:8px;}
+.btn-secondary:hover{background:#f8fafc;border-color:#b9c7dc;}
+.action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:4px;}
+.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+.action-btn svg{width:16px;height:16px;}
+.add-btn{width:100%;margin-top:6px;}
+.full-btn{width:100%;margin-top:10px;height:44px;font-size:15px;}
 .warning{display:none;margin-top:10px;font-size:13px;color:var(--krds-danger);font-weight:800;}
 .global-warning{margin-bottom:12px;padding:11px 12px;border-radius:14px;background:#fff4eb;border:1px solid #ffcfa1;color:#9a3412;font-size:13px;font-weight:800;line-height:1.5;}
-.bottom-actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;}
-.link-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:42px;padding:0 14px;border-radius:12px;border:1px solid #dbe2ea;background:#fff;color:#1f2937;font-size:14px;font-weight:800;text-decoration:none;}
+.bottom-actions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-start;}
+.link-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:40px;padding:0 4px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;font-size:13px;font-weight:700;text-decoration:none;}
+.link-btn:hover{color:#334155;text-decoration:underline;}
 .ocr-modal{position:fixed;inset:0;background:rgba(17,24,39,.65);display:none;align-items:center;justify-content:center;z-index:10000;padding:18px;}
 .ocr-modal.show{display:flex;}
 .ocr-modal-card{width:min(100%,620px);background:#fff;border:1px solid var(--krds-border);border-radius:18px;padding:18px;}
@@ -67,11 +81,15 @@ input:focus,select:focus{outline:none;border-color:#5779b4;background:#fff;box-s
 .qr-help{margin:10px 0 0;font-size:12px;color:#5b6678;line-height:1.5;font-weight:600;}
 @media (max-width:560px){
   body::before{opacity:1;}
-  .container{margin:calc(var(--mobile-top-safe) + 16px) auto 0;padding:0 14px 24px;}
+  .container{margin:0 auto;padding:calc(var(--mobile-top-safe) + 16px) 14px 24px;}
   .hero-logo{width:48px;height:48px;}
   .hero-title{font-size:18px;}
   .hero-sub{font-size:11px;}
-  .actions{grid-template-columns:1fr;}
+  .page-card{padding:0 0 16px;}
+  .section-title{font-size:17px;}
+  .section-meta-value{font-size:16px;}
+  .section-meta-unit{font-size:12px;}
+  .action-grid{grid-template-columns:1fr;}
   .bottom-actions{flex-direction:column;}
   .link-btn,.btn{width:100%;}
 }
@@ -94,43 +112,55 @@ input:focus,select:focus{outline:none;border-color:#5779b4;background:#fff;box-s
     </button>
   </div>
 
-  <h1 class="section-title">방문지 그룹화</h1>
-  <p class="section-desc">QR 스캔 또는 수동 입력으로 이름과 주소를 모은 뒤, 가까운 주소끼리 5개에서 10개 단위로 그룹화합니다.</p>
+  <div class="page-card">
+    <section class="section-card">
+      <div class="section-head">
+        <div>
+          <h1 class="section-title">방문지 그룹화</h1>
+        </div>
+      </div>
 
-  {% if warning_message %}
-    <div class="global-warning">{{ warning_message }}</div>
-  {% endif %}
+      {% if warning_message %}
+        <div class="global-warning">{{ warning_message }}</div>
+      {% endif %}
 
-  <div class="summary-card">
-    <div>
-      <div class="summary-label">현재 목록 수</div>
-      <div class="summary-value"><span id="visitCountValue">0</span><span class="summary-unit">건</span></div>
+      <form id="groupingForm" method="POST">
+        <input type="hidden" name="group_size" id="groupSizeInput" value="{{ group_size }}">
+        <div id="visits"></div>
+
+        <div class="action-grid">
+          <button type="button" class="btn btn-secondary action-btn" id="qrScanBtn" style="display:none">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4M8 8h8v8H8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            QR 스캔 추가
+          </button>
+          <button type="button" class="btn btn-secondary add-btn" id="addVisitBtn">+ 방문지 추가</button>
+        </div>
+
+        <div class="summary-card">
+          <div class="summary-block">
+            <div class="summary-label">현재 목록 수</div>
+            <div class="summary-value"><span id="visitCountValue">0</span><span class="summary-unit">건</span></div>
+          </div>
+          <div class="summary-block">
+            <label class="summary-label" for="groupSizeDisplay">그룹당 방문지</label>
+            <select id="groupSizeDisplay" name="group_size_display" form="groupingForm">
+              {% for value in range(5, 11) %}
+                <option value="{{ value }}" {% if value == group_size %}selected{% endif %}>{{ value }}개</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary full-btn">그룹화하기</button>
+      </form>
+    </section>
+
+    <div class="bottom-actions">
+      <a class="link-btn" href="{{ url_for('phone_menu') }}">전화 메뉴로 돌아가기</a>
+      <a class="link-btn" href="{{ url_for('start') }}">시작화면으로 이동</a>
     </div>
-    <div>
-      <div class="summary-label">그룹당 개수</div>
-      <select id="groupSizeDisplay" name="group_size_display" form="groupingForm">
-        {% for value in range(5, 11) %}
-          <option value="{{ value }}" {% if value == group_size %}selected{% endif %}>{{ value }}개</option>
-        {% endfor %}
-      </select>
-    </div>
-  </div>
-
-  <form id="groupingForm" method="POST">
-    <input type="hidden" name="group_size" id="groupSizeInput" value="{{ group_size }}">
-    <div id="visits"></div>
-
-    <div class="actions">
-      <button type="button" class="btn btn-secondary" id="qrScanBtn">QR 스캔 추가</button>
-      <button type="button" class="btn btn-secondary" id="addVisitBtn">+ 목록 추가</button>
-    </div>
-
-    <button type="submit" class="btn btn-primary full-btn">그룹화하기</button>
-  </form>
-
-  <div class="bottom-actions">
-    <a class="link-btn" href="{{ url_for('phone_menu') }}">전화 메뉴로 돌아가기</a>
-    <a class="link-btn" href="{{ url_for('start') }}">시작화면으로 돌아가기</a>
   </div>
 </div>
 

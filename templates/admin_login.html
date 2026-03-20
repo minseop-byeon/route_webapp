@@ -15,6 +15,7 @@
       background: #f4f6fa;
       margin: 0;
       color: #111827;
+      min-height: 100dvh;
       position: relative;
     }
 
@@ -35,8 +36,8 @@
 
     .container {
       max-width: 440px;
-      margin: 28px auto;
-      padding: 0 14px;
+      margin: 0 auto;
+      padding: 28px 14px 0;
     }
 
     .hero {
@@ -123,7 +124,8 @@
     @media (max-width:900px){
       body::before{opacity:1;}
       .container{
-        margin: calc(var(--mobile-top-safe) + 16px) auto 0;
+        margin: 0 auto;
+        padding: calc(var(--mobile-top-safe) + 16px) 14px 0;
       }
       input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
       select,

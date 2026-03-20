@@ -64,7 +64,7 @@ body{
   font-family:Pretendard,sans-serif;
   background:#f4f6fa;
   color:#111827;
-  min-height:100vh;
+  min-height:100dvh;
   position:relative;
 }
 
@@ -85,8 +85,8 @@ body::before{
 
 .container{
   max-width:420px;
-  margin:34px auto;
-  padding:0 18px 28px;
+  margin:0 auto;
+  padding:34px 18px 28px;
 }
 
 .top-actions{
@@ -350,7 +350,9 @@ input[type="text"]:focus{
 .date-control input[type="text"]{
   padding-right:52px;
   cursor:pointer;
-  font-size:16px;
+  font-size:14px;
+  font-weight:600;
+  line-height:48px;
 }
 
 .calendar-trigger{
@@ -512,8 +514,8 @@ input[type="text"]:focus{
 @media (max-width:560px){
   body::before{opacity:1;}
   .container{
-    margin:calc(var(--mobile-top-safe) + 16px) auto 0;
-    padding:0 14px 22px;
+    margin:0 auto;
+    padding:calc(var(--mobile-top-safe) + 16px) 14px 22px;
   }
 
   .top-actions{
