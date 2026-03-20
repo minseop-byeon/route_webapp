@@ -9,6 +9,7 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
 <style>
 :root{
+  --mobile-top-safe:calc(env(safe-area-inset-top, 0px) + 18px);
   --krds-primary:#1d4ed8;
   --krds-primary-strong:#1e40af;
   --krds-bg:#eef3fb;
@@ -25,6 +26,21 @@ body{
     radial-gradient(circle at top left, rgba(29,78,216,.08), transparent 26%),
     linear-gradient(180deg, #f7faff 0%, var(--krds-bg) 100%);
   color:var(--krds-text);
+  position:relative;
+}
+body::before{
+  content:"";
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:var(--mobile-top-safe);
+  background:linear-gradient(180deg, rgba(238,243,251,.98) 0%, rgba(238,243,251,.88) 72%, rgba(238,243,251,0) 100%);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  pointer-events:none;
+  z-index:1200;
+  opacity:0;
 }
 .container{max-width:1080px;margin:0 auto;padding:18px 16px 34px;}
 .hero{padding:0 0 12px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 10px -4px;}
@@ -123,7 +139,8 @@ body{
 .action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
 .action-btn svg{width:14px;height:14px;}
 @media (max-width:760px){
-  .container{width:calc(100% - 28px);max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 14px) 0 30px;}
+  body::before{opacity:1;}
+  .container{width:calc(100% - 28px);max-width:430px;margin:0 auto;padding:calc(var(--mobile-top-safe) + 14px) 0 30px;}
   .hero{padding:0 0 8px;}
   .header-logo{width:48px;height:48px;}
   .hero-text{height:48px;}
@@ -141,7 +158,8 @@ body{
   .bottom-actions{flex-direction:column;}
   .action-btn{width:100%;}
 }
-body.force-mobile .container{width:calc(100% - 28px);max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top, 0px) + 14px) 0 30px;}
+body.force-mobile .container{width:calc(100% - 28px);max-width:430px;margin:0 auto;padding:calc(var(--mobile-top-safe) + 14px) 0 30px;}
+body.force-mobile::before{opacity:1;}
 body.force-mobile .hero{padding:0 0 8px;}
 body.force-mobile .header-logo{width:48px;height:48px;}
 body.force-mobile .hero-text{height:48px;}

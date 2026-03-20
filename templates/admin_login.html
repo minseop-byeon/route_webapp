@@ -7,6 +7,7 @@
   <title>관리자 로그인</title>
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
   <style>
+    :root { --mobile-top-safe:calc(env(safe-area-inset-top, 0px) + 18px); }
     * { box-sizing: border-box; }
 
     body {
@@ -14,6 +15,22 @@
       background: #f4f6fa;
       margin: 0;
       color: #111827;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--mobile-top-safe);
+      background: linear-gradient(180deg, rgba(244,246,250,.98) 0%, rgba(244,246,250,.88) 72%, rgba(244,246,250,0) 100%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      pointer-events: none;
+      z-index: 1200;
+      opacity: 0;
     }
 
     .container {
@@ -104,6 +121,10 @@
     }
 
     @media (max-width:900px){
+      body::before{opacity:1;}
+      .container{
+        margin: calc(var(--mobile-top-safe) + 16px) auto 0;
+      }
       input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
       select,
       textarea{

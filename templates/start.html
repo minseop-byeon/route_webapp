@@ -8,6 +8,7 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
 :root{
+  --mobile-top-safe:calc(env(safe-area-inset-top, 0px) + 18px);
   --krds-form-select--color-background:#f8fafd;
   --krds-form-select--color-background-active:#ffffff;
   --krds-form-select--color-border:#d4dce7;
@@ -64,6 +65,22 @@ body{
   background:#f4f6fa;
   color:#111827;
   min-height:100vh;
+  position:relative;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:var(--mobile-top-safe);
+  background:linear-gradient(180deg, rgba(244,246,250,.98) 0%, rgba(244,246,250,.88) 72%, rgba(244,246,250,0) 100%);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  pointer-events:none;
+  z-index:1200;
+  opacity:0;
 }
 
 .container{
@@ -493,8 +510,9 @@ input[type="text"]:focus{
 }
 
 @media (max-width:560px){
+  body::before{opacity:1;}
   .container{
-    margin:22px auto;
+    margin:calc(var(--mobile-top-safe) + 16px) auto 0;
     padding:0 14px 22px;
   }
 
