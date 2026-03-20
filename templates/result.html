@@ -318,7 +318,7 @@ body.force-mobile .action-btn{width:100%;}
                           </div>
                           <span class="parking-trip-chip car" title="car time"><span>{{ parking.drive_min|default(0, true)|int }}분</span></span>
                           <span class="parking-trip-chip walk" title="walk time"><span>{{ parking.walk_min|default(0, true)|int }}분</span></span>
-                          <a class="parking-guide {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ parking.address|default('', true)|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="guide" title="guide">
+                          <a class="parking-guide {% if not tmap_app_key %}disabled{% endif %}" href="{% if tmap_app_key %}https://apis.openapi.sk.com/tmap/app/poi?appKey={{ tmap_app_key|urlencode }}&name={{ parking.name|default(parking.address, true)|urlencode }}{% else %}javascript:void(0){% endif %}" target="_blank" rel="noopener noreferrer" aria-label="guide" title="guide">
                             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-5.33 6-11a6 6 0 1 0-12 0c0 5.67 6 11 6 11Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.4" fill="currentColor"/></svg>
                           </a>
                         </div>
