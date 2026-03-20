@@ -72,7 +72,7 @@ body::before{
   position:relative;
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
+  justify-content:flex-start;
   min-height:156px;
   text-decoration:none;
   color:inherit;
@@ -83,17 +83,30 @@ body::before{
   box-shadow:0 12px 24px rgba(15,23,42,.05);
 }
 .menu-link:hover{border-color:#bfd1ee;background:#fff;}
+.menu-link-body{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-height:100%;
+}
 .menu-link-title{font-size:20px;font-weight:900;color:#0f172a;letter-spacing:-0.03em;}
+.menu-link-copy{display:flex;flex-direction:column;gap:12px;}
 .menu-link-text{
-  margin-top:8px;
   font-size:15px;
-  line-height:1.6;
+  line-height:1.7;
   color:#64748b;
   font-weight:700;
   white-space:pre-line;
 }
+.menu-link-foot{
+  margin-top:auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.menu-link-spacer{flex:1 1 auto;min-height:1px;}
 .menu-link-arrow{
-  align-self:flex-end;
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -106,7 +119,7 @@ body::before{
   box-shadow:0 8px 16px rgba(37,99,235,.12);
 }
 .menu-link-arrow svg{width:18px;height:18px;display:block;}
-.back-row{margin-top:16px;}
+.bottom-actions{margin-top:12px;display:flex;justify-content:flex-start;}
 .back-link{
   display:inline-flex;
   align-items:center;
@@ -120,8 +133,10 @@ body::before{
   font-size:13px;
   font-weight:700;
   text-decoration:none;
+  cursor:pointer;
 }
 .back-link:hover{color:#334155;text-decoration:underline;}
+.back-link svg{width:14px;height:14px;}
 @media (max-width:560px){
   body::before{opacity:1;}
   .container{margin:calc(var(--mobile-top-safe) + 16px) auto 0;padding:0 14px 24px;}
@@ -155,34 +170,47 @@ body::before{
 
   <div class="menu-grid">
     <a class="menu-link" href="{{ url_for('phone_grouping') }}">
-      <div>
-        <div class="menu-link-title">방문지 그룹화</div>
-        <div class="menu-link-text">대량의 방문지를 입력하고,
+      <div class="menu-link-body">
+        <div class="menu-link-copy">
+          <div class="menu-link-title">방문지 그룹화</div>
+          <div class="menu-link-text">대량의 방문지를 입력하고,
 동선을 고려하여 그룹화합니다.</div>
-      </div>
-      <div class="menu-link-arrow" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M8 12h8M13 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
+        </div>
+        <div class="menu-link-foot">
+          <div class="menu-link-spacer" aria-hidden="true"></div>
+          <div class="menu-link-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M8 12h8M13 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+        </div>
       </div>
     </a>
 
     <a class="menu-link" href="{{ url_for('planner') }}">
-      <div>
-        <div class="menu-link-title">최적경로계산</div>
-        <div class="menu-link-text">방문지 주소에 맞춰
+      <div class="menu-link-body">
+        <div class="menu-link-copy">
+          <div class="menu-link-title">최적경로계산</div>
+          <div class="menu-link-text">방문지 주소에 맞춰
 최적의 동선을 계산합니다.</div>
-      </div>
-      <div class="menu-link-arrow" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M8 12h8M13 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
+        </div>
+        <div class="menu-link-foot">
+          <div class="menu-link-spacer" aria-hidden="true"></div>
+          <div class="menu-link-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M8 12h8M13 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+        </div>
       </div>
     </a>
   </div>
 
-  <div class="back-row">
-    <a class="back-link" href="{{ url_for('start') }}">시작화면으로 돌아가기</a>
+  <div class="bottom-actions">
+    <a class="back-link" href="{{ url_for('start') }}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      시작화면으로 이동
+    </a>
   </div>
 </div>
 </body>
