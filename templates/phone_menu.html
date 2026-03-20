@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/symbol.png') }}">
+<title>국세청 체납관리단 - 전화 메뉴</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{
+  --mobile-top-safe:calc(env(safe-area-inset-top, 0px) + 18px);
+  --krds-primary:#1d4ed8;
+  --krds-primary-strong:#1e40af;
+  --krds-bg:#f4f6fa;
+  --krds-border:#d8e2f0;
+  --krds-text:#111827;
+  --krds-sub:#64748b;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:Pretendard,sans-serif;background:var(--krds-bg);color:var(--krds-text);min-height:100vh;position:relative;}
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--mobile-top-safe);background:linear-gradient(180deg, rgba(244,246,250,.98) 0%, rgba(244,246,250,.88) 72%, rgba(244,246,250,0) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);pointer-events:none;z-index:1200;opacity:0;}
+.container{max-width:420px;margin:36px auto;padding:0 16px 28px;}
+.hero{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.hero img{width:54px;height:54px;object-fit:contain;}
+.hero-title{font-size:22px;font-weight:900;color:#003675;line-height:1.06;}
+.hero-sub{font-size:13px;font-weight:800;color:var(--krds-sub);}
+.menu-card{background:#fff;border:1px solid var(--krds-border);border-radius:24px;padding:22px 18px;box-shadow:0 14px 30px rgba(15,23,42,.06);}
+.menu-title{margin:0 0 6px;font-size:22px;font-weight:900;letter-spacing:-0.03em;}
+.menu-desc{margin:0 0 18px;font-size:13px;line-height:1.55;color:var(--krds-sub);font-weight:700;}
+.menu-grid{display:grid;gap:12px;}
+.menu-link{display:block;text-decoration:none;color:inherit;background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);border:1px solid #dbe6f4;border-radius:18px;padding:18px 16px;box-shadow:0 8px 18px rgba(15,23,42,.04);}
+.menu-link:hover{border-color:#bfd1ee;background:#fff;}
+.menu-link-title{font-size:18px;font-weight:900;color:#0f172a;}
+.menu-link-text{margin-top:6px;font-size:13px;line-height:1.55;color:#64748b;font-weight:700;}
+.back-row{margin-top:14px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;padding:0 4px;font-size:13px;font-weight:700;text-decoration:none;}
+.back-link:hover{color:#334155;text-decoration:underline;}
+@media (max-width:560px){
+  body::before{opacity:1;}
+  .container{margin:calc(var(--mobile-top-safe) + 16px) auto 0;padding:0 14px 24px;}
+  .hero img{width:48px;height:48px;}
+  .hero-title{font-size:18px;}
+  .hero-sub{font-size:11px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <img src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
+    <div>
+      <div class="hero-title">국세청 체납관리단</div>
+      <div class="hero-sub">SMART WORK</div>
+    </div>
+  </div>
+
+  <div class="menu-card">
+    <h1 class="menu-title">전화 메뉴</h1>
+    <p class="menu-desc">전화 대상은 방문지 그룹화 또는 최적경로계산 중 하나를 선택해 진행할 수 있습니다.</p>
+
+    <div class="menu-grid">
+      <a class="menu-link" href="{{ url_for('phone_grouping') }}">
+        <div class="menu-link-title">방문지 그룹화</div>
+        <div class="menu-link-text">QR 스캔 또는 입력한 목록을 가까운 주소끼리 5개에서 10개 단위로 묶습니다.</div>
+      </a>
+
+      <a class="menu-link" href="{{ url_for('planner') }}">
+        <div class="menu-link-title">최적경로계산</div>
+        <div class="menu-link-text">현재 구현된 전화용 최적경로계산 화면으로 이동합니다.</div>
+      </a>
+    </div>
+
+    <div class="back-row">
+      <a class="back-link" href="{{ url_for('start') }}">시작화면으로 돌아가기</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

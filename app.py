@@ -1891,6 +1891,89 @@ def build_phone_route_result(order, visits, distance_matrix, start_display_addre
     }
 
 
+def choose_group_sizes(total_count, preferred_size, min_size=5, max_size=10):
+    total_count = int(total_count)
+    preferred_size = int(preferred_size)
+    if total_count <= 0:
+        return []
+    if total_count < min_size:
+        return [total_count]
+
+    min_groups = math.ceil(total_count / max_size)
+    max_groups = max(1, total_count // min_size)
+    if min_groups > max_groups:
+        return [total_count]
+
+    best_sizes = None
+    best_score = None
+    for group_count in range(min_groups, max_groups + 1):
+        base = total_count // group_count
+        remainder = total_count % group_count
+        sizes = [base + (1 if i < remainder else 0) for i in range(group_count)]
+        if min(sizes) < min_size or max(sizes) > max_size:
+            continue
+        score = (
+            sum(abs(size - preferred_size) for size in sizes),
+            max(sizes) - min(sizes),
+            abs(group_count - round(total_count / preferred_size)),
+        )
+        if best_score is None or score < best_score:
+            best_score = score
+            best_sizes = sizes
+
+    return best_sizes or [total_count]
+
+
+def build_phone_groups(visits, order, dist_matrix, preferred_size, start_display_address=None, return_display_address=None):
+    sizes = choose_group_sizes(len(order), preferred_size)
+    groups = []
+    cursor = 0
+    start_address = shorten_sido_name(start_display_address or get_start_address())
+    return_address = shorten_sido_name(return_display_address or get_return_address())
+
+    for group_no, size in enumerate(sizes, start=1):
+        nodes = order[cursor:cursor + size]
+        cursor += size
+        items = [{
+            "type": "start",
+            "label": "S",
+            "name": get_start_name(),
+            "address": start_address,
+        }]
+
+        prev = 0
+        total_distance_m = 0
+        for idx, node in enumerate(nodes, start=1):
+            visit = visits[node - 1]
+            total_distance_m += int(dist_matrix[prev][node])
+            items.append({
+                "type": "visit",
+                "label": str(idx),
+                "name": visit["name"],
+                "address": shorten_sido_name(visit.get("display_address") or visit["address"]),
+            })
+            prev = node
+
+        if nodes:
+            total_distance_m += int(dist_matrix[prev][0])
+
+        items.append({
+            "type": "return",
+            "label": "F",
+            "name": get_return_name(),
+            "address": return_address,
+        })
+
+        groups.append({
+            "group_no": group_no,
+            "count": len(nodes),
+            "distance_km": round(total_distance_m / 1000, 2),
+            "items": items,
+        })
+
+    return groups
+
+
 initialize_storage()
 
 
@@ -1938,6 +2021,9 @@ def start():
         session["team_no"] = team_no
         session["trip_date"] = trip_date
         session.pop("last_result_payload", None)
+        session.pop("last_grouping_payload", None)
+        if work_type == "phone":
+            return redirect(url_for("phone_menu"))
         return redirect(url_for("planner"))
 
     session.pop("work_type", None)
@@ -1945,6 +2031,7 @@ def start():
     session.pop("team_no", None)
     session.pop("trip_date", None)
     session.pop("last_result_payload", None)
+    session.pop("last_grouping_payload", None)
 
     return render_template(
         "start.html",
@@ -2310,6 +2397,111 @@ def planner_resolve_qr_items():
             })
 
     return jsonify({"success": True, "items": resolved_items})
+
+
+@app.route("/phone/menu", methods=["GET"])
+def phone_menu():
+    trip_meta = get_trip_meta()
+    if trip_meta.get("work_type") != "phone":
+        return redirect(url_for("start"))
+    return render_template("phone_menu.html")
+
+
+@app.route("/phone/grouping", methods=["GET", "POST"])
+def phone_grouping():
+    trip_meta = get_trip_meta()
+    if trip_meta.get("work_type") != "phone":
+        return redirect(url_for("start"))
+
+    if request.method == "POST":
+        names = request.form.getlist("name")
+        addresses = request.form.getlist("address")
+        preferred_size_raw = (request.form.get("group_size") or "10").strip()
+        try:
+            preferred_size = int(preferred_size_raw)
+        except Exception:
+            preferred_size = 10
+        preferred_size = max(5, min(10, preferred_size))
+
+        visits = []
+        for idx in range(len(addresses)):
+            name = names[idx].strip() if idx < len(names) else ""
+            address = addresses[idx].strip() if idx < len(addresses) else ""
+            if not name or not address:
+                continue
+            visits.append({
+                "visit_id": idx,
+                "name": name,
+                "address": address,
+            })
+
+        if not visits:
+            return render_template("phone_grouping.html", warning_message="최소 1개의 주소를 입력해 주세요.", group_size=preferred_size)
+
+        if len(visits) > 40:
+            return render_template("phone_grouping.html", warning_message="방문지 그룹화는 최대 40개까지 가능합니다.", group_size=preferred_size)
+
+        start_coord, start_meta, start_err = geocode_with_meta(get_start_address())
+        if not start_coord:
+            return render_template("phone_grouping.html", warning_message=f"출발지 좌표를 불러오지 못했습니다. ({start_err})", group_size=preferred_size)
+
+        start_display_address = (start_meta or {}).get("display_address") or get_start_address()
+        _, return_meta, _ = geocode_with_meta(get_return_address())
+        return_display_address = (return_meta or {}).get("display_address") or get_return_address()
+
+        coords = [start_coord]
+        failed_addresses = []
+        for visit in visits:
+            coord, meta, err = geocode_with_meta(visit["address"])
+            coords.append(coord)
+            if coord is None:
+                failed_addresses.append(f"{visit['name']} / {visit['address']} / {err}")
+            else:
+                visit["display_address"] = (meta or {}).get("display_address") or visit["address"]
+
+        if failed_addresses:
+            return render_template(
+                "phone_grouping.html",
+                warning_message="일부 주소의 좌표를 불러오지 못했습니다. " + " | ".join(failed_addresses[:3]),
+                group_size=preferred_size,
+            )
+
+        size = len(coords)
+        dist_matrix = [[0] * size for _ in range(size)]
+        for i in range(size):
+            for j in range(i + 1, size):
+                d, _ = estimate_matrix_leg(coords[i], coords[j])
+                dist_matrix[i][j] = d
+                dist_matrix[j][i] = d
+
+        order = choose_shortest_distance_order(visits, dist_matrix)
+        groups = build_phone_groups(
+            visits,
+            order,
+            dist_matrix,
+            preferred_size,
+            start_display_address=start_display_address,
+            return_display_address=return_display_address,
+        )
+
+        payload = {
+            "groups": groups,
+            "total_count": len(visits),
+            "group_size": preferred_size,
+        }
+        session["last_grouping_payload"] = payload
+        return redirect(url_for("phone_grouping_result"))
+
+    return render_template("phone_grouping.html", warning_message="", group_size=10)
+
+
+@app.route("/phone/grouping/result", methods=["GET"])
+def phone_grouping_result():
+    trip_meta = get_trip_meta()
+    payload = session.get("last_grouping_payload")
+    if trip_meta.get("work_type") != "phone" or not payload:
+        return redirect(url_for("phone_grouping"))
+    return render_template("phone_grouping_result.html", **payload)
 
 
 @app.route("/planner", methods=["GET", "POST"])

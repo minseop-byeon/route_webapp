@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/symbol.png') }}">
+<title>국세청 체납관리단 - 방문지 그룹화 결과</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{
+  --mobile-top-safe:calc(env(safe-area-inset-top, 0px) + 18px);
+  --krds-primary:#1d4ed8;
+  --krds-primary-strong:#1e40af;
+  --krds-bg:#eef3fb;
+  --krds-surface:#ffffff;
+  --krds-border:#d8e2f0;
+  --krds-text:#111827;
+  --krds-sub:#64748b;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:Pretendard,sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(29,78,216,.08), transparent 24%),
+    linear-gradient(180deg, #f7faff 0%, var(--krds-bg) 100%);
+  color:var(--krds-text);
+  position:relative;
+}
+body::before{
+  content:"";
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:var(--mobile-top-safe);
+  background:linear-gradient(180deg, rgba(238,243,251,.98) 0%, rgba(238,243,251,.88) 72%, rgba(238,243,251,0) 100%);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  pointer-events:none;
+  z-index:1200;
+  opacity:0;
+}
+.container{max-width:1080px;margin:0 auto;padding:18px 16px 34px;}
+.hero{padding:0 0 12px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 10px -4px;}
+.header-left{display:flex;align-items:stretch;gap:3px;min-width:0;}
+.header-logo{width:56px;height:56px;object-fit:contain;display:block;flex:0 0 auto;}
+.hero-text{height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
+.header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#003675;}
+.header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
+.header-menu{width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;padding:0;color:#334155;cursor:default;flex:0 0 auto;}
+.header-menu svg{width:28px;height:28px;display:block;}
+.summary-card{
+  background:linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border:1px solid var(--krds-border);
+  border-radius:24px;
+  padding:20px 18px;
+  box-shadow:0 16px 30px rgba(15,23,42,.06);
+  margin-bottom:16px;
+}
+.summary-title{margin:0;font-size:24px;font-weight:900;letter-spacing:-0.03em;}
+.summary-desc{margin:8px 0 0;font-size:14px;line-height:1.6;color:var(--krds-sub);font-weight:700;}
+.summary-metrics{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+.metric-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:38px;
+  padding:0 13px;
+  border-radius:999px;
+  background:#edf4ff;
+  border:1px solid #cddcf8;
+  color:#1e3a8a;
+  font-size:13px;
+  font-weight:800;
+}
+.group-list{display:flex;flex-direction:column;gap:16px;}
+.group-card{
+  background:var(--krds-surface);
+  border:1px solid var(--krds-border);
+  border-radius:24px;
+  padding:20px 18px 18px;
+  box-shadow:0 16px 30px rgba(15,23,42,.06);
+}
+.group-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+}
+.group-title{margin:0;font-size:22px;font-weight:900;letter-spacing:-0.03em;}
+.group-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.group-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:32px;
+  padding:0 11px;
+  border-radius:999px;
+  background:#f8fafc;
+  border:1px solid #dbe5f1;
+  color:#475569;
+  font-size:12px;
+  font-weight:800;
+}
+.route-list{display:flex;flex-direction:column;gap:12px;}
+.visit-card{
+  width:100%;
+  background:linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  padding:16px 14px 14px;
+}
+.card-head{display:flex;align-items:flex-start;gap:12px;}
+.route-badge{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:19px;
+  font-weight:900;
+  color:#fff;
+  background:var(--krds-primary);
+  flex:0 0 auto;
+  box-shadow:0 10px 18px rgba(29,78,216,.22);
+}
+.route-badge.start{background:#1d4ed8;}
+.route-badge.return{background:#1e40af;}
+.route-badge.word{font-size:16px;}
+.route-address{
+  font-size:clamp(17px,4.1vw,20px);
+  font-weight:850;
+  line-height:1.28;
+  color:#0f172a;
+  word-break:keep-all;
+  overflow-wrap:anywhere;
+}
+.route-name{
+  margin-top:7px;
+  font-size:clamp(13px,3.2vw,15px);
+  font-weight:700;
+  color:#475569;
+}
+.bottom-actions{width:100%;margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;}
+.action-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  height:46px;
+  padding:0 14px;
+  border-radius:14px;
+  border:1px solid #dbe2ea;
+  background:#fff;
+  color:#1f2937;
+  font-size:14px;
+  font-weight:700;
+  text-decoration:none;
+}
+.action-btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
+.action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
+.empty-box{padding:18px;border-radius:16px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;box-shadow:0 12px 26px rgba(15,23,42,.06);}
+@media (max-width:760px){
+  body::before{opacity:1;}
+  .container{width:calc(100% - 28px);max-width:430px;margin:0 auto;padding:calc(var(--mobile-top-safe) + 14px) 0 30px;}
+  .hero{padding:0 0 8px;}
+  .header-logo{width:48px;height:48px;}
+  .hero-text{height:48px;}
+  .header-left{gap:2px;}
+  .header-title{font-size:18px;line-height:1.02;}
+  .header-sub{font-size:11px;line-height:1.02;}
+  .header-menu{width:48px;height:48px;}
+  .header-menu svg{width:24px;height:24px;}
+  .summary-card{padding:18px 16px;}
+  .summary-title{font-size:21px;}
+  .summary-desc{font-size:13px;}
+  .group-card{padding:18px 14px 14px;border-radius:22px;}
+  .group-head{flex-direction:column;align-items:flex-start;}
+  .group-title{font-size:20px;}
+  .visit-card{padding:14px 12px 13px;}
+  .route-badge{width:40px;height:40px;font-size:18px;}
+  .route-badge.word{font-size:15px;}
+  .bottom-actions{flex-direction:column;}
+  .action-btn{width:100%;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <section class="hero">
+    <div class="header-left">
+      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 로고">
+      <div class="hero-text">
+        <div class="header-title">국세청 체납관리단</div>
+        <div class="header-sub">SMART WORK</div>
+      </div>
+    </div>
+    <button type="button" class="header-menu" aria-label="메뉴">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+      </svg>
+    </button>
+  </section>
+
+  <section class="summary-card">
+    <h1 class="summary-title">방문지 그룹화 결과</h1>
+    <p class="summary-desc">가까운 주소끼리 묶은 뒤 각 그룹 안에서 이동 순서를 정리했습니다.</p>
+    <div class="summary-metrics">
+      <div class="metric-pill">총 {{ total_count }}건</div>
+      <div class="metric-pill">그룹 {{ groups|length }}개</div>
+      <div class="metric-pill">그룹당 기준 {{ group_size }}개</div>
+    </div>
+  </section>
+
+  {% if groups %}
+    <section class="group-list">
+      {% for group in groups %}
+        <article class="group-card">
+          <div class="group-head">
+            <h2 class="group-title">그룹 {{ group.group_no }}</h2>
+            <div class="group-meta">
+              <div class="group-chip">대상 {{ group.count }}건</div>
+              <div class="group-chip">예상 이동거리 {{ "%.2f"|format(group.distance_km) }}km</div>
+            </div>
+          </div>
+
+          <div class="route-list">
+            {% for item in group["items"] %}
+              <div class="visit-card">
+                <div class="card-head">
+                  {% if item.type == "start" %}
+                    <div class="route-badge start word">S</div>
+                  {% elif item.type == "return" %}
+                    <div class="route-badge return word">F</div>
+                  {% else %}
+                    <div class="route-badge">{{ item.label }}</div>
+                  {% endif %}
+
+                  <div>
+                    {% if item.address %}<div class="route-address">{{ item.address }}</div>{% endif %}
+                    {% if item.type == "start" %}
+                      <div class="route-name">출발</div>
+                    {% elif item.type == "return" %}
+                      <div class="route-name">복귀</div>
+                    {% elif item.name %}
+                      <div class="route-name">{{ item.name }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </section>
+  {% else %}
+    <div class="empty-box">그룹화된 방문지가 없습니다. 입력 목록을 다시 확인해 주세요.</div>
+  {% endif %}
+
+  <div class="bottom-actions">
+    <a class="action-btn" href="{{ url_for('phone_grouping') }}">다시 그룹화하기</a>
+    <a class="action-btn" href="{{ url_for('phone_menu') }}">전화 메뉴로 돌아가기</a>
+    <a class="action-btn action-btn-primary" href="{{ url_for('start') }}">시작화면으로</a>
+  </div>
+</div>
+</body>
+</html>
