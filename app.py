@@ -575,9 +575,26 @@ def get_vehicle_log_vehicles():
     try:
         with sqlite3.connect(db_path) as conn:
             conn.row_factory = sqlite3.Row
+            columns = {
+                str(row["name"]).strip()
+                for row in conn.execute("PRAGMA table_info(vehicle_store)").fetchall()
+                if isinstance(row, sqlite3.Row)
+            }
+            plate_candidates = [
+                "car_number",
+                "car_no",
+                "vehicle_number",
+                "license_plate",
+                "plate_number",
+                "registration_number",
+            ]
+            plate_column = next((name for name in plate_candidates if name in columns), None)
+            select_columns = ["car_id", "car_name", "car_nickname", "car_sellname", "car_type"]
+            if plate_column:
+                select_columns.append(plate_column)
             rows = conn.execute(
-                """
-                SELECT car_id, car_name, car_nickname, car_sellname, car_type
+                f"""
+                SELECT {", ".join(select_columns)}
                 FROM vehicle_store
                 ORDER BY created_at ASC, id ASC
                 """
@@ -597,6 +614,7 @@ def get_vehicle_log_vehicles():
             or item.get("car_id")
             or ""
         )
+        item["plate_number"] = str(item.get(plate_column) or "").strip() if 'plate_column' in locals() and plate_column else ""
         vehicles.append(item)
 
     return vehicles, ""

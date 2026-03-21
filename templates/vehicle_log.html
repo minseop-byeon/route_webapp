@@ -44,12 +44,21 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--mobile-
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
 .notice-box{margin-bottom:12px;padding:12px 14px;border-radius:12px;background:var(--krds-warn-bg);border:1px solid var(--krds-warn-border);color:var(--krds-warn-text);font-size:13px;font-weight:700;line-height:1.5;}
 .filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+.vehicle-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px;}
 .card-panel{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:18px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.045);}
 .field{display:flex;flex-direction:column;}
 label{display:block;font-size:12px;color:#6b7280;margin-bottom:7px;font-weight:700;}
 input,select,button{font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;}
 input,select{width:100%;height:44px;padding:0 12px;border:1px solid #d4dce7;border-radius:11px;background:#f8fafd;color:#0f172a;font-size:14px;font-weight:600;transition:border-color .15s,box-shadow .15s,background .15s;}
 input:focus,select:focus{outline:none;border-color:#5779b4;background:#ffffff;box-shadow:0 0 0 3px rgba(87,121,180,.12);}
+.vehicle-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:100%;min-height:132px;padding:16px 16px 14px;border:1px solid #dbe2ea;border-radius:18px;background:linear-gradient(180deg,#ffffff 0%,#fcfdff 100%);box-shadow:0 10px 24px rgba(15,23,42,.045);text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s,background .15s;}
+.vehicle-card:hover{border-color:#bfd1ee;transform:translateY(-1px);}
+.vehicle-card.is-selected{border-color:#93c5fd;background:#eff6ff;box-shadow:0 14px 28px rgba(29,78,216,.12);}
+.vehicle-card-title{font-size:18px;font-weight:800;line-height:1.2;color:#111827;letter-spacing:-0.2px;}
+.vehicle-card-meta{font-size:12px;color:#64748b;font-weight:700;line-height:1.5;word-break:break-word;}
+.vehicle-card-plate{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#f3f4f6;border:1px solid #e5e7eb;color:#111827;font-size:12px;font-weight:800;}
+.vehicle-card.is-selected .vehicle-card-plate{background:#dbeafe;border-color:#bfdbfe;color:#1e3a8a;}
+.vehicle-card-hint{font-size:12px;color:#94a3b8;font-weight:700;}
 .toolbar-card{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;}
 .toolbar-copy{max-width:520px;}
 .toolbar-title{font-size:18px;font-weight:800;color:#111827;letter-spacing:-0.2px;}
@@ -71,7 +80,7 @@ td input{height:40px;background:#fff;}
 .action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
 .action-btn svg{width:14px;height:14px;}
 @media (max-width:900px){
-  .filter-grid,.summary-wrap{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .filter-grid,.summary-wrap,.vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media (max-width:760px){
   body::before{opacity:1;}
@@ -84,7 +93,7 @@ td input{height:40px;background:#fff;}
   .header-sub{font-size:11px;line-height:1.02;}
   .header-menu{width:48px;height:48px;}
   .header-menu svg{width:24px;height:24px;}
-  .filter-grid,.summary-wrap{grid-template-columns:1fr;}
+  .filter-grid,.summary-wrap,.vehicle-card-grid{grid-template-columns:1fr;}
   .summary-item{padding:13px 12px;}
   .summary-value{font-size:21px;}
   .summary-unit{font-size:14px;}
@@ -144,15 +153,19 @@ td input{height:40px;background:#fff;}
 
   <section class="section-card">
     <h3 class="section-title">차량 선택 및 조회</h3>
-    <form method="GET" class="filter-grid">
-      <div class="card-panel field">
-        <label for="car_id">차량</label>
-        <select id="car_id" name="car_id">
-          {% for vehicle in vehicles %}
-            <option value="{{ vehicle.car_id }}" {% if vehicle.car_id == selected_car_id %}selected{% endif %}>{{ vehicle.label }} / {{ vehicle.car_id }}</option>
-          {% endfor %}
-        </select>
+    <form method="GET">
+      <input type="hidden" id="car_id" name="car_id" value="{{ selected_car_id }}">
+      <div class="vehicle-card-grid">
+        {% for vehicle in vehicles %}
+          <button type="button" class="vehicle-card{% if vehicle.car_id == selected_car_id %} is-selected{% endif %}" data-car-id="{{ vehicle.car_id }}">
+            <div class="vehicle-card-title">{{ vehicle.label }}</div>
+            <div class="vehicle-card-plate">{{ vehicle.plate_number or "번호 미연동" }}</div>
+            <div class="vehicle-card-meta">차량 ID: {{ vehicle.car_id }}</div>
+            <div class="vehicle-card-hint">{% if vehicle.plate_number %}등록 차량번호 확인 가능{% else %}현재 DB에는 차량번호 컬럼이 없습니다{% endif %}</div>
+          </button>
+        {% endfor %}
       </div>
+      <div class="filter-grid">
       <div class="card-panel field">
         <label for="start_date">시작일</label>
         <input id="start_date" type="date" name="start_date" value="{{ start_date }}">
@@ -164,6 +177,7 @@ td input{height:40px;background:#fff;}
       <div class="card-panel field">
         <label>&nbsp;</label>
         <button type="submit" class="action-btn action-btn-primary" style="width:100%">운행 이력 조회</button>
+      </div>
       </div>
     </form>
   </section>
@@ -240,5 +254,17 @@ td input{height:40px;background:#fff;}
     <a class="action-btn" href="{{ url_for('admin_settings_page') if session.get('is_admin') else url_for('admin_login') }}">관리자 설정으로 이동</a>
   </div>
 </div>
+<script>
+document.querySelectorAll(".vehicle-card").forEach((button) => {
+  button.addEventListener("click", () => {
+    const hidden = document.getElementById("car_id");
+    if(hidden){
+      hidden.value = button.dataset.carId || "";
+    }
+    document.querySelectorAll(".vehicle-card").forEach((item) => item.classList.remove("is-selected"));
+    button.classList.add("is-selected");
+  });
+});
+</script>
 </body>
 </html>
