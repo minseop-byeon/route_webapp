@@ -4,72 +4,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/symbol.png') }}">
-<title>국세청 체납관리단 - 차량운행</title>
+<title>국세청 차량운행</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css" rel="stylesheet">
 <style>
 :root{
-  --mobile-top-safe:calc(env(safe-area-inset-top, 0px) + 18px);
-  --krds-primary:#1d4ed8;
-  --krds-primary-strong:#1e40af;
-  --krds-bg:#f4f6fa;
-  --krds-surface:#ffffff;
-  --krds-border:#e2e8f0;
-  --krds-text:#111827;
-  --krds-sub:#64748b;
-  --krds-accent:#00a0e9;
-  --krds-warn-bg:#fff4eb;
-  --krds-warn-border:#ffcfa1;
-  --krds-warn-text:#9a3412;
+  --bg:#f4f6fa;
+  --surface:#ffffff;
+  --border:#e2e8f0;
+  --text:#111827;
+  --sub:#64748b;
+  --primary:#1d4ed8;
+  --primary-soft:#eff6ff;
+  --chip:#eef2ff;
 }
 *{box-sizing:border-box;}
-body{margin:0;font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;background:var(--krds-bg);color:var(--krds-text);min-height:100dvh;position:relative;}
-body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--mobile-top-safe);background:linear-gradient(180deg, rgba(244,246,250,.98) 0%, rgba(244,246,250,.88) 72%, rgba(244,246,250,0) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);pointer-events:none;z-index:1200;opacity:0;}
-.container{max-width:1080px;margin:0 auto;padding:18px 16px 34px;}
-.hero{padding:0 0 12px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 10px -4px;}
-.header-left{display:flex;align-items:stretch;gap:3px;min-width:0;}
-.header-logo{width:56px;height:56px;object-fit:contain;display:block;flex:0 0 auto;}
-.hero-text{height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
-.header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#003675;}
-.header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
-.header-menu{width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;padding:0;color:#334155;cursor:default;flex:0 0 auto;}
-.header-menu svg{width:28px;height:28px;display:block;}
-.section-card{background:transparent;border:none;border-radius:0;padding:0;margin-bottom:16px;}
-.section-title{margin:0 14px 10px;font-size:21px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
-.empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
-.notice-box{margin-bottom:12px;padding:12px 14px;border-radius:12px;background:var(--krds-warn-bg);border:1px solid var(--krds-warn-border);color:var(--krds-warn-text);font-size:13px;font-weight:700;line-height:1.5;}
-.vehicle-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px;}
-.card-panel{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:18px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.045);}
-input,button{font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;}
-.vehicle-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:100%;min-height:132px;padding:16px 16px 14px;border:1px solid #dbe2ea;border-radius:18px;background:linear-gradient(180deg,#ffffff 0%,#fcfdff 100%);box-shadow:0 10px 24px rgba(15,23,42,.045);text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s,background .15s;}
-.vehicle-card:hover{border-color:#bfd1ee;transform:translateY(-1px);}
-.vehicle-card.is-selected{border-color:#93c5fd;background:#eff6ff;box-shadow:0 14px 28px rgba(29,78,216,.12);}
-.vehicle-card-title{font-size:18px;font-weight:800;line-height:1.2;color:#111827;letter-spacing:-0.2px;}
-.vehicle-card-meta{font-size:12px;color:#64748b;font-weight:700;line-height:1.5;word-break:break-word;}
-.vehicle-card-plate{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#f3f4f6;border:1px solid #e5e7eb;color:#111827;font-size:12px;font-weight:800;}
-.vehicle-card.is-selected .vehicle-card-plate{background:#dbeafe;border-color:#bfdbfe;color:#1e3a8a;}
-.bottom-actions{margin-top:12px;display:flex;justify-content:flex-start;}
-.back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;padding:0 4px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;}
+body{margin:0;font-family:Pretendard,sans-serif;background:var(--bg);color:var(--text);}
+.container{max-width:1080px;margin:0 auto;padding:24px 16px 36px;}
+.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;}
+.header-left{display:flex;align-items:center;gap:8px;}
+.header-logo{width:54px;height:54px;object-fit:contain;}
+.header-title{font-size:22px;font-weight:800;line-height:1.05;color:#003675;}
+.header-sub{margin-top:4px;font-size:13px;font-weight:700;color:var(--sub);}
+.notice-box{margin-bottom:12px;padding:12px 14px;border-radius:12px;background:#fff4eb;border:1px solid #ffcfa1;color:#9a3412;font-size:13px;font-weight:700;line-height:1.5;}
+.section-title{margin:0 0 12px;font-size:22px;font-weight:800;letter-spacing:-0.2px;}
+.vehicle-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.vehicle-card-form{margin:0;}
+.vehicle-card{display:flex;flex-direction:column;gap:8px;width:100%;padding:16px;border:1px solid var(--border);border-radius:18px;background:var(--surface);text-align:left;cursor:pointer;transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease;}
+.vehicle-card:hover{border-color:#bfd1ee;box-shadow:0 10px 24px rgba(15,23,42,.06);transform:translateY(-1px);}
+.vehicle-card-title{font-size:18px;font-weight:800;line-height:1.2;}
+.vehicle-card-meta{font-size:12px;color:var(--sub);font-weight:700;line-height:1.5;}
+.vehicle-card-plate{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:999px;background:#f3f4f6;color:#111827;font-size:12px;font-weight:800;width:max-content;}
+.detail-panel{margin-top:18px;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:18px;box-shadow:0 12px 28px rgba(15,23,42,.05);}
+.detail-hero{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:start;}
+.detail-visual{display:flex;align-items:center;justify-content:center;min-height:180px;padding:16px;border-radius:18px;background:#fafafa;border:1px solid #eef2f7;}
+.detail-image{display:block;width:100%;max-width:180px;object-fit:contain;}
+.detail-image-fallback{display:flex;align-items:center;justify-content:center;width:100%;height:120px;border:1px dashed #cbd5e1;border-radius:14px;color:var(--sub);font-size:12px;font-weight:800;letter-spacing:.04em;background:#fff;}
+.detail-info{display:flex;flex-direction:column;gap:10px;}
+.detail-title{margin:0;font-size:26px;font-weight:800;letter-spacing:-0.3px;}
+.detail-meta{font-size:13px;color:var(--sub);font-weight:700;line-height:1.6;}
+.detail-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.detail-chip{display:inline-flex;align-items:center;min-height:30px;padding:0 12px;border-radius:999px;background:var(--chip);color:#1e3a8a;font-size:12px;font-weight:800;}
+.month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:22px;}
+.month-button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;border:1px solid var(--border);border-radius:14px;background:#fff;color:#0f172a;font-size:15px;font-weight:800;text-decoration:none;transition:.15s ease;}
+.month-button:hover{border-color:#bfd1ee;background:#f8fbff;}
+.month-button.active{border-color:#93c5fd;background:var(--primary-soft);color:#1e3a8a;}
+.month-button.disabled{border-color:#e5e7eb;background:#f8fafc;color:#94a3b8;pointer-events:none;cursor:default;}
+.history-header{margin-top:22px;display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+.history-title{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.2px;}
+.history-total{font-size:14px;color:#1e3a8a;font-weight:800;}
+.history-list{display:grid;gap:10px;margin-top:14px;}
+.history-item{border:1px solid var(--border);border-radius:16px;padding:14px;background:#fff;}
+.history-date{font-size:16px;font-weight:800;color:#0f172a;}
+.history-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px;}
+.history-cell{padding:10px 12px;border-radius:12px;background:#f8fafc;}
+.history-label{display:block;font-size:12px;color:var(--sub);font-weight:700;}
+.history-value{display:block;margin-top:5px;font-size:14px;color:#111827;font-weight:800;line-height:1.4;}
+.empty-box{margin-top:14px;padding:20px;border-radius:16px;border:1px solid var(--border);background:#fff;color:var(--sub);font-size:14px;font-weight:700;text-align:center;}
+.bottom-actions{margin-top:18px;display:flex;justify-content:flex-start;}
+.back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;padding:0 4px;font-size:13px;font-weight:700;text-decoration:none;}
 .back-link:hover{color:#334155;text-decoration:underline;}
-.back-link svg{width:14px;height:14px;display:block;flex:0 0 auto;transform:translateY(1px);}
+.back-link svg{width:14px;height:14px;display:block;transform:translateY(1px);}
 @media (max-width:900px){
   .vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .detail-hero{grid-template-columns:1fr;}
+  .month-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
 }
 @media (max-width:760px){
-  body::before{opacity:1;}
-  .container{width:calc(100% - 32px);max-width:430px;margin:0 auto;padding:calc(var(--mobile-top-safe) + 12px) 0 30px;}
-  .hero{padding:0 0 8px;}
+  .container{max-width:430px;padding:18px 16px 30px;}
+  .hero{margin-bottom:14px;}
   .header-logo{width:48px;height:48px;}
-  .hero-text{height:48px;}
-  .header-left{gap:2px;}
-  .header-title{font-size:18px;line-height:1.02;}
-  .header-sub{font-size:11px;line-height:1.02;}
-  .header-menu{width:48px;height:48px;}
-  .header-menu svg{width:24px;height:24px;}
+  .header-title{font-size:18px;}
+  .header-sub{font-size:11px;}
   .vehicle-card-grid{grid-template-columns:1fr;}
-  .section-title{font-size:18px;margin:0 10px 10px;}
-  .bottom-actions{flex-direction:column;}
-  .back-link{width:100%;}
+  .detail-title{font-size:22px;}
+  .month-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .history-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -77,17 +86,12 @@ input,button{font-family:"Pretendard GOV","Pretendard Variable","Pretendard",san
 <div class="container">
   <section class="hero">
     <div class="header-left">
-      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청 심볼">
-      <div class="hero-text">
-        <div class="header-title">국세청 체납관리단</div>
-        <div class="header-sub">SMART WORK</div>
+      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청">
+      <div>
+        <div class="header-title">국세청 차량운행</div>
+        <div class="header-sub">운행 이력 확인</div>
       </div>
     </div>
-    <button type="button" class="header-menu" aria-label="메뉴">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
-      </svg>
-    </button>
   </section>
 
   {% with messages = get_flashed_messages() %}
@@ -105,23 +109,85 @@ input,button{font-family:"Pretendard GOV","Pretendard Variable","Pretendard",san
     <div class="notice-box">{{ history_error }}</div>
   {% endif %}
 
-  <section class="section-card">
+  <section>
     <h3 class="section-title">차량 선택</h3>
-    <form method="GET">
-      <input type="hidden" id="car_id" name="car_id" value="{{ selected_car_id }}">
-      <div class="vehicle-card-grid">
-        {% for vehicle in vehicles %}
-          <button type="button" class="vehicle-card{% if vehicle.car_id == selected_car_id %} is-selected{% endif %}" data-car-id="{{ vehicle.car_id }}">
+    <div class="vehicle-card-grid">
+      {% for vehicle in vehicles %}
+        <form method="GET" class="vehicle-card-form">
+          <input type="hidden" name="car_id" value="{{ vehicle.car_id }}">
+          <input type="hidden" name="month" value="{{ selected_month }}">
+          <button type="submit" class="vehicle-card">
             <div class="vehicle-card-title">{{ vehicle.label }}</div>
-            <div class="vehicle-card-plate">{{ vehicle.plate_number or "차량번호 미등록" }}</div>
+            <div class="vehicle-card-plate">{{ vehicle.plate_number or '차량번호 미등록' }}</div>
             <div class="vehicle-card-meta">차량 ID: {{ vehicle.car_id }}</div>
           </button>
-        {% endfor %}
-      </div>
-      <input type="hidden" name="start_date" value="{{ start_date }}">
-      <input type="hidden" name="end_date" value="{{ end_date }}">
-    </form>
+        </form>
+      {% endfor %}
+    </div>
   </section>
+
+  {% if selected_vehicle %}
+  <section class="detail-panel">
+    <div class="detail-hero">
+      <div class="detail-visual">
+        {% if selected_vehicle.image_file %}
+        <img class="detail-image" src="{{ url_for('static', filename='images/' ~ selected_vehicle.image_file) }}" alt="{{ selected_vehicle.label }}">
+        {% else %}
+        <div class="detail-image-fallback">VEHICLE</div>
+        {% endif %}
+      </div>
+      <div class="detail-info">
+        <h3 class="detail-title">{{ selected_vehicle.label }}</h3>
+        <div class="detail-meta">차량 ID: {{ selected_vehicle.car_id }}</div>
+        <div class="detail-chip-row">
+          <span class="detail-chip">{{ selected_vehicle.plate_number or '차량번호 미등록' }}</span>
+          <span class="detail-chip">{{ selected_vehicle.assigned_team or '배차 미지정' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="month-grid">
+      {% for item in month_sections %}
+        {% if item.enabled %}
+        <a class="month-button{% if item.month == selected_month %} active{% endif %}" href="{{ url_for('vehicle_log_page', car_id=selected_car_id, month=item.month) }}">{{ item.label }}</a>
+        {% else %}
+        <span class="month-button disabled{% if item.month == selected_month %} active{% endif %}">{{ item.label }}</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="history-header">
+      <h4 class="history-title">{{ selected_month }}월 운행 이력</h4>
+      <div class="history-total">{{ selected_month }}월 총 운행거리 {{ total_distance }}km</div>
+    </div>
+
+    {% if selected_month_data.rows %}
+    <div class="history-list">
+      {% for row in selected_month_data.rows %}
+      <article class="history-item">
+        <div class="history-date">{{ row.drive_date_label }}</div>
+        <div class="history-grid">
+          <div class="history-cell">
+            <span class="history-label">운행 시간</span>
+            <span class="history-value">{{ row.start_time or '-' }} ~ {{ row.end_time or '-' }}</span>
+          </div>
+          <div class="history-cell">
+            <span class="history-label">운행 거리</span>
+            <span class="history-value">{{ row.distance_km_text or '0' }}km</span>
+          </div>
+          <div class="history-cell">
+            <span class="history-label">주행 km</span>
+            <span class="history-value">{{ row.odometer_start_text or '-' }} → {{ row.odometer_end_text or '-' }}</span>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-box">{{ selected_month }}월 운행 이력이 없습니다.</div>
+    {% endif %}
+  </section>
+  {% endif %}
 
   <div class="bottom-actions">
     <a class="back-link" href="{{ url_for('start') }}">
@@ -130,21 +196,5 @@ input,button{font-family:"Pretendard GOV","Pretendard Variable","Pretendard",san
     </a>
   </div>
 </div>
-<script>
-document.querySelectorAll(".vehicle-card").forEach((button) => {
-  button.addEventListener("click", () => {
-    const hidden = document.getElementById("car_id");
-    if(hidden){
-      hidden.value = button.dataset.carId || "";
-    }
-    document.querySelectorAll(".vehicle-card").forEach((item) => item.classList.remove("is-selected"));
-    button.classList.add("is-selected");
-    const form = button.closest("form");
-    if(form){
-      form.submit();
-    }
-  });
-});
-</script>
 </body>
 </html>

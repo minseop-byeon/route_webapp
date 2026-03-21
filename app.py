@@ -602,6 +602,25 @@ def _normalize_vehicle_log_payload(payload):
     return normalized
 
 
+def get_vehicle_log_image_filename(vehicle):
+    item = vehicle if isinstance(vehicle, dict) else {}
+    vehicle_name = " ".join([
+        str(item.get("label") or "").strip(),
+        str(item.get("car_name") or "").strip(),
+        str(item.get("car_nickname") or "").strip(),
+        str(item.get("car_sellname") or "").strip(),
+        str(item.get("car_type") or "").strip(),
+        str(item.get("car_id") or "").strip(),
+    ]).lower()
+    if "ioniq 5" in vehicle_name or "ioniq5" in vehicle_name:
+        return "ioniq5.png"
+    if "ev6" in vehicle_name:
+        return "EV6.png"
+    if "casper" in vehicle_name:
+        return "casper.png"
+    return ""
+
+
 def get_vehicle_log_vehicles():
     db_path = get_vehicle_log_db_path()
     settings = load_settings()
@@ -657,9 +676,51 @@ def get_vehicle_log_vehicles():
         db_plate_number = str(item.get(plate_column) or "").strip() if 'plate_column' in locals() and plate_column else ""
         item["plate_number"] = str(plate_map.get(item.get("car_id")) or db_plate_number).strip()
         item["assigned_team"] = str(team_assignment_map.get(item.get("car_id")) or "").strip()
+        item["image_file"] = get_vehicle_log_image_filename(item)
         vehicles.append(item)
 
     return vehicles, ""
+
+
+def build_vehicle_log_month_sections(rows, year_value):
+    month_map = {month: [] for month in range(3, 11)}
+    available_months = set()
+
+    for row in rows:
+        drive_date_text = str(row.get("drive_date") or "").strip()
+        try:
+            drive_date_value = date.fromisoformat(drive_date_text)
+        except ValueError:
+            continue
+        if drive_date_value.year != year_value:
+            continue
+        if drive_date_value.month not in month_map:
+            continue
+        row["drive_date_obj"] = drive_date_value
+        row["drive_date_label"] = f"{drive_date_value.month}월 {drive_date_value.day}일"
+        month_map[drive_date_value.month].append(row)
+        available_months.add(drive_date_value.month)
+
+    month_sections = []
+    for month in range(3, 11):
+        month_rows = month_map.get(month, [])
+        total_distance = 0
+        for row in month_rows:
+            value = row.get("distance_km_text") or row.get("distance_km") or ""
+            if value in ("", None):
+                continue
+            try:
+                total_distance += int(float(value))
+            except Exception:
+                continue
+        month_sections.append({
+            "month": month,
+            "label": f"{month}월",
+            "enabled": month in available_months,
+            "rows": month_rows,
+            "total_distance": total_distance,
+        })
+    return month_sections
 
 
 def get_vehicle_log_history(car_id, start_date_value, end_date_value):
@@ -2492,8 +2553,9 @@ initialize_storage()
 def vehicle_log_page():
     vehicles, db_message = get_vehicle_log_vehicles()
     vehicle_map = {item.get("car_id"): item for item in vehicles}
-    default_start = date.today() - timedelta(days=29)
-    default_end = date.today()
+    today_value = date.today()
+    default_start = date(today_value.year, 3, 1)
+    default_end = date(today_value.year, 10, 31)
 
     if request.method == "POST":
         selected_car_id = (request.form.get("car_id") or "").strip()
@@ -2538,39 +2600,48 @@ def vehicle_log_page():
     selected_car_id = (request.args.get("car_id") or "").strip()
     if not selected_car_id and vehicles:
         selected_car_id = vehicles[0].get("car_id") or ""
-    start_date_value = parse_vehicle_log_date_arg(request.args.get("start_date"), default_start)
-    end_date_value = parse_vehicle_log_date_arg(request.args.get("end_date"), default_end)
-    if start_date_value > end_date_value:
-        start_date_value, end_date_value = end_date_value, start_date_value
 
     rows = []
     history_error = ""
     if selected_car_id:
-        rows, history_error = get_vehicle_log_history(selected_car_id, start_date_value, end_date_value)
+        rows, history_error = get_vehicle_log_history(selected_car_id, default_start, default_end)
 
     selected_vehicle = vehicle_map.get(selected_car_id) or {}
-    total_distance = 0
-    for row in rows:
-        value = row.get("distance_km_text") or ""
-        if value:
-            try:
-                total_distance += int(value)
-            except Exception:
-                pass
+    month_sections = build_vehicle_log_month_sections(rows, today_value.year)
+
+    selected_month_raw = str(request.args.get("month") or "").strip()
+    default_month = today_value.month if 3 <= today_value.month <= 10 else 3
+    try:
+        selected_month = int(selected_month_raw) if selected_month_raw else default_month
+    except Exception:
+        selected_month = default_month
+    if selected_month < 3 or selected_month > 10:
+        selected_month = default_month
+
+    month_map = {item["month"]: item for item in month_sections}
+    selected_month_data = month_map.get(selected_month) or {
+        "month": selected_month,
+        "label": f"{selected_month}월",
+        "enabled": False,
+        "rows": [],
+        "total_distance": 0,
+    }
 
     return render_template(
         "vehicle_log.html",
         vehicles=vehicles,
         selected_car_id=selected_car_id,
         selected_vehicle=selected_vehicle,
-        rows=rows,
+        month_sections=month_sections,
+        selected_month=selected_month,
+        selected_month_data=selected_month_data,
         db_message=db_message,
         history_error=history_error,
-        start_date=start_date_value.isoformat(),
-        end_date=end_date_value.isoformat(),
+        start_date=default_start.isoformat(),
+        end_date=default_end.isoformat(),
         default_recipient_email=get_default_recipient_email(),
-        total_distance=total_distance,
-        row_count=len(rows),
+        total_distance=selected_month_data.get("total_distance", 0),
+        row_count=len(selected_month_data.get("rows", [])),
         db_path=get_vehicle_log_db_path(),
     )
 

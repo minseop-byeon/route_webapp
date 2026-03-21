@@ -1351,11 +1351,11 @@
                                 <div class="form-grid">
                                     <div class="form-group">
                                         <label for="api_display_client_id">Client ID</label>
-                                        <input type="text" id="api_display_client_id" class="api-masked-input api-display-client-id" value="{{ '***' if settings.api.client_id else '미입력' }}" readonly>
+                                        <input type="text" id="api_display_client_id" class="api-masked-input api-display-client-id" value="{{ '*' * (settings.api.client_id|length) if settings.api.client_id else '' }}" readonly>
                                     </div>
                                     <div class="form-group">
                                         <label for="api_display_client_secret">Client Secret</label>
-                                        <input type="text" id="api_display_client_secret" class="api-masked-input api-display-client-secret" value="{{ '***' if settings.api.client_secret else '미입력' }}" readonly>
+                                        <input type="text" id="api_display_client_secret" class="api-masked-input api-display-client-secret" value="{{ '*' * (settings.api.client_secret|length) if settings.api.client_secret else '' }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -1373,7 +1373,7 @@
                                 <div class="form-grid">
                                     <div class="form-group full">
                                         <label for="api_display_kakao_rest_api_key">REST API Key</label>
-                                        <input type="text" id="api_display_kakao_rest_api_key" class="api-masked-input api-display-kakao-key" value="{{ '***' if settings.api.kakao_rest_api_key else '미입력' }}" readonly>
+                                        <input type="text" id="api_display_kakao_rest_api_key" class="api-masked-input api-display-kakao-key" value="{{ '*' * (settings.api.kakao_rest_api_key|length) if settings.api.kakao_rest_api_key else '' }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -1391,7 +1391,7 @@
                                 <div class="form-grid">
                                     <div class="form-group full">
                                         <label for="api_display_tmap_app_key">App Key</label>
-                                        <input type="text" id="api_display_tmap_app_key" class="api-masked-input api-display-tmap-key" value="{{ '***' if settings.api.tmap_app_key else '미입력' }}" readonly>
+                                        <input type="text" id="api_display_tmap_app_key" class="api-masked-input api-display-tmap-key" value="{{ '*' * (settings.api.tmap_app_key|length) if settings.api.tmap_app_key else '' }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -1827,8 +1827,8 @@
 
 <div class="modal-backdrop" id="apiModal">
     <div class="modal api-modal">
-        <h3 class="modal-title" id="apiModalTitle">API 설정 수정</h3>
-        <p class="api-modal-sub" id="apiModalSub">필요한 항목만 수정 후 저장합니다.</p>
+        <h3 class="modal-title" id="apiModalTitle">NAVER Maps API</h3>
+        <p class="api-modal-sub hidden" id="apiModalSub"></p>
         <div class="form-grid" style="grid-template-columns: 1fr;" id="apiModalFields">
             <div class="form-group hidden" data-api-field="client_id">
                 <label for="apiModalClientId">Client ID</label>
@@ -2406,7 +2406,7 @@
 
     function maskSecretValue(value) {
         const text = (value || '').trim();
-        return text ? '***' : '미입력';
+        return text ? '*'.repeat(text.length) : '';
     }
 
     function applyApiCardDisplay() {
@@ -2429,8 +2429,11 @@
 
     function clearApiModal() {
         editingApiProvider = null;
-        if (apiModalTitle) apiModalTitle.textContent = 'API 설정 수정';
-        if (apiModalSub) apiModalSub.textContent = '필요한 항목만 수정 후 저장합니다.';
+        if (apiModalTitle) apiModalTitle.textContent = 'NAVER Maps API';
+        if (apiModalSub) {
+            apiModalSub.textContent = '';
+            apiModalSub.classList.add('hidden');
+        }
         document.querySelectorAll('#apiModalFields [data-api-field]').forEach(field => field.classList.add('hidden'));
         if (apiModalClientId) apiModalClientId.value = '';
         if (apiModalClientSecret) apiModalClientSecret.value = '';
@@ -2451,20 +2454,17 @@
         const tmapInput = apiSettingsForm.querySelector('#tmap_app_key');
 
         if (provider === 'naver') {
-            apiModalTitle.textContent = 'NAVER 설정 수정';
-            apiModalSub.textContent = 'Client ID와 Client Secret을 수정합니다.';
+            apiModalTitle.textContent = 'NAVER Maps API';
             document.querySelector('[data-api-field="client_id"]')?.classList.remove('hidden');
             document.querySelector('[data-api-field="client_secret"]')?.classList.remove('hidden');
             if (apiModalClientId) apiModalClientId.value = clientIdInput?.value || '';
             if (apiModalClientSecret) apiModalClientSecret.value = clientSecretInput?.value || '';
         } else if (provider === 'kakao') {
-            apiModalTitle.textContent = 'KAKAO 설정 수정';
-            apiModalSub.textContent = 'REST API Key를 수정합니다.';
+            apiModalTitle.textContent = 'KAKAO REST API';
             document.querySelector('[data-api-field="kakao_rest_api_key"]')?.classList.remove('hidden');
             if (apiModalKakaoKey) apiModalKakaoKey.value = kakaoInput?.value || '';
         } else if (provider === 'tmap') {
-            apiModalTitle.textContent = 'TMAP 설정 수정';
-            apiModalSub.textContent = 'App Key를 수정합니다.';
+            apiModalTitle.textContent = 'TMAP APP Key';
             document.querySelector('[data-api-field="tmap_app_key"]')?.classList.remove('hidden');
             if (apiModalTmapKey) apiModalTmapKey.value = tmapInput?.value || '';
         }
