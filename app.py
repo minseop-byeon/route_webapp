@@ -2650,11 +2650,11 @@ def reset():
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
-    if session.get("is_admin"):
-        return redirect(url_for("admin_settings_page"))
-
     if is_mobile_request():
         return render_template("admin_login.html", mobile_blocked=True)
+
+    if session.get("is_admin"):
+        return redirect(url_for("admin_settings_page"))
 
     if request.method == "POST":
         password = (request.form.get("password") or "").strip()
@@ -2676,7 +2676,7 @@ def admin_settings_page():
     if not session.get("is_admin"):
         return redirect(url_for("admin_login"))
     if is_mobile_request():
-        abort(403)
+        return render_template("admin_login.html", mobile_blocked=True)
     settings = load_settings()
     vehicle_log_vehicles, _ = get_vehicle_log_vehicles()
     return render_template("admin_settings.html", settings=settings, vehicle_log_vehicles=vehicle_log_vehicles)
