@@ -457,8 +457,80 @@
         .vehicle-log-card {
             display: flex;
             flex-direction: column;
+            gap: 16px;
+            padding: 0;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 46%),
+                linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border-color: #dbe7f5;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+        }
+
+        .vehicle-log-visual {
+            position: relative;
+            min-height: 172px;
+            padding: 16px 18px 0;
+            background:
+                linear-gradient(135deg, #eff6ff 0%, #f8fafc 56%, #ecfeff 100%);
+            overflow: hidden;
+        }
+
+        .vehicle-log-visual::before {
+            content: '';
+            position: absolute;
+            right: -24px;
+            top: -42px;
+            width: 148px;
+            height: 148px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.10);
+        }
+
+        .vehicle-log-visual::after {
+            content: '';
+            position: absolute;
+            left: 18px;
+            bottom: 18px;
+            width: calc(100% - 36px);
+            height: 1px;
+            background: linear-gradient(90deg, rgba(148, 163, 184, 0), rgba(148, 163, 184, 0.65), rgba(148, 163, 184, 0));
+        }
+
+        .vehicle-log-image {
+            position: relative;
+            z-index: 1;
+            display: block;
+            width: 100%;
+            max-width: 250px;
+            margin: 28px auto 0;
+            object-fit: contain;
+            filter: drop-shadow(0 12px 18px rgba(15, 23, 42, 0.18));
+        }
+
+        .vehicle-log-image-fallback {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 132px;
+            margin-top: 22px;
+            border: 1px dashed #bfdbfe;
+            border-radius: 18px;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .vehicle-log-content {
+            display: flex;
+            flex-direction: column;
             gap: 14px;
-            background: #ffffff;
+            padding: 0 16px 16px;
         }
 
         .vehicle-log-card-head {
@@ -474,6 +546,8 @@
 
         .vehicle-log-card-title h4 {
             margin: 0;
+            font-size: 18px;
+            letter-spacing: -0.02em;
         }
 
         .vehicle-log-card-id {
@@ -485,21 +559,30 @@
         }
 
         .vehicle-log-edit-btn {
-            min-height: 36px;
-            padding: 0 14px;
-            border: none;
-            border-radius: 10px;
-            background: #eef0f4;
-            color: #0f172a;
-            font-size: 13px;
-            font-weight: 800;
-            font-family: Pretendard, sans-serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: 1px solid #dbe7f5;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.88);
+            color: #1e3a8a;
             cursor: pointer;
             flex: 0 0 auto;
+            box-shadow: 0 6px 14px rgba(37, 99, 235, 0.10);
         }
 
         .vehicle-log-edit-btn:hover {
-            background: #e2e8f0;
+            background: #dbeafe;
+            border-color: #bfdbfe;
+        }
+
+        .vehicle-log-edit-btn svg {
+            width: 18px;
+            height: 18px;
+            display: block;
         }
 
         .vehicle-log-meta {
@@ -511,7 +594,7 @@
             padding: 12px 14px;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
-            background: #f8fafc;
+            background: rgba(248, 250, 252, 0.92);
         }
 
         .vehicle-log-meta-label {
@@ -1101,6 +1184,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .vehicle-log-image {
+                max-width: 220px;
+            }
+
             .address-row {
                 grid-template-columns: 1fr;
             }
@@ -1506,22 +1593,49 @@
                                     {% for vehicle in vehicle_log_vehicles %}
                                     {% set saved_plate_number = settings.vehicle_log.plate_numbers.get(vehicle.car_id, vehicle.plate_number or '') %}
                                     {% set saved_team_assignment = settings.vehicle_log.team_assignments.get(vehicle.car_id, vehicle.assigned_team or '') %}
+                                    {% set vehicle_name = ((vehicle.label or vehicle.car_name or vehicle.car_type or vehicle.car_id or '') | lower) %}
+                                    {% set image_file = '' %}
+                                    {% if 'ioniq 5' in vehicle_name or 'ioniq5' in vehicle_name %}
+                                        {% set image_file = 'ioniq5.png' %}
+                                    {% elif 'ev6' in vehicle_name %}
+                                        {% set image_file = 'EV6.png' %}
+                                    {% elif 'casper' in vehicle_name %}
+                                        {% set image_file = 'casper.png' %}
+                                    {% endif %}
                                     <div class="team-card vehicle-log-card" data-car-id="{{ vehicle.car_id }}" data-label="{{ vehicle.label or vehicle.car_id }}">
-                                        <div class="vehicle-log-card-head">
-                                            <div class="vehicle-log-card-title">
-                                                <h4>{{ vehicle.label or vehicle.car_id }}</h4>
-                                                <div class="vehicle-log-card-id">차량 ID: {{ vehicle.car_id }}</div>
-                                            </div>
-                                            <button type="button" class="vehicle-log-edit-btn">수정</button>
+                                        <div class="vehicle-log-visual">
+                                            {% if image_file %}
+                                            <img
+                                                class="vehicle-log-image"
+                                                src="{{ url_for('static', filename='images/' ~ image_file) }}"
+                                                alt="{{ vehicle.label or vehicle.car_id }}"
+                                            >
+                                            {% else %}
+                                            <div class="vehicle-log-image-fallback">VEHICLE</div>
+                                            {% endif %}
                                         </div>
-                                        <div class="vehicle-log-meta">
-                                            <div class="vehicle-log-meta-row">
-                                                <span class="vehicle-log-meta-label">차량번호</span>
-                                                <div class="vehicle-log-meta-value vehicle-log-plate-display">{{ saved_plate_number or '차량번호 미등록' }}</div>
+                                        <div class="vehicle-log-content">
+                                            <div class="vehicle-log-card-head">
+                                                <div class="vehicle-log-card-title">
+                                                    <h4>{{ vehicle.label or vehicle.car_id }}</h4>
+                                                    <div class="vehicle-log-card-id">차량 ID: {{ vehicle.car_id }}</div>
+                                                </div>
+                                                <button type="button" class="vehicle-log-edit-btn" aria-label="차량정보 수정" title="차량정보 수정">
+                                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                        <path d="M4 20h4l9.8-9.8a1.8 1.8 0 0 0 0-2.5l-1.5-1.5a1.8 1.8 0 0 0-2.5 0L4 16v4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                                                        <path d="m12.5 7.5 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
                                             </div>
-                                            <div class="vehicle-log-meta-row">
-                                                <span class="vehicle-log-meta-label">배차</span>
-                                                <div class="vehicle-log-meta-value vehicle-log-team-display">{{ saved_team_assignment or '배차 미지정' }}</div>
+                                            <div class="vehicle-log-meta">
+                                                <div class="vehicle-log-meta-row">
+                                                    <span class="vehicle-log-meta-label">차량번호</span>
+                                                    <div class="vehicle-log-meta-value vehicle-log-plate-display">{{ saved_plate_number or '차량번호 미등록' }}</div>
+                                                </div>
+                                                <div class="vehicle-log-meta-row">
+                                                    <span class="vehicle-log-meta-label">배차</span>
+                                                    <div class="vehicle-log-meta-value vehicle-log-team-display">{{ saved_team_assignment or '배차 미지정' }}</div>
+                                                </div>
                                             </div>
                                         </div>
                                         <input type="hidden" name="vehicle_log_car_id" value="{{ vehicle.car_id }}">
