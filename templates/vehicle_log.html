@@ -165,9 +165,8 @@ body::before{
   letter-spacing:.05em;
   background:#fff;
 }
-.detail-copy{display:flex;flex-direction:column;gap:16px;min-width:0;}
-.detail-title-wrap{display:flex;flex-direction:column;gap:8px;}
-.detail-kicker{font-size:13px;font-weight:800;color:#64748b;letter-spacing:.02em;}
+.detail-copy{display:flex;flex-direction:column;gap:14px;min-width:0;}
+.detail-title-wrap{display:flex;flex-direction:column;gap:10px;}
 .detail-title{margin:0;font-size:32px;font-weight:850;line-height:1.08;letter-spacing:-0.45px;color:#111827;}
 .detail-total{
   display:inline-flex;
@@ -182,11 +181,7 @@ body::before{
   font-size:14px;
   font-weight:800;
 }
-.detail-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
-.detail-meta{padding:14px 14px 12px;border-radius:16px;background:#f8fafc;border:1px solid #edf2f7;}
-.detail-meta-label{display:block;font-size:12px;color:#64748b;font-weight:700;margin-bottom:6px;}
-.detail-meta-value{display:block;font-size:17px;color:#111827;font-weight:800;line-height:1.35;word-break:keep-all;}
-.month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:22px;}
+.month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:24px;}
 .month-button{
   display:inline-flex;
   align-items:center;
@@ -202,7 +197,7 @@ body::before{
   transition:.15s ease;
 }
 .month-button:hover{border-color:#bfd1ee;background:#f8fbff;}
-.month-button.active{border-color:#93c5fd;background:#eff6ff;color:#1e3a8a;}
+.month-button.active{border-color:#93c5fd;background:#eff6ff;color:#1e3a8a;box-shadow:inset 0 0 0 1px #bfdbfe;}
 .month-button.disabled{border-color:#e5e7eb;background:#f8fafc;color:#94a3b8;pointer-events:none;cursor:default;}
 .history-header{margin-top:24px;display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;}
 .history-title{margin:0;font-size:22px;font-weight:850;letter-spacing:-0.25px;}
@@ -227,7 +222,7 @@ body::before{
 }
 .icon-only-btn:hover{color:#0f172a;}
 .icon-only-btn svg{width:20px;height:20px;display:block;}
-.history-body{display:grid;gap:10px;margin-top:14px;}
+.history-body{display:grid;gap:12px;margin-top:14px;}
 .history-row{display:grid;grid-template-columns:116px minmax(0,1fr);gap:10px;align-items:start;}
 .history-label{font-size:12px;color:#64748b;font-weight:700;line-height:1.6;}
 .history-value{font-size:15px;color:#111827;font-weight:800;line-height:1.55;word-break:break-word;}
@@ -235,6 +230,10 @@ body::before{
 .history-pair-box{padding:12px 14px;border-radius:14px;background:#f8fafc;border:1px solid #edf2f7;}
 .history-pair-title{display:block;font-size:12px;color:#64748b;font-weight:700;}
 .history-pair-value{display:block;margin-top:5px;font-size:15px;color:#111827;font-weight:800;line-height:1.4;}
+.history-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.history-stat-card{padding:13px 14px;border-radius:16px;background:#f8fafc;border:1px solid #edf2f7;}
+.history-stat-title{display:block;font-size:12px;color:#64748b;font-weight:700;}
+.history-stat-value{display:block;margin-top:6px;font-size:18px;color:#111827;font-weight:850;line-height:1.3;}
 .history-accident-yes{color:var(--danger);}
 .empty-box{
   margin-top:14px;
@@ -337,10 +336,10 @@ body::before{
   .vehicle-card{grid-template-columns:minmax(0,1fr) 112px;padding:16px;}
   .vehicle-title{font-size:20px;}
   .detail-title{font-size:26px;}
-  .detail-meta-grid{grid-template-columns:1fr;}
   .month-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .history-row{grid-template-columns:1fr;}
   .history-pair{grid-template-columns:1fr;}
+  .history-stat-grid{grid-template-columns:1fr;}
   .form-grid{grid-template-columns:1fr;}
 }
 </style>
@@ -420,23 +419,8 @@ body::before{
       </div>
       <div class="detail-copy">
         <div class="detail-title-wrap">
-          <div class="detail-kicker">&#52264;&#47049;&#50868;&#54665;</div>
           <h2 class="detail-title">{{ selected_vehicle.plate_number or selected_vehicle.label }}</h2>
-          <div class="detail-total">3&#50900;&#48512;&#53552; &#54788;&#51116;&#44620;&#51648; &#52509; &#50868;&#54665;&#44144;&#47532; {{ total_distance_all }}km</div>
-        </div>
-        <div class="detail-meta-grid">
-          <div class="detail-meta">
-            <span class="detail-meta-label">&#48176;&#52264;&#51221;&#48372;</span>
-            <span class="detail-meta-value">{{ selected_vehicle.assigned_team or ('&#48176;&#52264; &#48120;&#51648;&#51221;'|safe) }}</span>
-          </div>
-          <div class="detail-meta">
-            <span class="detail-meta-label">&#51452; &#50868;&#51204;&#51088;</span>
-            <span class="detail-meta-value">{{ main_driver or ('&#48120;&#51648;&#51221;'|safe) }}</span>
-          </div>
-          <div class="detail-meta">
-            <span class="detail-meta-label">&#52264;&#47049;&#47749;</span>
-            <span class="detail-meta-value">{{ selected_vehicle.label }}</span>
-          </div>
+          <div class="detail-total">{{ selected_month }}&#50900; &#52509; &#50868;&#54665;&#44144;&#47532; {{ total_distance }}km</div>
         </div>
       </div>
     </div>
@@ -497,12 +481,12 @@ body::before{
             <div class="history-label">&#52636;&#48156;</div>
             <div class="history-pair">
               <div class="history-pair-box">
-                <span class="history-pair-title">&#52636;&#48156; &#49884;&#44036;</span>
+                <span class="history-pair-title">&#52636;&#48156;&#49884;&#44036;</span>
                 <span class="history-pair-value">{{ row.start_time or '-' }}</span>
               </div>
               <div class="history-pair-box">
-                <span class="history-pair-title">&#52636;&#48156;&#49884; &#47560;&#51068;&#47532;&#51648;</span>
-                <span class="history-pair-value">{{ row.odometer_start_text or '-' }}</span>
+                <span class="history-pair-title">&#52636;&#48156;&#53412;&#47196;&#49688;</span>
+                <span class="history-pair-value">{{ row.odometer_start_display }}</span>
               </div>
             </div>
           </div>
@@ -510,22 +494,24 @@ body::before{
             <div class="history-label">&#48373;&#44480;</div>
             <div class="history-pair">
               <div class="history-pair-box">
-                <span class="history-pair-title">&#48373;&#44480; &#49884;&#44036;</span>
+                <span class="history-pair-title">&#48373;&#44480;&#49884;&#44036;</span>
                 <span class="history-pair-value">{{ row.end_time or '-' }}</span>
               </div>
               <div class="history-pair-box">
-                <span class="history-pair-title">&#48373;&#44480;&#49884; &#47560;&#51068;&#47532;&#51648;</span>
-                <span class="history-pair-value">{{ row.odometer_end_text or '-' }}</span>
+                <span class="history-pair-title">&#48373;&#44480;&#53412;&#47196;&#49688;</span>
+                <span class="history-pair-value">{{ row.odometer_end_display }}</span>
               </div>
             </div>
           </div>
-          <div class="history-row">
-            <div class="history-label">&#50868;&#54665;&#44144;&#47532;</div>
-            <div class="history-value">{{ row.distance_km_text or '0' }}km</div>
-          </div>
-          <div class="history-row">
-            <div class="history-label">&#49324;&#44256;&#50976;&#47924;</div>
-            <div class="history-value{% if row.accident_is_yes %} history-accident-yes{% endif %}">{{ row.accident_display }}</div>
+          <div class="history-stat-grid">
+            <div class="history-stat-card">
+              <span class="history-stat-title">&#50868;&#54665;&#44144;&#47532;</span>
+              <span class="history-stat-value">{{ row.distance_display }}</span>
+            </div>
+            <div class="history-stat-card">
+              <span class="history-stat-title">&#49324;&#44256;&#50976;&#47924;</span>
+              <span class="history-stat-value{% if row.accident_is_yes %} history-accident-yes{% endif %}">{{ row.accident_display }}</span>
+            </div>
           </div>
         </div>
       </article>
@@ -596,9 +582,8 @@ body::before{
         <div class="form-group">
           <label for="historyAccident">&#49324;&#44256;&#50976;&#47924;</label>
           <select name="accident" id="historyAccident">
-            <option value="">&#48120;&#51077;&#47141;</option>
-            <option value="&#50630;&#51020;">&#50630;&#51020;</option>
-            <option value="&#51080;&#51020;">&#51080;&#51020;</option>
+            <option value="&#50630;&#51020;">&#49324;&#44256; &#50630;&#51020;</option>
+            <option value="&#51080;&#51020;">&#49324;&#44256; &#51080;&#51020;</option>
           </select>
         </div>
       </div>
@@ -667,7 +652,7 @@ body::before{
     historyOdometerStart.value = button.dataset.odometerStart || '';
     historyOdometerEnd.value = button.dataset.odometerEnd || '';
     historyDistanceKm.value = button.dataset.distanceKm || '';
-    historyAccident.value = button.dataset.accident || '';
+    historyAccident.value = button.dataset.accident || '\uC5C6\uC74C';
     historyOriginalPassengerName.value = button.dataset.originalPassengerName || '';
     historyOriginalStartTime.value = button.dataset.originalStartTime || '';
     historyOriginalEndTime.value = button.dataset.originalEndTime || '';

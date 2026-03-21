@@ -781,12 +781,32 @@ def prepare_vehicle_log_display_rows(rows, vehicle):
     team_members = list(vehicle.get("team_members") or [])
     default_passenger_name = build_vehicle_log_passenger_summary(main_driver, team_members)
 
+    def format_km_text(value):
+        raw = str(value or "").strip()
+        if not raw:
+            return "-"
+        try:
+            number_value = int(float(raw))
+            return f"{number_value:,} km"
+        except Exception:
+            return f"{raw} km"
+
     prepared_rows = []
     for row in rows:
         item = dict(row)
         item["display_passenger_name"] = str(item.get("passenger_name") or "").strip() or default_passenger_name or "-"
-        item["accident_display"] = str(item.get("accident_text") or "").strip() or "미입력"
+        item["accident_display"] = str(item.get("accident_text") or "").strip() or "사고 없음"
         item["accident_is_yes"] = item["accident_display"] == "있음"
+        item["odometer_start_display"] = format_km_text(item.get("odometer_start_text"))
+        item["odometer_end_display"] = format_km_text(item.get("odometer_end_text"))
+        distance_text = str(item.get("distance_km_text") or "").strip()
+        if distance_text:
+            try:
+                item["distance_display"] = f"{int(float(distance_text)):,} km"
+            except Exception:
+                item["distance_display"] = f"{distance_text} km"
+        else:
+            item["distance_display"] = "0 km"
         item["original_passenger_name"] = str(item.get("passenger_name") or "").strip() or default_passenger_name
         item["original_start_time"] = str(item.get("start_time") or "").strip()
         item["original_end_time"] = str(item.get("end_time") or "").strip()
