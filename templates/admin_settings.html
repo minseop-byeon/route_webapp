@@ -454,69 +454,27 @@
             gap: 14px;
         }
 
-        .setting-cards {
-            display: grid;
-            gap: 14px;
-        }
-
-        .setting-card {
+        .api-section-card {
             position: relative;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            background: #ffffff;
-            padding: 16px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
         }
 
-        .setting-card-head {
+        .api-section-head {
             display: flex;
             justify-content: space-between;
             gap: 12px;
             align-items: flex-start;
+            margin-bottom: 14px;
         }
 
-        .setting-card-title {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 850;
-            color: #0f172a;
+        .api-section-head .location-section-title {
+            margin-bottom: 0;
         }
 
-        .setting-card-sub {
-            margin-top: 5px;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #64748b;
-            font-weight: 600;
-        }
-
-        .setting-card-values {
-            display: grid;
-            gap: 10px;
-            margin-top: 14px;
-        }
-
-        .setting-card-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            align-items: center;
-            min-height: 28px;
-        }
-
-        .setting-card-label {
-            font-size: 12px;
+        .api-masked-input {
             color: #64748b;
             font-weight: 700;
-        }
-
-        .setting-card-value {
-            min-width: 0;
-            text-align: right;
-            font-size: 13px;
-            color: #0f172a;
-            font-weight: 700;
-            word-break: break-all;
+            letter-spacing: 0.12em;
+            background: #f8fafc !important;
         }
 
         .icon-only-btn {
@@ -528,9 +486,10 @@
             padding: 0;
             border: none;
             background: transparent;
-            color: #475569;
+            color: #94a3b8;
             cursor: pointer;
             flex: 0 0 auto;
+            transition: color 0.15s ease;
         }
 
         .icon-only-btn:hover {
@@ -543,8 +502,12 @@
             display: block;
         }
 
-        .masked-value {
-            letter-spacing: 0.14em;
+        .api-edit-btn {
+            color: #a8b3c2;
+        }
+
+        .api-edit-btn:hover {
+            color: #1e293b;
         }
 
         .vehicle-log-card {
@@ -1374,13 +1337,10 @@
                     <p class="panel-desc">외부 연동에 필요한 API 정보를 설정합니다.</p>
 
                     <form class="settings-form" data-section="api" id="apiSettingsForm">
-                        <div class="setting-cards">
-                            <div class="setting-card api-setting-card" data-provider="naver">
-                                <div class="setting-card-head">
-                                    <div>
-                                        <h4 class="setting-card-title">NAVER</h4>
-                                        <div class="setting-card-sub">Cloud Platform 경로 API 인증 정보</div>
-                                    </div>
+                        <div class="location-sections">
+                            <div class="location-section api-setting-card" data-provider="naver">
+                                <div class="api-section-head">
+                                    <h4 class="location-section-title">NAVER</h4>
                                     <button type="button" class="icon-only-btn api-edit-btn" aria-label="NAVER 설정 수정" title="NAVER 설정 수정">
                                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                             <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1388,24 +1348,21 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <div class="setting-card-values">
-                                    <div class="setting-card-row">
-                                        <span class="setting-card-label">Client ID</span>
-                                        <span class="setting-card-value masked-value api-display-client-id">{{ '***' if settings.api.client_id else '미입력' }}</span>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="api_display_client_id">Client ID</label>
+                                        <input type="text" id="api_display_client_id" class="api-masked-input api-display-client-id" value="{{ '***' if settings.api.client_id else '미입력' }}" readonly>
                                     </div>
-                                    <div class="setting-card-row">
-                                        <span class="setting-card-label">Client Secret</span>
-                                        <span class="setting-card-value masked-value api-display-client-secret">{{ '***' if settings.api.client_secret else '미입력' }}</span>
+                                    <div class="form-group">
+                                        <label for="api_display_client_secret">Client Secret</label>
+                                        <input type="text" id="api_display_client_secret" class="api-masked-input api-display-client-secret" value="{{ '***' if settings.api.client_secret else '미입력' }}" readonly>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="setting-card api-setting-card" data-provider="kakao">
-                                <div class="setting-card-head">
-                                    <div>
-                                        <h4 class="setting-card-title">KAKAO</h4>
-                                        <div class="setting-card-sub">Local API 주소 검색 인증 정보</div>
-                                    </div>
+                            <div class="location-section api-setting-card" data-provider="kakao">
+                                <div class="api-section-head">
+                                    <h4 class="location-section-title">KAKAO</h4>
                                     <button type="button" class="icon-only-btn api-edit-btn" aria-label="KAKAO 설정 수정" title="KAKAO 설정 수정">
                                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                             <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1413,20 +1370,17 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <div class="setting-card-values">
-                                    <div class="setting-card-row">
-                                        <span class="setting-card-label">REST API Key</span>
-                                        <span class="setting-card-value masked-value api-display-kakao-key">{{ '***' if settings.api.kakao_rest_api_key else '미입력' }}</span>
+                                <div class="form-grid">
+                                    <div class="form-group full">
+                                        <label for="api_display_kakao_rest_api_key">REST API Key</label>
+                                        <input type="text" id="api_display_kakao_rest_api_key" class="api-masked-input api-display-kakao-key" value="{{ '***' if settings.api.kakao_rest_api_key else '미입력' }}" readonly>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="setting-card api-setting-card" data-provider="tmap">
-                                <div class="setting-card-head">
-                                    <div>
-                                        <h4 class="setting-card-title">TMAP</h4>
-                                        <div class="setting-card-sub">주차장 검색과 경로 보조 조회용 App Key</div>
-                                    </div>
+                            <div class="location-section api-setting-card" data-provider="tmap">
+                                <div class="api-section-head">
+                                    <h4 class="location-section-title">TMAP</h4>
                                     <button type="button" class="icon-only-btn api-edit-btn" aria-label="TMAP 설정 수정" title="TMAP 설정 수정">
                                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                             <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1434,10 +1388,10 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <div class="setting-card-values">
-                                    <div class="setting-card-row">
-                                        <span class="setting-card-label">App Key</span>
-                                        <span class="setting-card-value masked-value api-display-tmap-key">{{ '***' if settings.api.tmap_app_key else '미입력' }}</span>
+                                <div class="form-grid">
+                                    <div class="form-group full">
+                                        <label for="api_display_tmap_app_key">App Key</label>
+                                        <input type="text" id="api_display_tmap_app_key" class="api-masked-input api-display-tmap-key" value="{{ '***' if settings.api.tmap_app_key else '미입력' }}" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -2467,10 +2421,10 @@
         const kakaoDisplay = apiSettingsForm.querySelector('.api-display-kakao-key');
         const tmapDisplay = apiSettingsForm.querySelector('.api-display-tmap-key');
 
-        if (clientIdDisplay) clientIdDisplay.textContent = maskSecretValue(clientId);
-        if (clientSecretDisplay) clientSecretDisplay.textContent = maskSecretValue(clientSecret);
-        if (kakaoDisplay) kakaoDisplay.textContent = maskSecretValue(kakaoKey);
-        if (tmapDisplay) tmapDisplay.textContent = maskSecretValue(tmapKey);
+        if (clientIdDisplay) clientIdDisplay.value = maskSecretValue(clientId);
+        if (clientSecretDisplay) clientSecretDisplay.value = maskSecretValue(clientSecret);
+        if (kakaoDisplay) kakaoDisplay.value = maskSecretValue(kakaoKey);
+        if (tmapDisplay) tmapDisplay.value = maskSecretValue(tmapKey);
     }
 
     function clearApiModal() {
