@@ -1678,6 +1678,7 @@
                                     {% for vehicle in vehicle_log_vehicles %}
                                     {% set saved_plate_number = settings.vehicle_log.plate_numbers.get(vehicle.car_id, vehicle.plate_number or '') %}
                                     {% set saved_team_assignment = settings.vehicle_log.team_assignments.get(vehicle.car_id, vehicle.assigned_team or '') %}
+                                    {% set saved_main_driver = settings.vehicle_log.main_drivers.get(vehicle.car_id, vehicle.main_driver or '') %}
                                     {% set vehicle_name = ((vehicle.label or vehicle.car_name or vehicle.car_type or vehicle.car_id or '') | lower) %}
                                     {% set image_file = '' %}
                                     {% if 'ioniq 5' in vehicle_name or 'ioniq5' in vehicle_name %}
@@ -1722,6 +1723,7 @@
                                         <input type="hidden" name="vehicle_log_car_id" value="{{ vehicle.car_id }}">
                                         <input type="hidden" name="vehicle_log_plate_number" value="{{ saved_plate_number }}">
                                         <input type="hidden" name="vehicle_log_team_assignment" value="{{ saved_team_assignment }}">
+                                        <input type="hidden" name="vehicle_log_main_driver" value="{{ saved_main_driver }}">
                                     </div>
                                     {% endfor %}
                                 {% else %}
@@ -1815,6 +1817,12 @@
                     {% for team_name in settings.user.team_users.keys() %}
                     <option value="{{ team_name }}">{{ team_name }}</option>
                     {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="vehicleLogModalMainDriver">주 운전자</label>
+                <select id="vehicleLogModalMainDriver">
+                    <option value="">자동 선택</option>
                 </select>
             </div>
         </div>
@@ -1986,6 +1994,7 @@
     const vehicleLogModalId = document.getElementById('vehicleLogModalId');
     const vehicleLogModalPlateNumber = document.getElementById('vehicleLogModalPlateNumber');
     const vehicleLogModalTeamAssignment = document.getElementById('vehicleLogModalTeamAssignment');
+    const vehicleLogModalMainDriver = document.getElementById('vehicleLogModalMainDriver');
     const vehicleLogModalSaveBtn = document.getElementById('vehicleLogModalSaveBtn');
     const vehicleLogModalCloseBtn = document.getElementById('vehicleLogModalCloseBtn');
 
@@ -2476,16 +2485,39 @@
         if (!card) return;
         const plateInput = card.querySelector('input[name="vehicle_log_plate_number"]');
         const teamInput = card.querySelector('input[name="vehicle_log_team_assignment"]');
+        const driverInput = card.querySelector('input[name="vehicle_log_main_driver"]');
         const plateDisplay = card.querySelector('.vehicle-log-plate-display');
         const teamDisplay = card.querySelector('.vehicle-log-team-display');
         const plateValue = (plateInput?.value || '').trim();
         const teamValue = (teamInput?.value || '').trim();
+        const driverValue = (driverInput?.value || '').trim();
         if (plateDisplay) {
             plateDisplay.textContent = plateValue || '차량번호 미등록';
         }
         if (teamDisplay) {
-            teamDisplay.textContent = teamValue || '배차 미지정';
+            teamDisplay.textContent = driverValue ? `${teamValue || '배차 미지정'} · ${driverValue}` : (teamValue || '배차 미지정');
         }
+    }
+
+    function syncVehicleLogMainDriverOptions(teamName, selectedDriver = '') {
+        if (!vehicleLogModalMainDriver) return;
+        const teamCards = Array.from(document.querySelectorAll('#panel-user input[name="team_name"]'));
+        const teamBlocks = Array.from(document.querySelectorAll('#panel-user textarea[name="team_users_block"]'));
+        const users = [];
+        teamCards.forEach((input, index) => {
+            if ((input.value || '').trim() !== (teamName || '').trim()) return;
+            const block = teamBlocks[index];
+            if (!block) return;
+            block.value.split(/\r?\n/).map(v => v.trim()).filter(Boolean).sort().forEach(v => users.push(v));
+        });
+        vehicleLogModalMainDriver.innerHTML = '<option value="">자동 선택</option>';
+        users.forEach((userName) => {
+            const option = document.createElement('option');
+            option.value = userName;
+            option.textContent = userName;
+            vehicleLogModalMainDriver.appendChild(option);
+        });
+        vehicleLogModalMainDriver.value = selectedDriver && users.includes(selectedDriver) ? selectedDriver : '';
     }
 
     function clearVehicleLogModal() {
@@ -2494,6 +2526,7 @@
         if (vehicleLogModalId) vehicleLogModalId.textContent = '차량 ID: ';
         if (vehicleLogModalPlateNumber) vehicleLogModalPlateNumber.value = '';
         if (vehicleLogModalTeamAssignment) vehicleLogModalTeamAssignment.value = '';
+        syncVehicleLogMainDriverOptions('', '');
     }
 
     function openVehicleLogModal(card) {
@@ -2503,6 +2536,7 @@
         const carId = card.dataset.carId || '';
         const plateValue = card.querySelector('input[name="vehicle_log_plate_number"]')?.value || '';
         const teamValue = card.querySelector('input[name="vehicle_log_team_assignment"]')?.value || '';
+        const driverValue = card.querySelector('input[name="vehicle_log_main_driver"]')?.value || '';
         if (vehicleLogModalTitle) {
             vehicleLogModalTitle.textContent = `${label} 수정`;
         }
@@ -2515,6 +2549,7 @@
         if (vehicleLogModalTeamAssignment) {
             vehicleLogModalTeamAssignment.value = teamValue;
         }
+        syncVehicleLogMainDriverOptions(teamValue, driverValue);
         vehicleLogModal.classList.add('show');
     }
 
@@ -2689,19 +2724,30 @@
         });
     }
 
+    if (vehicleLogModalTeamAssignment) {
+        vehicleLogModalTeamAssignment.addEventListener('change', () => {
+            syncVehicleLogMainDriverOptions(vehicleLogModalTeamAssignment.value, '');
+        });
+    }
+
     if (vehicleLogModalSaveBtn) {
         vehicleLogModalSaveBtn.addEventListener('click', async () => {
             if (!editingVehicleLogCard || !vehicleLogSettingsForm) return;
 
             const plateInput = editingVehicleLogCard.querySelector('input[name="vehicle_log_plate_number"]');
             const teamInput = editingVehicleLogCard.querySelector('input[name="vehicle_log_team_assignment"]');
+            const driverInput = editingVehicleLogCard.querySelector('input[name="vehicle_log_main_driver"]');
             const previousPlateValue = plateInput?.value || '';
             const previousTeamValue = teamInput?.value || '';
+            const previousDriverValue = driverInput?.value || '';
             if (plateInput) {
                 plateInput.value = (vehicleLogModalPlateNumber?.value || '').trim();
             }
             if (teamInput) {
                 teamInput.value = (vehicleLogModalTeamAssignment?.value || '').trim();
+            }
+            if (driverInput) {
+                driverInput.value = (vehicleLogModalMainDriver?.value || '').trim();
             }
 
             applyVehicleLogCardDisplay(editingVehicleLogCard);
@@ -2715,6 +2761,9 @@
                 }
                 if (teamInput) {
                     teamInput.value = previousTeamValue;
+                }
+                if (driverInput) {
+                    driverInput.value = previousDriverValue;
                 }
                 applyVehicleLogCardDisplay(editingVehicleLogCard);
             }

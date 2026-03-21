@@ -4,81 +4,344 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/symbol.png') }}">
-<title>국세청 차량운행</title>
+<title>&#44397;&#49464;&#52397; &#52404;&#45225;&#44288;&#47532;&#45800; - &#52264;&#47049;&#50868;&#54665;</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
 <style>
 :root{
+  --mobile-top-safe:calc(env(safe-area-inset-top, 0px) + 18px);
   --bg:#f4f6fa;
   --surface:#ffffff;
   --border:#e2e8f0;
   --text:#111827;
   --sub:#64748b;
-  --primary:#1d4ed8;
-  --primary-soft:#eff6ff;
   --chip:#eef2ff;
+  --danger:#b42318;
 }
 *{box-sizing:border-box;}
-body{margin:0;font-family:Pretendard,sans-serif;background:var(--bg);color:var(--text);}
-.container{max-width:1080px;margin:0 auto;padding:24px 16px 36px;}
-.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;}
-.header-left{display:flex;align-items:center;gap:8px;}
-.header-logo{width:54px;height:54px;object-fit:contain;}
-.header-title{font-size:22px;font-weight:800;line-height:1.05;color:#003675;}
-.header-sub{margin-top:4px;font-size:13px;font-weight:700;color:var(--sub);}
-.notice-box{margin-bottom:12px;padding:12px 14px;border-radius:12px;background:#fff4eb;border:1px solid #ffcfa1;color:#9a3412;font-size:13px;font-weight:700;line-height:1.5;}
-.section-title{margin:0 0 12px;font-size:22px;font-weight:800;letter-spacing:-0.2px;}
-.vehicle-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+html,body{margin:0;padding:0;}
+body{
+  margin:0;
+  font-family:Pretendard,sans-serif;
+  background:#f4f6fa;
+  color:var(--text);
+  min-height:100dvh;
+  position:relative;
+}
+body::before{
+  content:"";
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:var(--mobile-top-safe);
+  background:linear-gradient(180deg, rgba(244,246,250,.98) 0%, rgba(244,246,250,.88) 72%, rgba(244,246,250,0) 100%);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  pointer-events:none;
+  z-index:1200;
+  opacity:0;
+}
+.container{max-width:1080px;margin:0 auto;padding:18px 16px 34px;}
+.hero{padding:0 0 12px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 10px -4px;position:relative;}
+.header-left{display:flex;align-items:stretch;gap:3px;min-width:0;}
+.header-logo{width:56px;height:56px;object-fit:contain;display:block;flex:0 0 auto;}
+.hero-text{height:56px;display:flex;flex-direction:column;justify-content:center;gap:2px;}
+.header-title{font-size:22px;font-weight:800;line-height:1.05;letter-spacing:-0.3px;color:#003675;}
+.header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--sub);}
+.header-menu{width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;padding:0;color:#334155;cursor:pointer;flex:0 0 auto;}
+.header-menu svg{width:28px;height:28px;display:block;}
+.menu-popover{
+  position:absolute;
+  top:60px;
+  right:0;
+  width:204px;
+  padding:8px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 18px 36px rgba(15,23,42,.14);
+  display:none;
+  z-index:40;
+}
+.menu-popover.show{display:block;}
+.menu-link{
+  display:flex;
+  align-items:center;
+  width:100%;
+  min-height:42px;
+  padding:0 12px;
+  border:none;
+  border-radius:10px;
+  background:transparent;
+  color:#0f172a;
+  font-size:14px;
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+}
+.menu-link:hover{background:#f8fafc;}
+.notice-box{
+  margin-bottom:12px;
+  padding:12px 14px;
+  border-radius:12px;
+  background:#fff4eb;
+  border:1px solid #ffcfa1;
+  color:#9a3412;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.5;
+}
+.vehicle-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
 .vehicle-card-form{margin:0;}
-.vehicle-card{display:flex;flex-direction:column;gap:8px;width:100%;padding:16px;border:1px solid var(--border);border-radius:18px;background:var(--surface);text-align:left;cursor:pointer;transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease;}
-.vehicle-card:hover{border-color:#bfd1ee;box-shadow:0 10px 24px rgba(15,23,42,.06);transform:translateY(-1px);}
-.vehicle-card-title{font-size:18px;font-weight:800;line-height:1.2;}
-.vehicle-card-meta{font-size:12px;color:var(--sub);font-weight:700;line-height:1.5;}
-.vehicle-card-plate{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:999px;background:#f3f4f6;color:#111827;font-size:12px;font-weight:800;width:max-content;}
-.detail-panel{margin-top:18px;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:18px;box-shadow:0 12px 28px rgba(15,23,42,.05);}
-.detail-hero{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px;align-items:start;}
-.detail-visual{display:flex;align-items:center;justify-content:center;min-height:180px;padding:16px;border-radius:18px;background:#fafafa;border:1px solid #eef2f7;}
-.detail-image{display:block;width:100%;max-width:180px;object-fit:contain;}
-.detail-image-fallback{display:flex;align-items:center;justify-content:center;width:100%;height:120px;border:1px dashed #cbd5e1;border-radius:14px;color:var(--sub);font-size:12px;font-weight:800;letter-spacing:.04em;background:#fff;}
-.detail-info{display:flex;flex-direction:column;gap:10px;}
-.detail-title{margin:0;font-size:26px;font-weight:800;letter-spacing:-0.3px;}
-.detail-meta{font-size:13px;color:var(--sub);font-weight:700;line-height:1.6;}
-.detail-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
-.detail-chip{display:inline-flex;align-items:center;min-height:30px;padding:0 12px;border-radius:999px;background:var(--chip);color:#1e3a8a;font-size:12px;font-weight:800;}
+.vehicle-card{
+  width:100%;
+  min-height:156px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 132px;
+  gap:12px;
+  align-items:center;
+  padding:18px 18px 16px;
+  border:1px solid #dbe2ea;
+  border-radius:22px;
+  background:linear-gradient(180deg,#ffffff 0%,#f8fbff 100%);
+  text-align:left;
+  cursor:pointer;
+  transition:border-color .15s, box-shadow .15s, transform .15s;
+}
+.vehicle-card:hover{
+  border-color:#bfd1ee;
+  box-shadow:0 12px 26px rgba(15,23,42,.06);
+  transform:translateY(-1px);
+}
+.vehicle-copy{display:flex;flex-direction:column;gap:10px;min-width:0;}
+.vehicle-title{margin:0;font-size:22px;font-weight:850;line-height:1.15;letter-spacing:-0.3px;color:#111827;word-break:keep-all;}
+.vehicle-meta{display:flex;flex-direction:column;gap:4px;}
+.vehicle-meta-text{font-size:13px;color:#64748b;font-weight:700;line-height:1.55;}
+.vehicle-visual{display:flex;align-items:flex-end;justify-content:flex-end;min-height:112px;}
+.vehicle-image{display:block;width:100%;max-width:132px;object-fit:contain;}
+.vehicle-image-fallback{
+  width:112px;
+  height:86px;
+  border-radius:18px;
+  border:1px dashed #cbd5e1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  font-weight:800;
+  color:#94a3b8;
+  background:#fff;
+}
+.detail-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 10px 24px rgba(15,23,42,.05);
+}
+.detail-hero{display:grid;grid-template-columns:280px minmax(0,1fr);gap:22px;align-items:center;}
+.detail-visual{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:224px;
+  border-radius:22px;
+  background:linear-gradient(180deg,#fbfcff 0%,#f4f7fb 100%);
+  border:1px solid #e7edf5;
+  overflow:hidden;
+}
+.detail-image{display:block;width:100%;max-width:240px;object-fit:contain;}
+.detail-image-fallback{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:160px;
+  height:120px;
+  border:1px dashed #cbd5e1;
+  border-radius:20px;
+  color:#94a3b8;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.05em;
+  background:#fff;
+}
+.detail-copy{display:flex;flex-direction:column;gap:16px;min-width:0;}
+.detail-title-wrap{display:flex;flex-direction:column;gap:8px;}
+.detail-kicker{font-size:13px;font-weight:800;color:#64748b;letter-spacing:.02em;}
+.detail-title{margin:0;font-size:32px;font-weight:850;line-height:1.08;letter-spacing:-0.45px;color:#111827;}
+.detail-total{
+  display:inline-flex;
+  align-items:center;
+  min-height:36px;
+  width:max-content;
+  max-width:100%;
+  padding:0 14px;
+  border-radius:999px;
+  background:var(--chip);
+  color:#1e3a8a;
+  font-size:14px;
+  font-weight:800;
+}
+.detail-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.detail-meta{padding:14px 14px 12px;border-radius:16px;background:#f8fafc;border:1px solid #edf2f7;}
+.detail-meta-label{display:block;font-size:12px;color:#64748b;font-weight:700;margin-bottom:6px;}
+.detail-meta-value{display:block;font-size:17px;color:#111827;font-weight:800;line-height:1.35;word-break:keep-all;}
 .month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:22px;}
-.month-button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;border:1px solid var(--border);border-radius:14px;background:#fff;color:#0f172a;font-size:15px;font-weight:800;text-decoration:none;transition:.15s ease;}
+.month-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:46px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:#fff;
+  color:#0f172a;
+  font-size:15px;
+  font-weight:800;
+  text-decoration:none;
+  transition:.15s ease;
+}
 .month-button:hover{border-color:#bfd1ee;background:#f8fbff;}
-.month-button.active{border-color:#93c5fd;background:var(--primary-soft);color:#1e3a8a;}
+.month-button.active{border-color:#93c5fd;background:#eff6ff;color:#1e3a8a;}
 .month-button.disabled{border-color:#e5e7eb;background:#f8fafc;color:#94a3b8;pointer-events:none;cursor:default;}
-.history-header{margin-top:22px;display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;}
-.history-title{margin:0;font-size:22px;font-weight:800;letter-spacing:-0.2px;}
-.history-total{font-size:14px;color:#1e3a8a;font-weight:800;}
-.history-list{display:grid;gap:10px;margin-top:14px;}
-.history-item{border:1px solid var(--border);border-radius:16px;padding:14px;background:#fff;}
-.history-date{font-size:16px;font-weight:800;color:#0f172a;}
-.history-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px;}
-.history-cell{padding:10px 12px;border-radius:12px;background:#f8fafc;}
-.history-label{display:block;font-size:12px;color:var(--sub);font-weight:700;}
-.history-value{display:block;margin-top:5px;font-size:14px;color:#111827;font-weight:800;line-height:1.4;}
-.empty-box{margin-top:14px;padding:20px;border-radius:16px;border:1px solid var(--border);background:#fff;color:var(--sub);font-size:14px;font-weight:700;text-align:center;}
-.bottom-actions{margin-top:18px;display:flex;justify-content:flex-start;}
-.back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;padding:0 4px;font-size:13px;font-weight:700;text-decoration:none;}
+.history-header{margin-top:24px;display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+.history-title{margin:0;font-size:22px;font-weight:850;letter-spacing:-0.25px;}
+.history-total{font-size:15px;color:#1e3a8a;font-weight:800;}
+.history-list{display:grid;gap:12px;margin-top:14px;}
+.history-item{border:1px solid var(--border);border-radius:18px;padding:16px;background:#fff;}
+.history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.history-date{font-size:18px;font-weight:850;color:#0f172a;line-height:1.25;}
+.icon-only-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  height:24px;
+  padding:0;
+  border:none;
+  background:transparent;
+  color:#94a3b8;
+  cursor:pointer;
+  flex:0 0 auto;
+  transition:color .15s ease;
+}
+.icon-only-btn:hover{color:#0f172a;}
+.icon-only-btn svg{width:20px;height:20px;display:block;}
+.history-body{display:grid;gap:10px;margin-top:14px;}
+.history-row{display:grid;grid-template-columns:116px minmax(0,1fr);gap:10px;align-items:start;}
+.history-label{font-size:12px;color:#64748b;font-weight:700;line-height:1.6;}
+.history-value{font-size:15px;color:#111827;font-weight:800;line-height:1.55;word-break:break-word;}
+.history-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.history-pair-box{padding:12px 14px;border-radius:14px;background:#f8fafc;border:1px solid #edf2f7;}
+.history-pair-title{display:block;font-size:12px;color:#64748b;font-weight:700;}
+.history-pair-value{display:block;margin-top:5px;font-size:15px;color:#111827;font-weight:800;line-height:1.4;}
+.history-accident-yes{color:var(--danger);}
+.empty-box{
+  margin-top:14px;
+  padding:20px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  background:#fff;
+  color:#64748b;
+  font-size:14px;
+  font-weight:700;
+  text-align:center;
+}
+.bottom-actions{margin-top:18px;display:flex;justify-content:flex-start;gap:12px;flex-wrap:wrap;}
+.back-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  height:40px;
+  border-radius:999px;
+  border:1px solid transparent;
+  background:transparent;
+  color:#64748b;
+  padding:0 4px;
+  font-size:13px;
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+}
 .back-link:hover{color:#334155;text-decoration:underline;}
-.back-link svg{width:14px;height:14px;display:block;transform:translateY(1px);}
+.back-link svg{width:14px;height:14px;display:block;flex:0 0 auto;transform:translateY(1px);}
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.48);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+  padding:16px;
+}
+.modal-backdrop.show{display:flex;}
+.modal{
+  width:100%;
+  max-width:540px;
+  background:#fff;
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 16px 30px rgba(15,23,42,.18);
+}
+.modal-title{margin:0 0 8px;font-size:18px;font-weight:850;color:#0f172a;}
+.modal-sub{margin:0 0 18px;font-size:13px;font-weight:700;color:#64748b;line-height:1.5;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;}
+.form-group{margin-bottom:0;}
+.form-group.full{grid-column:1 / -1;}
+.form-group label{display:block;margin-bottom:6px;font-size:12px;font-weight:700;color:#6b7280;}
+.form-group input,.form-group select{
+  width:100%;
+  min-height:42px;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:14px;
+  font-family:Pretendard,sans-serif;
+  color:#111827;
+  background:#fff;
+  outline:none;
+}
+.form-group input:focus,.form-group select:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.08);}
+.modal-buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+.modal-btn{
+  min-height:40px;
+  padding:0 14px;
+  border:none;
+  border-radius:10px;
+  font-family:Pretendard,sans-serif;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+}
+.modal-btn.primary{background:#1d4ed8;color:#fff;}
+.modal-btn.primary:hover{background:#1e40af;}
+.modal-btn.secondary{background:#eef0f4;color:#0f172a;}
 @media (max-width:900px){
-  .vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .vehicle-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .detail-hero{grid-template-columns:1fr;}
-  .month-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .detail-visual{order:-1;}
 }
 @media (max-width:760px){
-  .container{max-width:430px;padding:18px 16px 30px;}
-  .hero{margin-bottom:14px;}
+  body::before{opacity:1;}
+  .container{width:calc(100% - 32px);max-width:430px;margin:0 auto;padding:calc(var(--mobile-top-safe) + 12px) 0 30px;}
+  .hero{padding:0 0 8px;}
   .header-logo{width:48px;height:48px;}
-  .header-title{font-size:18px;}
-  .header-sub{font-size:11px;}
-  .vehicle-card-grid{grid-template-columns:1fr;}
-  .detail-title{font-size:22px;}
-  .month-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
-  .history-grid{grid-template-columns:1fr;}
+  .hero-text{height:48px;}
+  .header-left{gap:2px;}
+  .header-title{font-size:18px;line-height:1.02;}
+  .header-sub{font-size:11px;line-height:1.02;}
+  .header-menu{width:48px;height:48px;}
+  .header-menu svg{width:24px;height:24px;}
+  .vehicle-grid{grid-template-columns:1fr;}
+  .vehicle-card{grid-template-columns:minmax(0,1fr) 112px;padding:16px;}
+  .vehicle-title{font-size:20px;}
+  .detail-title{font-size:26px;}
+  .detail-meta-grid{grid-template-columns:1fr;}
+  .month-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .history-row{grid-template-columns:1fr;}
+  .history-pair{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -86,11 +349,22 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--bg);color:var(-
 <div class="container">
   <section class="hero">
     <div class="header-left">
-      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="국세청">
-      <div>
-        <div class="header-title">국세청 차량운행</div>
-        <div class="header-sub">운행 이력 확인</div>
+      <img class="header-logo" src="{{ url_for('static', filename='images/symbol.png') }}" alt="&#44397;&#49464;&#52397; &#49900;&#48380;">
+      <div class="hero-text">
+        <div class="header-title">&#44397;&#49464;&#52397; &#52404;&#45225;&#44288;&#47532;&#45800;</div>
+        <div class="header-sub">SMART WORK</div>
       </div>
+    </div>
+    <button type="button" class="header-menu" id="headerMenuButton" aria-label="&#47700;&#45684;" aria-expanded="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+      </svg>
+    </button>
+    <div class="menu-popover" id="headerMenuPopover">
+      {% if selected_vehicle %}
+      <a class="menu-link" href="{{ url_for('vehicle_log_page') }}">&#52264;&#47049; &#49440;&#53469;</a>
+      {% endif %}
+      <a class="menu-link" href="{{ url_for('start') }}">&#49884;&#51089;&#54868;&#47732;&#51004;&#47196; &#51060;&#46041;</a>
     </div>
   </section>
 
@@ -109,24 +383,32 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--bg);color:var(-
     <div class="notice-box">{{ history_error }}</div>
   {% endif %}
 
-  <section>
-    <h3 class="section-title">차량 선택</h3>
-    <div class="vehicle-card-grid">
-      {% for vehicle in vehicles %}
-        <form method="GET" class="vehicle-card-form">
-          <input type="hidden" name="car_id" value="{{ vehicle.car_id }}">
-          <input type="hidden" name="month" value="{{ selected_month }}">
-          <button type="submit" class="vehicle-card">
-            <div class="vehicle-card-title">{{ vehicle.label }}</div>
-            <div class="vehicle-card-plate">{{ vehicle.plate_number or '차량번호 미등록' }}</div>
-            <div class="vehicle-card-meta">차량 ID: {{ vehicle.car_id }}</div>
-          </button>
-        </form>
-      {% endfor %}
-    </div>
+  {% if not selected_vehicle %}
+  <section class="vehicle-grid">
+    {% for vehicle in vehicles %}
+      <form method="GET" class="vehicle-card-form">
+        <input type="hidden" name="car_id" value="{{ vehicle.car_id }}">
+        <button type="submit" class="vehicle-card">
+          <div class="vehicle-copy">
+            <h3 class="vehicle-title">{{ vehicle.plate_number or vehicle.label }}</h3>
+            <div class="vehicle-meta">
+              <div class="vehicle-meta-text">{{ vehicle.label }}</div>
+              <div class="vehicle-meta-text">{{ vehicle.assigned_team or ('&#48176;&#52264; &#48120;&#51648;&#51221;'|safe) }}</div>
+              <div class="vehicle-meta-text">&#51452; &#50868;&#51204;&#51088; {{ vehicle.main_driver or ('&#48120;&#51648;&#51221;'|safe) }}</div>
+            </div>
+          </div>
+          <div class="vehicle-visual">
+            {% if vehicle.image_file %}
+            <img class="vehicle-image" src="{{ url_for('static', filename='images/' ~ vehicle.image_file) }}" alt="{{ vehicle.label }}">
+            {% else %}
+            <div class="vehicle-image-fallback">VEHICLE</div>
+            {% endif %}
+          </div>
+        </button>
+      </form>
+    {% endfor %}
   </section>
-
-  {% if selected_vehicle %}
+  {% else %}
   <section class="detail-panel">
     <div class="detail-hero">
       <div class="detail-visual">
@@ -136,12 +418,25 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--bg);color:var(-
         <div class="detail-image-fallback">VEHICLE</div>
         {% endif %}
       </div>
-      <div class="detail-info">
-        <h3 class="detail-title">{{ selected_vehicle.label }}</h3>
-        <div class="detail-meta">차량 ID: {{ selected_vehicle.car_id }}</div>
-        <div class="detail-chip-row">
-          <span class="detail-chip">{{ selected_vehicle.plate_number or '차량번호 미등록' }}</span>
-          <span class="detail-chip">{{ selected_vehicle.assigned_team or '배차 미지정' }}</span>
+      <div class="detail-copy">
+        <div class="detail-title-wrap">
+          <div class="detail-kicker">&#52264;&#47049;&#50868;&#54665;</div>
+          <h2 class="detail-title">{{ selected_vehicle.plate_number or selected_vehicle.label }}</h2>
+          <div class="detail-total">3&#50900;&#48512;&#53552; &#54788;&#51116;&#44620;&#51648; &#52509; &#50868;&#54665;&#44144;&#47532; {{ total_distance_all }}km</div>
+        </div>
+        <div class="detail-meta-grid">
+          <div class="detail-meta">
+            <span class="detail-meta-label">&#48176;&#52264;&#51221;&#48372;</span>
+            <span class="detail-meta-value">{{ selected_vehicle.assigned_team or ('&#48176;&#52264; &#48120;&#51648;&#51221;'|safe) }}</span>
+          </div>
+          <div class="detail-meta">
+            <span class="detail-meta-label">&#51452; &#50868;&#51204;&#51088;</span>
+            <span class="detail-meta-value">{{ main_driver or ('&#48120;&#51648;&#51221;'|safe) }}</span>
+          </div>
+          <div class="detail-meta">
+            <span class="detail-meta-label">&#52264;&#47049;&#47749;</span>
+            <span class="detail-meta-value">{{ selected_vehicle.label }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -157,44 +452,252 @@ body{margin:0;font-family:Pretendard,sans-serif;background:var(--bg);color:var(-
     </div>
 
     <div class="history-header">
-      <h4 class="history-title">{{ selected_month }}월 운행 이력</h4>
-      <div class="history-total">{{ selected_month }}월 총 운행거리 {{ total_distance }}km</div>
+      <h3 class="history-title">{{ selected_month }}&#50900; &#50868;&#54665; &#51060;&#47141;</h3>
+      <div class="history-total">{{ selected_month }}&#50900; &#52509; &#50868;&#54665;&#44144;&#47532; {{ total_distance }}km</div>
     </div>
 
     {% if selected_month_data.rows %}
     <div class="history-list">
       {% for row in selected_month_data.rows %}
       <article class="history-item">
-        <div class="history-date">{{ row.drive_date_label }}</div>
-        <div class="history-grid">
-          <div class="history-cell">
-            <span class="history-label">운행 시간</span>
-            <span class="history-value">{{ row.start_time or '-' }} ~ {{ row.end_time or '-' }}</span>
+        <div class="history-head">
+          <div class="history-date">{{ row.drive_date_label }}</div>
+          <button
+            type="button"
+            class="icon-only-btn history-edit-btn"
+            aria-label="&#50868;&#54665; &#51060;&#47141; &#49688;&#51221;"
+            data-drive-date="{{ row.drive_date }}"
+            data-passenger-name="{{ row.display_passenger_name }}"
+            data-start-time="{{ row.start_time or '' }}"
+            data-end-time="{{ row.end_time or '' }}"
+            data-odometer-start="{{ row.odometer_start_text or '' }}"
+            data-odometer-end="{{ row.odometer_end_text or '' }}"
+            data-distance-km="{{ row.distance_km_text or '' }}"
+            data-accident="{{ row.accident_text or '' }}"
+            data-original-passenger-name="{{ row.original_passenger_name or '' }}"
+            data-original-start-time="{{ row.original_start_time or '' }}"
+            data-original-end-time="{{ row.original_end_time or '' }}"
+            data-original-odometer-start="{{ row.original_odometer_start or '' }}"
+            data-original-odometer-end="{{ row.original_odometer_end or '' }}"
+            data-original-distance-km="{{ row.original_distance_km or '' }}"
+            data-original-accident="{{ row.original_accident or '' }}"
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="history-body">
+          <div class="history-row">
+            <div class="history-label">&#53457;&#49849;&#51088;</div>
+            <div class="history-value">{{ row.display_passenger_name }}</div>
           </div>
-          <div class="history-cell">
-            <span class="history-label">운행 거리</span>
-            <span class="history-value">{{ row.distance_km_text or '0' }}km</span>
+          <div class="history-row">
+            <div class="history-label">&#52636;&#48156;</div>
+            <div class="history-pair">
+              <div class="history-pair-box">
+                <span class="history-pair-title">&#52636;&#48156; &#49884;&#44036;</span>
+                <span class="history-pair-value">{{ row.start_time or '-' }}</span>
+              </div>
+              <div class="history-pair-box">
+                <span class="history-pair-title">&#52636;&#48156;&#49884; &#47560;&#51068;&#47532;&#51648;</span>
+                <span class="history-pair-value">{{ row.odometer_start_text or '-' }}</span>
+              </div>
+            </div>
           </div>
-          <div class="history-cell">
-            <span class="history-label">주행 km</span>
-            <span class="history-value">{{ row.odometer_start_text or '-' }} → {{ row.odometer_end_text or '-' }}</span>
+          <div class="history-row">
+            <div class="history-label">&#48373;&#44480;</div>
+            <div class="history-pair">
+              <div class="history-pair-box">
+                <span class="history-pair-title">&#48373;&#44480; &#49884;&#44036;</span>
+                <span class="history-pair-value">{{ row.end_time or '-' }}</span>
+              </div>
+              <div class="history-pair-box">
+                <span class="history-pair-title">&#48373;&#44480;&#49884; &#47560;&#51068;&#47532;&#51648;</span>
+                <span class="history-pair-value">{{ row.odometer_end_text or '-' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="history-row">
+            <div class="history-label">&#50868;&#54665;&#44144;&#47532;</div>
+            <div class="history-value">{{ row.distance_km_text or '0' }}km</div>
+          </div>
+          <div class="history-row">
+            <div class="history-label">&#49324;&#44256;&#50976;&#47924;</div>
+            <div class="history-value{% if row.accident_is_yes %} history-accident-yes{% endif %}">{{ row.accident_display }}</div>
           </div>
         </div>
       </article>
       {% endfor %}
     </div>
     {% else %}
-    <div class="empty-box">{{ selected_month }}월 운행 이력이 없습니다.</div>
+    <div class="empty-box">{{ selected_month }}&#50900; &#50868;&#54665; &#51060;&#47141;&#51060; &#50630;&#49845;&#45768;&#45796;.</div>
     {% endif %}
   </section>
   {% endif %}
 
   <div class="bottom-actions">
+    {% if selected_vehicle %}
+    <a class="back-link" href="{{ url_for('vehicle_log_page') }}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      &#52264;&#47049; &#49440;&#53469;&#51004;&#47196; &#51060;&#46041;
+    </a>
+    {% endif %}
     <a class="back-link" href="{{ url_for('start') }}">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-      시작화면으로 이동
+      &#49884;&#51089;&#54868;&#47732;&#51004;&#47196; &#51060;&#46041;
     </a>
   </div>
 </div>
+
+{% if selected_vehicle %}
+<div class="modal-backdrop" id="historyModal">
+  <div class="modal">
+    <h3 class="modal-title" id="historyModalTitle">&#50868;&#54665; &#51060;&#47141; &#49688;&#51221;</h3>
+    <p class="modal-sub" id="historyModalSub"></p>
+    <form method="POST" id="historyModalForm">
+      <input type="hidden" name="car_id" value="{{ selected_car_id }}">
+      <input type="hidden" name="month" value="{{ selected_month }}">
+      <input type="hidden" name="drive_date" id="historyDriveDate">
+      <input type="hidden" name="original_passenger_name" id="historyOriginalPassengerName">
+      <input type="hidden" name="original_start_time" id="historyOriginalStartTime">
+      <input type="hidden" name="original_end_time" id="historyOriginalEndTime">
+      <input type="hidden" name="original_odometer_start" id="historyOriginalOdometerStart">
+      <input type="hidden" name="original_odometer_end" id="historyOriginalOdometerEnd">
+      <input type="hidden" name="original_distance_km" id="historyOriginalDistanceKm">
+      <input type="hidden" name="original_accident" id="historyOriginalAccident">
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="historyPassengerName">&#53457;&#49849;&#51088;</label>
+          <input type="text" name="passenger_name" id="historyPassengerName">
+        </div>
+        <div class="form-group">
+          <label for="historyStartTime">&#52636;&#48156; &#49884;&#44036;</label>
+          <input type="text" name="start_time" id="historyStartTime" placeholder="&#50696;: 09:00">
+        </div>
+        <div class="form-group">
+          <label for="historyOdometerStart">&#52636;&#48156;&#49884; &#47560;&#51068;&#47532;&#51648;</label>
+          <input type="text" name="odometer_start" id="historyOdometerStart">
+        </div>
+        <div class="form-group">
+          <label for="historyEndTime">&#48373;&#44480; &#49884;&#44036;</label>
+          <input type="text" name="end_time" id="historyEndTime" placeholder="&#50696;: 18:00">
+        </div>
+        <div class="form-group">
+          <label for="historyOdometerEnd">&#48373;&#44480;&#49884; &#47560;&#51068;&#47532;&#51648;</label>
+          <input type="text" name="odometer_end" id="historyOdometerEnd">
+        </div>
+        <div class="form-group">
+          <label for="historyDistanceKm">&#50868;&#54665;&#44144;&#47532;</label>
+          <input type="text" name="distance_km" id="historyDistanceKm">
+        </div>
+        <div class="form-group">
+          <label for="historyAccident">&#49324;&#44256;&#50976;&#47924;</label>
+          <select name="accident" id="historyAccident">
+            <option value="">&#48120;&#51077;&#47141;</option>
+            <option value="&#50630;&#51020;">&#50630;&#51020;</option>
+            <option value="&#51080;&#51020;">&#51080;&#51020;</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-buttons">
+        <button type="submit" class="modal-btn primary">&#51200;&#51109;</button>
+        <button type="button" class="modal-btn secondary" id="historyModalCloseBtn">&#52712;&#49548;</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<script>
+(function() {
+  const menuButton = document.getElementById('headerMenuButton');
+  const menuPopover = document.getElementById('headerMenuPopover');
+
+  if (menuButton && menuPopover) {
+    menuButton.addEventListener('click', function(event) {
+      event.stopPropagation();
+      const willShow = !menuPopover.classList.contains('show');
+      menuPopover.classList.toggle('show', willShow);
+      menuButton.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+    });
+
+    document.addEventListener('click', function(event) {
+      if (!menuPopover.contains(event.target) && !menuButton.contains(event.target)) {
+        menuPopover.classList.remove('show');
+        menuButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  const historyModal = document.getElementById('historyModal');
+  if (!historyModal) return;
+
+  const historyModalTitle = document.getElementById('historyModalTitle');
+  const historyModalSub = document.getElementById('historyModalSub');
+  const historyDriveDate = document.getElementById('historyDriveDate');
+  const historyPassengerName = document.getElementById('historyPassengerName');
+  const historyStartTime = document.getElementById('historyStartTime');
+  const historyEndTime = document.getElementById('historyEndTime');
+  const historyOdometerStart = document.getElementById('historyOdometerStart');
+  const historyOdometerEnd = document.getElementById('historyOdometerEnd');
+  const historyDistanceKm = document.getElementById('historyDistanceKm');
+  const historyAccident = document.getElementById('historyAccident');
+  const historyOriginalPassengerName = document.getElementById('historyOriginalPassengerName');
+  const historyOriginalStartTime = document.getElementById('historyOriginalStartTime');
+  const historyOriginalEndTime = document.getElementById('historyOriginalEndTime');
+  const historyOriginalOdometerStart = document.getElementById('historyOriginalOdometerStart');
+  const historyOriginalOdometerEnd = document.getElementById('historyOriginalOdometerEnd');
+  const historyOriginalDistanceKm = document.getElementById('historyOriginalDistanceKm');
+  const historyOriginalAccident = document.getElementById('historyOriginalAccident');
+  const historyModalCloseBtn = document.getElementById('historyModalCloseBtn');
+  const historyEditButtons = document.querySelectorAll('.history-edit-btn');
+
+  function openHistoryModal(button) {
+    const driveDate = button.dataset.driveDate || '';
+    historyModalTitle.textContent = '\uC6B4\uD589 \uC774\uB825 \uC218\uC815';
+    historyModalSub.textContent = driveDate ? `${driveDate} \uC6B4\uD589 \uC815\uBCF4\uB97C \uC218\uC815\uD569\uB2C8\uB2E4.` : '';
+    historyDriveDate.value = driveDate;
+    historyPassengerName.value = button.dataset.passengerName || '';
+    historyStartTime.value = button.dataset.startTime || '';
+    historyEndTime.value = button.dataset.endTime || '';
+    historyOdometerStart.value = button.dataset.odometerStart || '';
+    historyOdometerEnd.value = button.dataset.odometerEnd || '';
+    historyDistanceKm.value = button.dataset.distanceKm || '';
+    historyAccident.value = button.dataset.accident || '';
+    historyOriginalPassengerName.value = button.dataset.originalPassengerName || '';
+    historyOriginalStartTime.value = button.dataset.originalStartTime || '';
+    historyOriginalEndTime.value = button.dataset.originalEndTime || '';
+    historyOriginalOdometerStart.value = button.dataset.originalOdometerStart || '';
+    historyOriginalOdometerEnd.value = button.dataset.originalOdometerEnd || '';
+    historyOriginalDistanceKm.value = button.dataset.originalDistanceKm || '';
+    historyOriginalAccident.value = button.dataset.originalAccident || '';
+    historyModal.classList.add('show');
+  }
+
+  function closeHistoryModal() {
+    historyModal.classList.remove('show');
+  }
+
+  historyEditButtons.forEach(function(button) {
+    button.addEventListener('click', function() {
+      openHistoryModal(button);
+    });
+  });
+
+  if (historyModalCloseBtn) {
+    historyModalCloseBtn.addEventListener('click', closeHistoryModal);
+  }
+
+  historyModal.addEventListener('click', function(event) {
+    if (event.target === historyModal) {
+      closeHistoryModal();
+    }
+  });
+})();
+</script>
 </body>
 </html>

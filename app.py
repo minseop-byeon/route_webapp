@@ -37,6 +37,7 @@ VEHICLE_LOG_EDITABLE_FIELDS = (
     "odometer_start",
     "odometer_end",
     "distance_km",
+    "accident",
 )
 
 DEFAULT_TEAM_USERS = {"1조": []}
@@ -80,7 +81,8 @@ DEFAULT_SETTINGS = {
     },
     "vehicle_log": {
         "plate_numbers": {},
-        "team_assignments": {}
+        "team_assignments": {},
+        "main_drivers": {},
     },
     "admin": {
         "admin_password": ADMIN_PASSWORD
@@ -376,6 +378,9 @@ def migrate_legacy_settings(data):
     team_assignments = vehicle_log.get("team_assignments", {})
     if not isinstance(team_assignments, dict):
         team_assignments = {}
+    main_drivers = vehicle_log.get("main_drivers", {})
+    if not isinstance(main_drivers, dict):
+        main_drivers = {}
     merged["vehicle_log"] = {
         "plate_numbers": {
             str(car_id).strip(): str(plate_number).strip()
@@ -386,6 +391,11 @@ def migrate_legacy_settings(data):
             str(car_id).strip(): str(team_name).strip()
             for car_id, team_name in team_assignments.items()
             if str(car_id).strip() and str(team_name).strip()
+        },
+        "main_drivers": {
+            str(car_id).strip(): str(user_name).strip()
+            for car_id, user_name in main_drivers.items()
+            if str(car_id).strip() and str(user_name).strip()
         },
     }
     if not merged["mail"].get("smtp_host"):
@@ -475,6 +485,12 @@ def get_vehicle_log_team_assignments(settings=None):
     settings = settings or load_settings()
     team_assignments = (settings.get("vehicle_log", {}) or {}).get("team_assignments", {})
     return team_assignments if isinstance(team_assignments, dict) else {}
+
+
+def get_vehicle_log_main_drivers(settings=None):
+    settings = settings or load_settings()
+    main_drivers = (settings.get("vehicle_log", {}) or {}).get("main_drivers", {})
+    return main_drivers if isinstance(main_drivers, dict) else {}
 
 
 def get_tmap_app_key():
@@ -583,6 +599,13 @@ def normalize_vehicle_log_int(value, label):
         raise ValueError(f"{label}은 숫자로 입력해 주세요.") from exc
 
 
+def normalize_vehicle_log_accident(value):
+    raw = str(value or "").strip()
+    if raw not in {"", "없음", "있음"}:
+        raise ValueError("사고유무는 없음 또는 있음으로 입력해 주세요.")
+    return raw
+
+
 def _vehicle_log_key(car_id, drive_date_text):
     return f"{car_id}|{drive_date_text}"
 
@@ -595,10 +618,13 @@ def _normalize_vehicle_log_payload(payload):
     normalized["odometer_start"] = normalize_vehicle_log_int(payload.get("odometer_start"), "출발 km")
     normalized["odometer_end"] = normalize_vehicle_log_int(payload.get("odometer_end"), "도착 km")
     normalized["distance_km"] = normalize_vehicle_log_int(payload.get("distance_km"), "운행 거리")
+    normalized["accident"] = normalize_vehicle_log_accident(payload.get("accident"))
 
     for field in ("start_time", "end_time", "odometer_start", "odometer_end", "distance_km"):
         if normalized[field] == "":
             normalized[field] = None
+    if normalized["accident"] == "":
+        normalized["accident"] = None
     return normalized
 
 
@@ -621,11 +647,31 @@ def get_vehicle_log_image_filename(vehicle):
     return ""
 
 
+def get_vehicle_log_default_main_driver(team_name, settings=None):
+    settings = settings or load_settings()
+    users = list(((settings.get("user") or {}).get("team_users", {}) or {}).get(team_name, []) or [])
+    clean_users = sorted(str(user).strip() for user in users if str(user).strip())
+    return clean_users[0] if clean_users else ""
+
+
+def build_vehicle_log_passenger_summary(main_driver, team_members):
+    members = [str(user).strip() for user in (team_members or []) if str(user).strip()]
+    if not members:
+        return ""
+    driver_name = str(main_driver or "").strip() or members[0]
+    others = max(0, len(members) - 1)
+    if others:
+        return f"{driver_name} 외 {others}명"
+    return driver_name
+
+
 def get_vehicle_log_vehicles():
     db_path = get_vehicle_log_db_path()
     settings = load_settings()
     plate_map = get_vehicle_log_plate_numbers(settings)
     team_assignment_map = get_vehicle_log_team_assignments(settings)
+    main_driver_map = get_vehicle_log_main_drivers(settings)
+    team_users_map = normalize_team_users((settings.get("user") or {}).get("team_users", {}))
     if not db_path:
         return [], "차량운행 DB 경로가 설정되지 않았습니다."
     if not os.path.exists(db_path):
@@ -676,6 +722,12 @@ def get_vehicle_log_vehicles():
         db_plate_number = str(item.get(plate_column) or "").strip() if 'plate_column' in locals() and plate_column else ""
         item["plate_number"] = str(plate_map.get(item.get("car_id")) or db_plate_number).strip()
         item["assigned_team"] = str(team_assignment_map.get(item.get("car_id")) or "").strip()
+        item["team_members"] = list(team_users_map.get(item["assigned_team"], [])) if item["assigned_team"] else []
+        saved_main_driver = str(main_driver_map.get(item.get("car_id")) or "").strip()
+        if saved_main_driver and saved_main_driver in item["team_members"]:
+            item["main_driver"] = saved_main_driver
+        else:
+            item["main_driver"] = get_vehicle_log_default_main_driver(item["assigned_team"], settings) if item["assigned_team"] else ""
         item["image_file"] = get_vehicle_log_image_filename(item)
         vehicles.append(item)
 
@@ -723,6 +775,29 @@ def build_vehicle_log_month_sections(rows, year_value):
     return month_sections
 
 
+def prepare_vehicle_log_display_rows(rows, vehicle):
+    vehicle = vehicle if isinstance(vehicle, dict) else {}
+    main_driver = str(vehicle.get("main_driver") or "").strip()
+    team_members = list(vehicle.get("team_members") or [])
+    default_passenger_name = build_vehicle_log_passenger_summary(main_driver, team_members)
+
+    prepared_rows = []
+    for row in rows:
+        item = dict(row)
+        item["display_passenger_name"] = str(item.get("passenger_name") or "").strip() or default_passenger_name or "-"
+        item["accident_display"] = str(item.get("accident_text") or "").strip() or "미입력"
+        item["accident_is_yes"] = item["accident_display"] == "있음"
+        item["original_passenger_name"] = str(item.get("passenger_name") or "").strip() or default_passenger_name
+        item["original_start_time"] = str(item.get("start_time") or "").strip()
+        item["original_end_time"] = str(item.get("end_time") or "").strip()
+        item["original_odometer_start"] = str(item.get("odometer_start_text") or "").strip()
+        item["original_odometer_end"] = str(item.get("odometer_end_text") or "").strip()
+        item["original_distance_km"] = str(item.get("distance_km_text") or "").strip()
+        item["original_accident"] = str(item.get("accident_text") or "").strip()
+        prepared_rows.append(item)
+    return prepared_rows
+
+
 def get_vehicle_log_history(car_id, start_date_value, end_date_value):
     if not car_id:
         return [], "차량이 선택되지 않았습니다."
@@ -767,6 +842,7 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
             "odometer_start": item.get("odometer_start"),
             "odometer_end": item.get("odometer_end"),
             "distance_km": item.get("distance_km"),
+            "accident": None,
             "source": "원본",
         }
 
@@ -799,6 +875,7 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
             "odometer_start": None,
             "odometer_end": None,
             "distance_km": None,
+            "accident": None,
             "source": "원본",
         })
 
@@ -825,11 +902,13 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
             row["odometer_start"] = override_item.get("odometer_start")
             row["odometer_end"] = override_item.get("odometer_end")
             row["distance_km"] = override_item.get("distance_km")
+            row["accident"] = override_item.get("accident")
             row["source"] = "현재앱 수정"
 
         row["odometer_start_text"] = "" if row["odometer_start"] is None else str(row["odometer_start"])
         row["odometer_end_text"] = "" if row["odometer_end"] is None else str(row["odometer_end"])
         row["distance_km_text"] = "" if row["distance_km"] is None else str(row["distance_km"])
+        row["accident_text"] = "" if row.get("accident") is None else str(row.get("accident"))
         rows.append(row)
 
     return rows, ""
@@ -853,12 +932,14 @@ def parse_vehicle_log_form_rows(form):
     odometer_starts = form.getlist("odometer_start")
     odometer_ends = form.getlist("odometer_end")
     distance_values = form.getlist("distance_km")
+    accident_values = form.getlist("accident")
     original_passenger_names = form.getlist("original_passenger_name")
     original_start_times = form.getlist("original_start_time")
     original_end_times = form.getlist("original_end_time")
     original_odometer_starts = form.getlist("original_odometer_start")
     original_odometer_ends = form.getlist("original_odometer_end")
     original_distance_values = form.getlist("original_distance_km")
+    original_accident_values = form.getlist("original_accident")
 
     rows = []
     for idx, drive_date_text in enumerate(dates):
@@ -869,6 +950,7 @@ def parse_vehicle_log_form_rows(form):
             "odometer_start": odometer_starts[idx] if idx < len(odometer_starts) else "",
             "odometer_end": odometer_ends[idx] if idx < len(odometer_ends) else "",
             "distance_km": distance_values[idx] if idx < len(distance_values) else "",
+            "accident": accident_values[idx] if idx < len(accident_values) else "",
         }
         original_payload = {
             "passenger_name": original_passenger_names[idx] if idx < len(original_passenger_names) else "",
@@ -877,6 +959,7 @@ def parse_vehicle_log_form_rows(form):
             "odometer_start": original_odometer_starts[idx] if idx < len(original_odometer_starts) else "",
             "odometer_end": original_odometer_ends[idx] if idx < len(original_odometer_ends) else "",
             "distance_km": original_distance_values[idx] if idx < len(original_distance_values) else "",
+            "accident": original_accident_values[idx] if idx < len(original_accident_values) else "",
         }
         rows.append({
             "drive_date": drive_date_text,
@@ -2556,12 +2639,17 @@ def vehicle_log_page():
     today_value = date.today()
     default_start = date(today_value.year, 3, 1)
     default_end = date(today_value.year, 10, 31)
+    default_month = today_value.month if 3 <= today_value.month <= 10 else 3
 
     if request.method == "POST":
         selected_car_id = (request.form.get("car_id") or "").strip()
-        start_date_value = parse_vehicle_log_date_arg(request.form.get("start_date"), default_start)
-        end_date_value = parse_vehicle_log_date_arg(request.form.get("end_date"), default_end)
-        action = (request.form.get("action") or "save").strip()
+        selected_month_raw = str(request.form.get("month") or "").strip()
+        try:
+            selected_month = int(selected_month_raw) if selected_month_raw else default_month
+        except Exception:
+            selected_month = default_month
+        if selected_month < 3 or selected_month > 10:
+            selected_month = default_month
 
         if not selected_car_id:
             flash("차량을 먼저 선택해 주세요.")
@@ -2569,21 +2657,7 @@ def vehicle_log_page():
             try:
                 rows_from_form = parse_vehicle_log_form_rows(request.form)
                 changed_count = save_vehicle_log_form_rows(selected_car_id, rows_from_form)
-                if action == "email":
-                    history_rows, history_error = get_vehicle_log_history(selected_car_id, start_date_value, end_date_value)
-                    if history_error:
-                        flash(history_error)
-                    else:
-                        vehicle_label = (vehicle_map.get(selected_car_id) or {}).get("label") or selected_car_id
-                        send_vehicle_history_email(
-                            (request.form.get("email_recipient") or "").strip(),
-                            vehicle_label,
-                            start_date_value.isoformat(),
-                            end_date_value.isoformat(),
-                            history_rows,
-                        )
-                        flash("차량운행 이력을 이메일로 발송했습니다.")
-                elif changed_count:
+                if changed_count:
                     flash(f"{changed_count}건의 운행 이력 수정값을 저장했습니다.")
                 else:
                     flash("변경된 운행 이력이 없어 저장 대상이 없었습니다.")
@@ -2593,13 +2667,28 @@ def vehicle_log_page():
         return redirect(url_for(
             "vehicle_log_page",
             car_id=selected_car_id,
-            start_date=start_date_value.isoformat(),
-            end_date=end_date_value.isoformat(),
+            month=selected_month,
         ))
 
     selected_car_id = (request.args.get("car_id") or "").strip()
-    if not selected_car_id and vehicles:
-        selected_car_id = vehicles[0].get("car_id") or ""
+    if not selected_car_id:
+        return render_template(
+            "vehicle_log.html",
+            vehicles=vehicles,
+            selected_car_id="",
+            selected_vehicle={},
+            month_sections=[],
+            selected_month=default_month,
+            selected_month_data={"rows": [], "total_distance": 0},
+            total_distance=0,
+            total_distance_all=0,
+            db_message=db_message,
+            history_error="",
+            main_driver="",
+            row_count=0,
+            default_recipient_email=get_default_recipient_email(),
+            db_path=get_vehicle_log_db_path(),
+        )
 
     rows = []
     history_error = ""
@@ -2607,10 +2696,10 @@ def vehicle_log_page():
         rows, history_error = get_vehicle_log_history(selected_car_id, default_start, default_end)
 
     selected_vehicle = vehicle_map.get(selected_car_id) or {}
+    rows = prepare_vehicle_log_display_rows(rows, selected_vehicle)
     month_sections = build_vehicle_log_month_sections(rows, today_value.year)
 
     selected_month_raw = str(request.args.get("month") or "").strip()
-    default_month = today_value.month if 3 <= today_value.month <= 10 else 3
     try:
         selected_month = int(selected_month_raw) if selected_month_raw else default_month
     except Exception:
@@ -2626,6 +2715,10 @@ def vehicle_log_page():
         "rows": [],
         "total_distance": 0,
     }
+    total_distance_all = 0
+    for item in month_sections:
+        if item["month"] <= today_value.month:
+            total_distance_all += int(item.get("total_distance") or 0)
 
     return render_template(
         "vehicle_log.html",
@@ -2637,10 +2730,10 @@ def vehicle_log_page():
         selected_month_data=selected_month_data,
         db_message=db_message,
         history_error=history_error,
-        start_date=default_start.isoformat(),
-        end_date=default_end.isoformat(),
         default_recipient_email=get_default_recipient_email(),
         total_distance=selected_month_data.get("total_distance", 0),
+        total_distance_all=total_distance_all,
+        main_driver=selected_vehicle.get("main_driver") or "",
         row_count=len(selected_month_data.get("rows", [])),
         db_path=get_vehicle_log_db_path(),
     )
@@ -2942,8 +3035,10 @@ def save_admin_settings_section():
             vehicle_log_car_ids = request.form.getlist("vehicle_log_car_id")
             vehicle_log_plate_numbers = request.form.getlist("vehicle_log_plate_number")
             vehicle_log_team_assignments = request.form.getlist("vehicle_log_team_assignment")
+            vehicle_log_main_drivers = request.form.getlist("vehicle_log_main_driver")
             plate_map = {}
             team_assignment_map = {}
+            main_driver_map = {}
             assigned_teams = set()
             for idx, raw_car_id in enumerate(vehicle_log_car_ids):
                 car_id = str(raw_car_id or "").strip()
@@ -2960,8 +3055,16 @@ def save_admin_settings_section():
                         return jsonify({"success": False, "message": "같은 조는 한 대의 차량에만 배차할 수 있습니다."})
                     assigned_teams.add(team_name)
                     team_assignment_map[car_id] = team_name
+                main_driver = str(vehicle_log_main_drivers[idx] if idx < len(vehicle_log_main_drivers) else "").strip()
+                if main_driver:
+                    effective_team_name = team_name or str(team_assignment_map.get(car_id) or "").strip()
+                    team_members = list(settings["user"]["team_users"].get(effective_team_name, [])) if effective_team_name else []
+                    if team_members and main_driver not in team_members:
+                        return jsonify({"success": False, "message": "주 운전자는 배차된 조 인원 중에서만 선택할 수 있습니다."})
+                    main_driver_map[car_id] = main_driver
             settings["vehicle_log"]["plate_numbers"] = plate_map
             settings["vehicle_log"]["team_assignments"] = team_assignment_map
+            settings["vehicle_log"]["main_drivers"] = main_driver_map
 
         elif section == "restaurant":
             names = request.form.getlist("restaurant_name")
