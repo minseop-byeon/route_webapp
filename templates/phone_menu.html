@@ -136,7 +136,13 @@ body::before{
   cursor:pointer;
 }
 .back-link:hover{color:#334155;text-decoration:underline;}
-.back-link svg{width:14px;height:14px;}
+.back-link svg{
+  width:14px;
+  height:14px;
+  display:block;
+  flex:0 0 auto;
+  transform:translateY(1px);
+}
 @media (max-width:560px){
   body::before{opacity:1;}
   .container{margin:0 auto;padding:calc(var(--mobile-top-safe) + 16px) 14px 24px;}
