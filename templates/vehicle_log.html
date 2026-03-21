@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/symbol.png') }}">
+<title>국세청 체납관리단 - 차량운행</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{--bg:#f3efe7;--panel:rgba(255,252,246,.96);--line:#d7cec0;--text:#1f2430;--muted:#5f6b7a;--accent:#0f6c5c;--accent-strong:#09493f;--warn:#b55d3d;--shadow:0 18px 50px rgba(32,38,45,.12);}
+*{box-sizing:border-box;}
+body{margin:0;font-family:Pretendard,sans-serif;color:var(--text);background:radial-gradient(circle at top left, rgba(15,108,92,.14), transparent 28%),radial-gradient(circle at top right, rgba(181,93,61,.12), transparent 20%),linear-gradient(180deg, #faf6ef 0%, var(--bg) 55%, #ebe4d8 100%);min-height:100vh;}
+.shell{width:min(1280px,calc(100vw - 32px));margin:0 auto;padding:28px 0 40px;}
+.hero,.stats,.filters{display:grid;gap:16px;}
+.hero{grid-template-columns:1.4fr .8fr;margin-bottom:18px;}
+.stats,.filters{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px;}
+.panel{background:var(--panel);border:1px solid rgba(215,206,192,.9);border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(14px);}
+.hero-card,.field,.stat,.table-wrap,.toolbar{padding:20px;}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:12px;}
+h1{margin:0;font-size:clamp(28px,4vw,44px);line-height:1.04;}
+.sub,.meta,.toolbar-note,.empty{color:var(--muted);line-height:1.7;}
+.sub{margin:14px 0 0;font-size:15px;max-width:60ch;}
+.meta,.toolbar-note,.empty{font-size:14px;}
+.status-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(15,108,92,.1);color:var(--accent-strong);font-size:13px;font-weight:800;}
+.status-chip.warn{background:rgba(181,93,61,.12);color:var(--warn);}
+.field label{display:block;margin-bottom:8px;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+input,select,button{font:inherit;}
+input,select{width:100%;height:46px;border:1px solid var(--line);border-radius:14px;background:#fffdf8;padding:0 14px;color:var(--text);}
+button{height:46px;border:none;border-radius:14px;padding:0 16px;cursor:pointer;font-weight:800;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-strong) 100%);color:#fff;}
+.secondary-btn{background:#fff7ef;color:var(--warn);border:1px solid rgba(181,93,61,.26);}
+.stat span{display:block;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+.stat strong{display:block;margin-top:10px;font-size:30px;}
+.toolbar{margin-bottom:14px;}
+.toolbar-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.toolbar-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.message{margin-bottom:12px;padding:14px 16px;border-radius:16px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:14px;font-weight:700;}
+.flash-list{display:grid;gap:10px;margin-bottom:12px;}
+.table-wrap{overflow:auto;}
+table{width:100%;border-collapse:collapse;min-width:980px;}
+th,td{padding:10px 8px;border-bottom:1px solid rgba(215,206,192,.8);text-align:left;font-size:14px;vertical-align:middle;}
+th{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+td input{height:40px;border-radius:12px;padding:0 12px;background:#fff;}
+.source-chip{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:999px;background:#ecfdf5;color:#065f46;font-size:12px;font-weight:800;white-space:nowrap;}
+.source-chip.manual{background:#eff6ff;color:#1d4ed8;}
+.source-chip.base{background:#f3f4f6;color:#4b5563;}
+.empty{padding:20px;border-radius:18px;background:rgba(215,206,192,.18);}
+.page-links{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;}
+.page-link{color:var(--accent-strong);font-weight:800;text-decoration:none;padding:8px 4px;}
+.page-link:hover{text-decoration:underline;}
+@media (max-width:1024px){.hero,.stats,.filters{grid-template-columns:1fr;}}
+@media (max-width:760px){.shell{width:calc(100vw - 24px);padding:16px 0 28px;}.hero-card,.field,.stat,.table-wrap,.toolbar{padding:18px 16px;}h1{font-size:28px;}.toolbar-row,.toolbar-actions{flex-direction:column;align-items:stretch;}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero">
+    <div class="panel hero-card">
+      <div class="eyebrow">Vehicle Operation</div>
+      <h1>차량을 선택하고 운행 이력을 확인하고 수정합니다.</h1>
+      <p class="sub">hyundai-api-test 프로젝트의 차량/운행 데이터 구조를 현재 앱 안으로 가져와서, 차량별 이력을 조회하고 현재 프로젝트 안에서 수정값을 저장한 뒤 이메일로 발송할 수 있도록 구성한 1차 화면입니다.</p>
+    </div>
+    <div class="panel hero-card">
+      <div class="eyebrow">Source</div>
+      {% if db_message %}
+        <div class="status-chip warn">DB 연결 확인 필요</div>
+        <p class="meta" style="margin-top:12px">{{ db_message }}</p>
+      {% else %}
+        <div class="status-chip">DB 연결됨</div>
+        <p class="meta" style="margin-top:12px">원본 DB: {{ db_path }}</p>
+      {% endif %}
+      <p class="meta" style="margin-top:12px">수정값은 현재 프로젝트의 별도 저장소에 기록되어 원본 운행 이력 위에 우선 적용됩니다.</p>
+    </div>
+  </section>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-list">
+        {% for message in messages %}
+          <div class="message">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% if history_error %}
+    <div class="message">{{ history_error }}</div>
+  {% endif %}
+
+  <form method="GET">
+    <section class="filters">
+      <div class="panel field">
+        <label for="car_id">차량 선택</label>
+        <select id="car_id" name="car_id">
+          {% for vehicle in vehicles %}
+            <option value="{{ vehicle.car_id }}" {% if vehicle.car_id == selected_car_id %}selected{% endif %}>{{ vehicle.label }} / {{ vehicle.car_id }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="panel field">
+        <label for="start_date">시작일</label>
+        <input id="start_date" type="date" name="start_date" value="{{ start_date }}">
+      </div>
+      <div class="panel field">
+        <label for="end_date">종료일</label>
+        <input id="end_date" type="date" name="end_date" value="{{ end_date }}">
+      </div>
+      <div class="panel field">
+        <label>&nbsp;</label>
+        <button type="submit">운행 이력 조회</button>
+      </div>
+    </section>
+  </form>
+
+  <section class="stats">
+    <div class="panel stat"><span>선택 차량</span><strong>{{ selected_vehicle.label or "-" }}</strong></div>
+    <div class="panel stat"><span>조회 건수</span><strong>{{ row_count }}</strong></div>
+    <div class="panel stat"><span>합계 거리</span><strong>{{ total_distance }}km</strong></div>
+    <div class="panel stat"><span>수신 기본값</span><strong style="font-size:18px">{{ default_recipient_email or "-" }}</strong></div>
+  </section>
+
+  <form method="POST">
+    <input type="hidden" name="car_id" value="{{ selected_car_id }}">
+    <input type="hidden" name="start_date" value="{{ start_date }}">
+    <input type="hidden" name="end_date" value="{{ end_date }}">
+    <section class="panel toolbar">
+      <div class="toolbar-row">
+        <div>
+          <div class="eyebrow" style="margin-bottom:8px">Edit And Send</div>
+          <div class="toolbar-note">행별 값은 바로 수정할 수 있습니다. 저장 시 현재 프로젝트 기준 수정값으로 덮어쓰고, 이메일 발송 시 저장 후 현재 조회 결과를 메일 본문으로 전송합니다.</div>
+        </div>
+        <div class="toolbar-actions">
+          <input type="email" name="email_recipient" value="{{ default_recipient_email }}" placeholder="수신 이메일 주소" style="min-width:280px">
+          <button type="submit" name="action" value="save">수정 저장</button>
+          <button type="submit" name="action" value="email" class="secondary-btn">이메일 발송</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel table-wrap">
+      {% if rows %}
+        <table>
+          <thead>
+            <tr>
+              <th>일자</th>
+              <th>출처</th>
+              <th>탑승자</th>
+              <th>출발시간</th>
+              <th>도착시간</th>
+              <th>출발km</th>
+              <th>도착km</th>
+              <th>운행거리</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td>{{ row.drive_date }}<input type="hidden" name="drive_date" value="{{ row.drive_date }}"></td>
+                <td><span class="source-chip {% if row.source == '수동보정' %}manual{% elif row.source == '원본' %}base{% endif %}">{{ row.source }}</span></td>
+                <td><input type="text" name="passenger_name" value="{{ row.passenger_name }}"><input type="hidden" name="original_passenger_name" value="{{ row.passenger_name }}"></td>
+                <td><input type="text" name="start_time" value="{{ row.start_time }}" placeholder="HH:MM"><input type="hidden" name="original_start_time" value="{{ row.start_time }}"></td>
+                <td><input type="text" name="end_time" value="{{ row.end_time }}" placeholder="HH:MM"><input type="hidden" name="original_end_time" value="{{ row.end_time }}"></td>
+                <td><input type="text" name="odometer_start" value="{{ row.odometer_start_text }}"><input type="hidden" name="original_odometer_start" value="{{ row.odometer_start_text }}"></td>
+                <td><input type="text" name="odometer_end" value="{{ row.odometer_end_text }}"><input type="hidden" name="original_odometer_end" value="{{ row.odometer_end_text }}"></td>
+                <td><input type="text" name="distance_km" value="{{ row.distance_km_text }}"><input type="hidden" name="original_distance_km" value="{{ row.distance_km_text }}"></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty">선택한 기간에 표시할 차량 운행 이력이 없습니다. DB 연결 경로, 차량 선택, 조회 기간을 먼저 확인해 주세요.</div>
+      {% endif %}
+    </section>
+  </form>
+
+  <div class="page-links">
+    <a class="page-link" href="{{ url_for('start') }}">시작화면으로 이동</a>
+    <a class="page-link" href="{{ url_for('admin_settings_page') if session.get('is_admin') else url_for('admin_login') }}">관리자 설정으로 이동</a>
+  </div>
+</div>
+</body>
+</html>

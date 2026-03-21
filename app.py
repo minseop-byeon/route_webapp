@@ -4,7 +4,11 @@ import os
 import json
 import logging
 import math
-from datetime import datetime
+import html
+import smtplib
+import sqlite3
+from datetime import date, datetime, timedelta
+from email.message import EmailMessage
 from zoneinfo import ZoneInfo
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -24,6 +28,16 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "cpskqrhksfleks12#")
 SETTINGS_FILE = "admin_settings.json"
 GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
+VEHICLE_LOG_OVERRIDES_FILE = "vehicle_log_overrides.json"
+VEHICLE_LOG_DB_PATH_DEFAULT = r"C:\Users\MINSEOP\Desktop\개발\hyundai-api-test\app.db"
+VEHICLE_LOG_EDITABLE_FIELDS = (
+    "passenger_name",
+    "start_time",
+    "end_time",
+    "odometer_start",
+    "odometer_end",
+    "distance_km",
+)
 
 DEFAULT_TEAM_USERS = {"1조": []}
 GUEST_TEAM_NAME = "게스트"
@@ -421,6 +435,11 @@ def get_mail_config():
     }
 
 
+def get_default_recipient_email():
+    settings = load_settings()
+    return (settings.get("mail", {}).get("default_recipient_email") or "").strip()
+
+
 def get_tmap_app_key():
     settings = load_settings()
     return (settings.get("api", {}).get("tmap_app_key") or TMAP_DEFAULT_APP_KEY).strip()
@@ -492,6 +511,380 @@ def resolve_kakao_address(query: str):
         return "", f"카카오 주소 검색 결과를 해석하지 못했습니다: {query}"
 
     return normalized, ""
+
+
+def get_vehicle_log_db_path():
+    return (os.getenv("VEHICLE_LOG_DB_PATH") or VEHICLE_LOG_DB_PATH_DEFAULT).strip()
+
+
+def get_vehicle_log_overrides():
+    data = load_persistent_json("vehicle_log_overrides", VEHICLE_LOG_OVERRIDES_FILE, {})
+    return data if isinstance(data, dict) else {}
+
+
+def save_vehicle_log_overrides(data):
+    save_persistent_json("vehicle_log_overrides", VEHICLE_LOG_OVERRIDES_FILE, data)
+
+
+def normalize_vehicle_log_time(value):
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    minute_value = str_to_minutes(raw)
+    if minute_value is None:
+        raise ValueError("시간은 HH:MM 형식으로 입력해 주세요.")
+    return minutes_to_str(minute_value)
+
+
+def normalize_vehicle_log_int(value, label):
+    raw = str(value or "").strip().replace(",", "")
+    if not raw:
+        return ""
+    try:
+        return str(int(raw))
+    except Exception as exc:
+        raise ValueError(f"{label}은 숫자로 입력해 주세요.") from exc
+
+
+def _vehicle_log_key(car_id, drive_date_text):
+    return f"{car_id}|{drive_date_text}"
+
+
+def _normalize_vehicle_log_payload(payload):
+    normalized = {}
+    normalized["passenger_name"] = str(payload.get("passenger_name") or "").strip() or None
+    normalized["start_time"] = normalize_vehicle_log_time(payload.get("start_time"))
+    normalized["end_time"] = normalize_vehicle_log_time(payload.get("end_time"))
+    normalized["odometer_start"] = normalize_vehicle_log_int(payload.get("odometer_start"), "출발 km")
+    normalized["odometer_end"] = normalize_vehicle_log_int(payload.get("odometer_end"), "도착 km")
+    normalized["distance_km"] = normalize_vehicle_log_int(payload.get("distance_km"), "운행 거리")
+
+    for field in ("start_time", "end_time", "odometer_start", "odometer_end", "distance_km"):
+        if normalized[field] == "":
+            normalized[field] = None
+    return normalized
+
+
+def get_vehicle_log_vehicles():
+    db_path = get_vehicle_log_db_path()
+    if not db_path:
+        return [], "차량운행 DB 경로가 설정되지 않았습니다."
+    if not os.path.exists(db_path):
+        return [], f"차량운행 DB 파일을 찾지 못했습니다: {db_path}"
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+                SELECT car_id, car_name, car_nickname, car_sellname, car_type
+                FROM vehicle_store
+                ORDER BY created_at ASC, id ASC
+                """
+            ).fetchall()
+    except Exception as exc:
+        app.logger.exception("Failed to load vehicle list from vehicle log DB.")
+        return [], f"차량 목록을 불러오지 못했습니다: {exc}"
+
+    vehicles = []
+    for row in rows:
+        item = dict(row)
+        item["label"] = (
+            item.get("car_sellname")
+            or item.get("car_nickname")
+            or item.get("car_name")
+            or item.get("car_type")
+            or item.get("car_id")
+            or ""
+        )
+        vehicles.append(item)
+
+    return vehicles, ""
+
+
+def get_vehicle_log_history(car_id, start_date_value, end_date_value):
+    if not car_id:
+        return [], "차량이 선택되지 않았습니다."
+
+    db_path = get_vehicle_log_db_path()
+    if not db_path or not os.path.exists(db_path):
+        return [], f"차량운행 DB 파일을 찾지 못했습니다: {db_path}"
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            reports = conn.execute(
+                """
+                SELECT drive_date, start_time, end_time, odometer_start, odometer_end, distance_km
+                FROM daily_reports
+                WHERE car_id = ? AND drive_date >= ? AND drive_date <= ?
+                ORDER BY drive_date DESC
+                """,
+                (car_id, start_date_value.isoformat(), end_date_value.isoformat()),
+            ).fetchall()
+            manuals = conn.execute(
+                """
+                SELECT drive_date, passenger_name, start_time, end_time, odometer_start, odometer_end, distance_km
+                FROM daily_manual_entries
+                WHERE car_id = ? AND drive_date >= ? AND drive_date <= ?
+                ORDER BY drive_date DESC
+                """,
+                (car_id, start_date_value.isoformat(), end_date_value.isoformat()),
+            ).fetchall()
+    except Exception as exc:
+        app.logger.exception("Failed to load vehicle history from vehicle log DB.")
+        return [], f"운행 이력을 불러오지 못했습니다: {exc}"
+
+    report_map = {}
+    for row in reports:
+        item = dict(row)
+        report_map[item["drive_date"]] = {
+            "drive_date": item["drive_date"],
+            "passenger_name": "",
+            "start_time": item.get("start_time") or "",
+            "end_time": item.get("end_time") or "",
+            "odometer_start": item.get("odometer_start"),
+            "odometer_end": item.get("odometer_end"),
+            "distance_km": item.get("distance_km"),
+            "source": "원본",
+        }
+
+    manual_map = {}
+    for row in manuals:
+        item = dict(row)
+        manual_map[item["drive_date"]] = item
+
+    overrides = get_vehicle_log_overrides()
+    override_dates = set()
+    for key in overrides.keys():
+        if not isinstance(key, str) or not key.startswith(f"{car_id}|"):
+            continue
+        _, drive_date_text = key.split("|", 1)
+        try:
+            parsed = date.fromisoformat(drive_date_text)
+        except ValueError:
+            continue
+        if start_date_value <= parsed <= end_date_value:
+            override_dates.add(drive_date_text)
+
+    all_dates = set(report_map.keys()) | set(manual_map.keys()) | override_dates
+    rows = []
+    for drive_date_text in sorted(all_dates, reverse=True):
+        row = report_map.get(drive_date_text, {
+            "drive_date": drive_date_text,
+            "passenger_name": "",
+            "start_time": "",
+            "end_time": "",
+            "odometer_start": None,
+            "odometer_end": None,
+            "distance_km": None,
+            "source": "원본",
+        })
+
+        manual = manual_map.get(drive_date_text)
+        if manual:
+            row["passenger_name"] = manual.get("passenger_name") or row["passenger_name"]
+            if manual.get("start_time") is not None:
+                row["start_time"] = manual.get("start_time") or ""
+            if manual.get("end_time") is not None:
+                row["end_time"] = manual.get("end_time") or ""
+            if manual.get("odometer_start") is not None:
+                row["odometer_start"] = manual.get("odometer_start")
+            if manual.get("odometer_end") is not None:
+                row["odometer_end"] = manual.get("odometer_end")
+            if manual.get("distance_km") is not None:
+                row["distance_km"] = manual.get("distance_km")
+            row["source"] = "수동보정"
+
+        override_item = overrides.get(_vehicle_log_key(car_id, drive_date_text))
+        if isinstance(override_item, dict):
+            row["passenger_name"] = str(override_item.get("passenger_name") or "").strip()
+            row["start_time"] = str(override_item.get("start_time") or "").strip()
+            row["end_time"] = str(override_item.get("end_time") or "").strip()
+            row["odometer_start"] = override_item.get("odometer_start")
+            row["odometer_end"] = override_item.get("odometer_end")
+            row["distance_km"] = override_item.get("distance_km")
+            row["source"] = "현재앱 수정"
+
+        row["odometer_start_text"] = "" if row["odometer_start"] is None else str(row["odometer_start"])
+        row["odometer_end_text"] = "" if row["odometer_end"] is None else str(row["odometer_end"])
+        row["distance_km_text"] = "" if row["distance_km"] is None else str(row["distance_km"])
+        rows.append(row)
+
+    return rows, ""
+
+
+def parse_vehicle_log_date_arg(value, fallback):
+    raw = str(value or "").strip()
+    if not raw:
+        return fallback
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        return fallback
+
+
+def parse_vehicle_log_form_rows(form):
+    dates = form.getlist("drive_date")
+    passenger_names = form.getlist("passenger_name")
+    start_times = form.getlist("start_time")
+    end_times = form.getlist("end_time")
+    odometer_starts = form.getlist("odometer_start")
+    odometer_ends = form.getlist("odometer_end")
+    distance_values = form.getlist("distance_km")
+    original_passenger_names = form.getlist("original_passenger_name")
+    original_start_times = form.getlist("original_start_time")
+    original_end_times = form.getlist("original_end_time")
+    original_odometer_starts = form.getlist("original_odometer_start")
+    original_odometer_ends = form.getlist("original_odometer_end")
+    original_distance_values = form.getlist("original_distance_km")
+
+    rows = []
+    for idx, drive_date_text in enumerate(dates):
+        current_payload = {
+            "passenger_name": passenger_names[idx] if idx < len(passenger_names) else "",
+            "start_time": start_times[idx] if idx < len(start_times) else "",
+            "end_time": end_times[idx] if idx < len(end_times) else "",
+            "odometer_start": odometer_starts[idx] if idx < len(odometer_starts) else "",
+            "odometer_end": odometer_ends[idx] if idx < len(odometer_ends) else "",
+            "distance_km": distance_values[idx] if idx < len(distance_values) else "",
+        }
+        original_payload = {
+            "passenger_name": original_passenger_names[idx] if idx < len(original_passenger_names) else "",
+            "start_time": original_start_times[idx] if idx < len(original_start_times) else "",
+            "end_time": original_end_times[idx] if idx < len(original_end_times) else "",
+            "odometer_start": original_odometer_starts[idx] if idx < len(original_odometer_starts) else "",
+            "odometer_end": original_odometer_ends[idx] if idx < len(original_odometer_ends) else "",
+            "distance_km": original_distance_values[idx] if idx < len(original_distance_values) else "",
+        }
+        rows.append({
+            "drive_date": drive_date_text,
+            "current": _normalize_vehicle_log_payload(current_payload),
+            "original": _normalize_vehicle_log_payload(original_payload),
+        })
+    return rows
+
+
+def save_vehicle_log_form_rows(car_id, rows):
+    overrides = get_vehicle_log_overrides()
+    changed_count = 0
+    for row in rows:
+        drive_date_text = str(row.get("drive_date") or "").strip()
+        if not drive_date_text:
+            continue
+        key = _vehicle_log_key(car_id, drive_date_text)
+        if (row.get("current") or {}) != (row.get("original") or {}):
+            overrides[key] = row.get("current") or {}
+            changed_count += 1
+        else:
+            overrides.pop(key, None)
+    save_vehicle_log_overrides(overrides)
+    return changed_count
+
+
+def send_vehicle_history_email(recipient, vehicle_label, start_date_text, end_date_text, rows):
+    recipient = str(recipient or "").strip()
+    if not recipient:
+        raise ValueError("이메일 수신자를 입력해 주세요.")
+
+    mail_config = get_mail_config()
+    smtp_host = mail_config.get("smtp_host") or ""
+    smtp_port = int(mail_config.get("smtp_port") or 587)
+    smtp_user = mail_config.get("smtp_user") or ""
+    smtp_password = mail_config.get("smtp_password") or ""
+    mail_from = mail_config.get("mail_from") or smtp_user
+    if not smtp_host or not mail_from:
+        raise ValueError("관리자 설정에서 SMTP 정보와 발신자 메일 주소를 먼저 설정해 주세요.")
+
+    total_distance = 0
+    text_lines = [
+        f"차량: {vehicle_label}",
+        f"조회기간: {start_date_text} ~ {end_date_text}",
+        "",
+    ]
+    table_rows = []
+    for row in rows:
+        distance_text = row.get("distance_km_text") or ""
+        if distance_text:
+            try:
+                total_distance += int(distance_text)
+            except Exception:
+                pass
+        text_lines.append(
+            " | ".join([
+                row.get("drive_date") or "",
+                row.get("passenger_name") or "",
+                row.get("start_time") or "",
+                row.get("end_time") or "",
+                row.get("odometer_start_text") or "",
+                row.get("odometer_end_text") or "",
+                distance_text,
+                row.get("source") or "",
+            ])
+        )
+        table_rows.append(
+            "<tr>"
+            f"<td>{html.escape(row.get('drive_date') or '')}</td>"
+            f"<td>{html.escape(row.get('passenger_name') or '')}</td>"
+            f"<td>{html.escape(row.get('start_time') or '')}</td>"
+            f"<td>{html.escape(row.get('end_time') or '')}</td>"
+            f"<td>{html.escape(row.get('odometer_start_text') or '')}</td>"
+            f"<td>{html.escape(row.get('odometer_end_text') or '')}</td>"
+            f"<td>{html.escape(distance_text)}</td>"
+            f"<td>{html.escape(row.get('source') or '')}</td>"
+            "</tr>"
+        )
+
+    message = EmailMessage()
+    message["Subject"] = f"[차량운행] {vehicle_label} / {start_date_text} ~ {end_date_text}"
+    message["From"] = mail_from
+    message["To"] = recipient
+    message.set_content("\n".join(text_lines))
+    message.add_alternative(
+        f"""
+        <html>
+          <body style="font-family: Arial, sans-serif; color: #111827;">
+            <h2>차량 운행 이력</h2>
+            <p>차량: <strong>{html.escape(vehicle_label)}</strong></p>
+            <p>조회기간: <strong>{html.escape(start_date_text)} ~ {html.escape(end_date_text)}</strong></p>
+            <p>총 {len(rows)}건 / 합계 {total_distance}km</p>
+            <table style="border-collapse: collapse; width: 100%; font-size: 13px;">
+              <thead>
+                <tr>
+                  <th style="border: 1px solid #d1d5db; padding: 8px; background: #f3f4f6;">일자</th>
+                  <th style="border: 1px solid #d1d5db; padding: 8px; background: #f3f4f6;">탑승자</th>
+                  <th style="border: 1px solid #d1d5db; padding: 8px; background: #f3f4f6;">출발</th>
+                  <th style="border: 1px solid #d1d5db; padding: 8px; background: #f3f4f6;">도착</th>
+                  <th style="border: 1px solid #d1d5db; padding: 8px; background: #f3f4f6;">출발km</th>
+                  <th style="border: 1px solid #d1d5db; padding: 8px; background: #f3f4f6;">도착km</th>
+                  <th style="border: 1px solid #d1d5db; padding: 8px; background: #f3f4f6;">거리</th>
+                  <th style="border: 1px solid #d1d5db; padding: 8px; background: #f3f4f6;">출처</th>
+                </tr>
+              </thead>
+              <tbody>{''.join(table_rows)}</tbody>
+            </table>
+          </body>
+        </html>
+        """,
+        subtype="html",
+    )
+
+    if smtp_port == 465:
+        server = smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=20)
+    else:
+        server = smtplib.SMTP(smtp_host, smtp_port, timeout=20)
+
+    with server as smtp:
+        smtp.ehlo()
+        if smtp_port != 465:
+            try:
+                smtp.starttls()
+                smtp.ehlo()
+            except Exception:
+                pass
+        if smtp_user and smtp_password:
+            smtp.login(smtp_user, smtp_password)
+        smtp.send_message(message)
 
 
 def is_mobile_request():
@@ -2033,6 +2426,93 @@ def build_phone_groups(visits, order, dist_matrix, preferred_size, start_display
 
 
 initialize_storage()
+
+
+@app.route("/vehicle-log", methods=["GET", "POST"])
+def vehicle_log_page():
+    vehicles, db_message = get_vehicle_log_vehicles()
+    vehicle_map = {item.get("car_id"): item for item in vehicles}
+    default_start = date.today() - timedelta(days=29)
+    default_end = date.today()
+
+    if request.method == "POST":
+        selected_car_id = (request.form.get("car_id") or "").strip()
+        start_date_value = parse_vehicle_log_date_arg(request.form.get("start_date"), default_start)
+        end_date_value = parse_vehicle_log_date_arg(request.form.get("end_date"), default_end)
+        action = (request.form.get("action") or "save").strip()
+
+        if not selected_car_id:
+            flash("차량을 먼저 선택해 주세요.")
+        else:
+            try:
+                rows_from_form = parse_vehicle_log_form_rows(request.form)
+                changed_count = save_vehicle_log_form_rows(selected_car_id, rows_from_form)
+                if action == "email":
+                    history_rows, history_error = get_vehicle_log_history(selected_car_id, start_date_value, end_date_value)
+                    if history_error:
+                        flash(history_error)
+                    else:
+                        vehicle_label = (vehicle_map.get(selected_car_id) or {}).get("label") or selected_car_id
+                        send_vehicle_history_email(
+                            (request.form.get("email_recipient") or "").strip(),
+                            vehicle_label,
+                            start_date_value.isoformat(),
+                            end_date_value.isoformat(),
+                            history_rows,
+                        )
+                        flash("차량운행 이력을 이메일로 발송했습니다.")
+                elif changed_count:
+                    flash(f"{changed_count}건의 운행 이력 수정값을 저장했습니다.")
+                else:
+                    flash("변경된 운행 이력이 없어 저장 대상이 없었습니다.")
+            except Exception as exc:
+                flash(str(exc))
+
+        return redirect(url_for(
+            "vehicle_log_page",
+            car_id=selected_car_id,
+            start_date=start_date_value.isoformat(),
+            end_date=end_date_value.isoformat(),
+        ))
+
+    selected_car_id = (request.args.get("car_id") or "").strip()
+    if not selected_car_id and vehicles:
+        selected_car_id = vehicles[0].get("car_id") or ""
+    start_date_value = parse_vehicle_log_date_arg(request.args.get("start_date"), default_start)
+    end_date_value = parse_vehicle_log_date_arg(request.args.get("end_date"), default_end)
+    if start_date_value > end_date_value:
+        start_date_value, end_date_value = end_date_value, start_date_value
+
+    rows = []
+    history_error = ""
+    if selected_car_id:
+        rows, history_error = get_vehicle_log_history(selected_car_id, start_date_value, end_date_value)
+
+    selected_vehicle = vehicle_map.get(selected_car_id) or {}
+    total_distance = 0
+    for row in rows:
+        value = row.get("distance_km_text") or ""
+        if value:
+            try:
+                total_distance += int(value)
+            except Exception:
+                pass
+
+    return render_template(
+        "vehicle_log.html",
+        vehicles=vehicles,
+        selected_car_id=selected_car_id,
+        selected_vehicle=selected_vehicle,
+        rows=rows,
+        db_message=db_message,
+        history_error=history_error,
+        start_date=start_date_value.isoformat(),
+        end_date=end_date_value.isoformat(),
+        default_recipient_email=get_default_recipient_email(),
+        total_distance=total_distance,
+        row_count=len(rows),
+        db_path=get_vehicle_log_db_path(),
+    )
 
 
 @app.route("/", methods=["GET", "POST"])

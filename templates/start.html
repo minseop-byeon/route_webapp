@@ -91,17 +91,29 @@ body::before{
 
 .top-actions{
   display:flex;
-  justify-content:flex-end;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
   margin-bottom:10px;
   padding-right:2px;
 }
 
+.utility-btn,
 .admin-btn{
   font-size:12px;
-  font-weight:600;
+  font-weight:700;
   color:#94a3b8;
   text-decoration:none;
   line-height:1;
+}
+
+.utility-btn{
+  color:#0f6c5c;
+}
+
+.utility-btn:hover{
+  color:#09493f;
+  text-decoration:underline;
 }
 
 .admin-btn:hover{
@@ -519,7 +531,7 @@ input[type="text"]:focus{
   }
 
   .top-actions{
-    display:none;
+    margin-bottom:12px;
   }
 
   .card{
@@ -589,6 +601,7 @@ input[type="text"]:focus{
 <body>
 <div class="container">
   <div class="top-actions">
+    <a href="{{ url_for('vehicle_log_page') }}" class="utility-btn">차량운행</a>
     <a href="{{ url_for('admin_settings_page') if session.get('is_admin') else url_for('admin_login') }}" class="admin-btn">관리자 설정</a>
   </div>
 
