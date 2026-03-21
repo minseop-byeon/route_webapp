@@ -38,14 +38,9 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--mobile-
 .section-title{margin:0 14px 10px;font-size:21px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
 .notice-box{margin-bottom:12px;padding:12px 14px;border-radius:12px;background:var(--krds-warn-bg);border:1px solid var(--krds-warn-border);color:var(--krds-warn-text);font-size:13px;font-weight:700;line-height:1.5;}
-.filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
 .vehicle-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px;}
 .card-panel{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:18px;padding:14px;box-shadow:0 10px 24px rgba(15,23,42,.045);}
-.field{display:flex;flex-direction:column;}
-label{display:block;font-size:12px;color:#6b7280;margin-bottom:7px;font-weight:700;}
-input,select,button{font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;}
-input,select{width:100%;height:44px;padding:0 12px;border:1px solid #d4dce7;border-radius:11px;background:#f8fafd;color:#0f172a;font-size:14px;font-weight:600;transition:border-color .15s,box-shadow .15s,background .15s;}
-input:focus,select:focus{outline:none;border-color:#5779b4;background:#ffffff;box-shadow:0 0 0 3px rgba(87,121,180,.12);}
+input,button{font-family:"Pretendard GOV","Pretendard Variable","Pretendard",sans-serif;}
 .vehicle-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;width:100%;min-height:132px;padding:16px 16px 14px;border:1px solid #dbe2ea;border-radius:18px;background:linear-gradient(180deg,#ffffff 0%,#fcfdff 100%);box-shadow:0 10px 24px rgba(15,23,42,.045);text-align:left;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s,background .15s;}
 .vehicle-card:hover{border-color:#bfd1ee;transform:translateY(-1px);}
 .vehicle-card.is-selected{border-color:#93c5fd;background:#eff6ff;box-shadow:0 14px 28px rgba(29,78,216,.12);}
@@ -53,29 +48,12 @@ input:focus,select:focus{outline:none;border-color:#5779b4;background:#ffffff;bo
 .vehicle-card-meta{font-size:12px;color:#64748b;font-weight:700;line-height:1.5;word-break:break-word;}
 .vehicle-card-plate{display:inline-flex;align-items:center;height:28px;padding:0 10px;border-radius:999px;background:#f3f4f6;border:1px solid #e5e7eb;color:#111827;font-size:12px;font-weight:800;}
 .vehicle-card.is-selected .vehicle-card-plate{background:#dbeafe;border-color:#bfdbfe;color:#1e3a8a;}
-.vehicle-card-hint{font-size:12px;color:#94a3b8;font-weight:700;}
-.toolbar-card{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;}
-.toolbar-copy{max-width:520px;}
-.toolbar-title{font-size:18px;font-weight:800;color:#111827;letter-spacing:-0.2px;}
-.toolbar-desc{margin-top:7px;font-size:13px;line-height:1.6;color:#64748b;font-weight:600;}
-.toolbar-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-.toolbar-actions input[type="email"]{min-width:280px;}
-.table-wrap{overflow:auto;background:#fff;border:1px solid var(--krds-border);border-radius:18px;box-shadow:0 10px 24px rgba(15,23,42,.045);}
-table{width:100%;border-collapse:collapse;min-width:980px;}
-th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #edf2f7;font-size:14px;vertical-align:middle;}
-th{font-size:12px;color:#6b7280;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:#f8fafc;}
-td input{height:40px;background:#fff;}
-.source-chip{display:inline-flex;height:26px;align-items:center;padding:0 10px;border-radius:999px;font-size:11px;font-weight:700;}
-.source-chip.primary{background:#e8f1ff;border:1px solid #c7d8ff;color:#1d4ed8;}
-.source-chip.neutral{background:#f3f4f6;border:1px solid #e5e7eb;color:#374151;}
-.source-chip.soft{background:#eafaf5;border:1px solid #c8ede0;color:#0f766e;}
-.bottom-actions{width:100%;margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
-.action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:46px;padding:0 14px;border-radius:14px;border:1px solid #dbe2ea;background:#fff;color:#1f2937;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;}
-.action-btn-primary{background:var(--krds-primary);border-color:var(--krds-primary);color:#fff;}
-.action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
-.action-btn svg{width:14px;height:14px;}
+.bottom-actions{margin-top:12px;display:flex;justify-content:flex-start;}
+.back-link{display:inline-flex;align-items:center;gap:6px;height:40px;border-radius:999px;border:1px solid transparent;background:transparent;color:#64748b;padding:0 4px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;}
+.back-link:hover{color:#334155;text-decoration:underline;}
+.back-link svg{width:14px;height:14px;display:block;flex:0 0 auto;transform:translateY(1px);}
 @media (max-width:900px){
-  .filter-grid,.vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media (max-width:760px){
   body::before{opacity:1;}
@@ -88,19 +66,10 @@ td input{height:40px;background:#fff;}
   .header-sub{font-size:11px;line-height:1.02;}
   .header-menu{width:48px;height:48px;}
   .header-menu svg{width:24px;height:24px;}
-  .filter-grid,.vehicle-card-grid{grid-template-columns:1fr;}
+  .vehicle-card-grid{grid-template-columns:1fr;}
   .section-title{font-size:18px;margin:0 10px 10px;}
-  .toolbar-card,.toolbar-actions{flex-direction:column;align-items:stretch;}
-  .toolbar-actions input[type="email"]{min-width:0;}
   .bottom-actions{flex-direction:column;}
-  .action-btn{width:100%;}
-}
-@media (max-width:900px){
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-  select,
-  textarea{
-    font-size:16px !important;
-  }
+  .back-link{width:100%;}
 }
 </style>
 </head>
@@ -137,106 +106,28 @@ td input{height:40px;background:#fff;}
   {% endif %}
 
   <section class="section-card">
-    <h3 class="section-title">차량 선택 및 조회</h3>
+    <h3 class="section-title">차량 선택</h3>
     <form method="GET">
       <input type="hidden" id="car_id" name="car_id" value="{{ selected_car_id }}">
       <div class="vehicle-card-grid">
         {% for vehicle in vehicles %}
           <button type="button" class="vehicle-card{% if vehicle.car_id == selected_car_id %} is-selected{% endif %}" data-car-id="{{ vehicle.car_id }}">
             <div class="vehicle-card-title">{{ vehicle.label }}</div>
-            <div class="vehicle-card-plate">{{ vehicle.plate_number or "번호 미연동" }}</div>
+            <div class="vehicle-card-plate">{{ vehicle.plate_number or "차량번호 미등록" }}</div>
             <div class="vehicle-card-meta">차량 ID: {{ vehicle.car_id }}</div>
-            <div class="vehicle-card-hint">{% if vehicle.plate_number %}등록 차량번호 확인 가능{% else %}현재 DB에는 차량번호 컬럼이 없습니다{% endif %}</div>
           </button>
         {% endfor %}
       </div>
-      <div class="filter-grid">
-      <div class="card-panel field">
-        <label for="start_date">시작일</label>
-        <input id="start_date" type="date" name="start_date" value="{{ start_date }}">
-      </div>
-      <div class="card-panel field">
-        <label for="end_date">종료일</label>
-        <input id="end_date" type="date" name="end_date" value="{{ end_date }}">
-      </div>
-      <div class="card-panel field">
-        <label>&nbsp;</label>
-        <button type="submit" class="action-btn action-btn-primary" style="width:100%">운행 이력 조회</button>
-      </div>
-      </div>
-    </form>
-  </section>
-
-  <section class="section-card">
-    <h3 class="section-title">운행 이력 편집</h3>
-    <form method="POST">
-      <input type="hidden" name="car_id" value="{{ selected_car_id }}">
       <input type="hidden" name="start_date" value="{{ start_date }}">
       <input type="hidden" name="end_date" value="{{ end_date }}">
-
-      <div class="card-panel toolbar-card" style="margin-bottom:12px;">
-        <div class="toolbar-copy">
-          <div class="toolbar-title">현재 앱 기준 수정값 저장 및 이메일 발송</div>
-          <div class="toolbar-desc">조회된 운행 이력을 행 단위로 바로 수정할 수 있습니다. 저장하면 현재 프로젝트 내부 수정값이 우선 적용되고, 이메일 발송 시 현재 화면 기준 이력이 메일 본문으로 전송됩니다.</div>
-        </div>
-        <div class="toolbar-actions">
-          <input type="email" name="email_recipient" value="{{ default_recipient_email }}" placeholder="수신 이메일 주소">
-          <button type="submit" name="action" value="save" class="action-btn action-btn-primary">수정 저장</button>
-          <button type="submit" name="action" value="email" class="action-btn">이메일 발송</button>
-        </div>
-      </div>
-
-      {% if rows %}
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>일자</th>
-                <th>출처</th>
-                <th>탑승자</th>
-                <th>출발시간</th>
-                <th>도착시간</th>
-                <th>출발km</th>
-                <th>도착km</th>
-                <th>운행거리</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for row in rows %}
-                <tr>
-                  <td>
-                    {{ row.drive_date }}
-                    <input type="hidden" name="drive_date" value="{{ row.drive_date }}">
-                  </td>
-                  <td>
-                    {% if row.source == "현재앱 수정" %}
-                      <span class="source-chip soft">{{ row.source }}</span>
-                    {% elif row.source == "수동보정" %}
-                      <span class="source-chip primary">{{ row.source }}</span>
-                    {% else %}
-                      <span class="source-chip neutral">{{ row.source }}</span>
-                    {% endif %}
-                  </td>
-                  <td><input type="text" name="passenger_name" value="{{ row.passenger_name }}"><input type="hidden" name="original_passenger_name" value="{{ row.passenger_name }}"></td>
-                  <td><input type="text" name="start_time" value="{{ row.start_time }}" placeholder="HH:MM"><input type="hidden" name="original_start_time" value="{{ row.start_time }}"></td>
-                  <td><input type="text" name="end_time" value="{{ row.end_time }}" placeholder="HH:MM"><input type="hidden" name="original_end_time" value="{{ row.end_time }}"></td>
-                  <td><input type="text" name="odometer_start" value="{{ row.odometer_start_text }}"><input type="hidden" name="original_odometer_start" value="{{ row.odometer_start_text }}"></td>
-                  <td><input type="text" name="odometer_end" value="{{ row.odometer_end_text }}"><input type="hidden" name="original_odometer_end" value="{{ row.odometer_end_text }}"></td>
-                  <td><input type="text" name="distance_km" value="{{ row.distance_km_text }}"><input type="hidden" name="original_distance_km" value="{{ row.distance_km_text }}"></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="empty-box">선택한 기간에 표시할 차량 운행 이력이 없습니다. DB 연결 경로, 차량 선택, 조회 기간을 먼저 확인해 주세요.</div>
-      {% endif %}
     </form>
   </section>
 
   <div class="bottom-actions">
-    <a class="action-btn" href="{{ url_for('start') }}">시작화면으로 이동</a>
-    <a class="action-btn" href="{{ url_for('admin_settings_page') if session.get('is_admin') else url_for('admin_login') }}">관리자 설정으로 이동</a>
+    <a class="back-link" href="{{ url_for('start') }}">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      시작화면으로 이동
+    </a>
   </div>
 </div>
 <script>
@@ -248,6 +139,10 @@ document.querySelectorAll(".vehicle-card").forEach((button) => {
     }
     document.querySelectorAll(".vehicle-card").forEach((item) => item.classList.remove("is-selected"));
     button.classList.add("is-selected");
+    const form = button.closest("form");
+    if(form){
+      form.submit();
+    }
   });
 });
 </script>
