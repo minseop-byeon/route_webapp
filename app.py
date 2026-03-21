@@ -29,6 +29,7 @@ DEFAULT_TEAM_USERS = {"1조": []}
 GUEST_TEAM_NAME = "게스트"
 GUEST_USER_NAME = "게스트"
 TMAP_DEFAULT_APP_KEY = os.getenv("TMAP_APP_KEY", "DBAKOdGMlm8X0TANyuGFI3GP7aMYWmb77v2JfnAA")
+KAKAO_REST_API_KEY_DEFAULT = os.getenv("KAKAO_REST_API_KEY", "").strip()
 DATABASE_URL = (os.getenv("DATABASE_URL") or "").strip()
 
 DEFAULT_SETTINGS = {
@@ -46,6 +47,7 @@ DEFAULT_SETTINGS = {
         "client_id": "",
         "client_secret": "",
         "tmap_app_key": TMAP_DEFAULT_APP_KEY,
+        "kakao_rest_api_key": KAKAO_REST_API_KEY_DEFAULT,
     },
     "user": {
         "start_name": "",
@@ -315,6 +317,8 @@ def migrate_legacy_settings(data):
         merged["user"]["return_same_as_start"] = True
     if not merged["api"].get("tmap_app_key"):
         merged["api"]["tmap_app_key"] = TMAP_DEFAULT_APP_KEY
+    if "kakao_rest_api_key" not in merged["api"]:
+        merged["api"]["kakao_rest_api_key"] = KAKAO_REST_API_KEY_DEFAULT
     if not merged["admin"].get("admin_password"):
         merged["admin"]["admin_password"] = ADMIN_PASSWORD
     restaurant_items = merged.get("restaurant", {}).get("items", [])
@@ -422,6 +426,11 @@ def get_tmap_app_key():
     return (settings.get("api", {}).get("tmap_app_key") or TMAP_DEFAULT_APP_KEY).strip()
 
 
+def get_kakao_rest_api_key():
+    settings = load_settings()
+    return (settings.get("api", {}).get("kakao_rest_api_key") or KAKAO_REST_API_KEY_DEFAULT).strip()
+
+
 def get_admin_password():
     settings = load_settings()
     return (settings.get("admin", {}).get("admin_password") or ADMIN_PASSWORD).strip()
@@ -434,6 +443,55 @@ def get_api_headers():
         "X-NCP-APIGW-API-KEY-ID": (api.get("client_id") or "").strip(),
         "X-NCP-APIGW-API-KEY": (api.get("client_secret") or "").strip()
     }
+
+
+def resolve_kakao_address(query: str):
+    query = (query or "").strip()
+    if not query:
+        return "", "주소가 비어 있습니다."
+
+    api_key = get_kakao_rest_api_key()
+    if not api_key:
+        return "", "관리자 설정에서 Kakao REST API 키를 먼저 입력해 주세요."
+
+    try:
+        resp = requests.get(
+            "https://dapi.kakao.com/v2/local/search/address.json",
+            headers={"Authorization": f"KakaoAK {api_key}"},
+            params={"query": query, "analyze_type": "similar"},
+            timeout=10,
+        )
+    except requests.RequestException as e:
+        return "", f"카카오 주소 검색 요청에 실패했습니다: {e}"
+
+    if resp.status_code != 200:
+        try:
+            data = resp.json()
+            msg = data.get("msg") or data.get("message") or resp.text
+        except Exception:
+            msg = resp.text
+        return "", f"카카오 주소 검색 API 응답 오류입니다. {msg}".strip()
+
+    try:
+        data = resp.json()
+    except Exception:
+        return "", "카카오 주소 검색 API 응답을 해석하지 못했습니다."
+
+    documents = data.get("documents") or []
+    if not documents:
+        return "", f"카카오 주소 검색 결과가 없습니다: {query}"
+
+    first = documents[0] if isinstance(documents[0], dict) else {}
+    road_address = first.get("road_address") or {}
+    jibun_address = first.get("address") or {}
+    normalized = (
+        str(road_address.get("address_name") or "").strip()
+        or str(jibun_address.get("address_name") or "").strip()
+    )
+    if not normalized:
+        return "", f"카카오 주소 검색 결과를 해석하지 못했습니다: {query}"
+
+    return normalized, ""
 
 
 def is_mobile_request():
@@ -2227,6 +2285,7 @@ def save_admin_settings_section():
             settings["api"]["client_id"] = (request.form.get("client_id") or "").strip()
             settings["api"]["client_secret"] = (request.form.get("client_secret") or "").strip()
             settings["api"]["tmap_app_key"] = (request.form.get("tmap_app_key") or TMAP_DEFAULT_APP_KEY).strip()
+            settings["api"]["kakao_rest_api_key"] = (request.form.get("kakao_rest_api_key") or "").strip()
 
         elif section == "user":
             start_name = (request.form.get("start_name") or "").strip()
@@ -2368,6 +2427,9 @@ def planner_resolve_qr_items():
     if not isinstance(items, list) or not items:
         return jsonify({"success": False, "message": "QR 항목이 없습니다."}), 400
 
+    if not get_kakao_rest_api_key():
+        return jsonify({"success": False, "message": "API 설정에서 Kakao REST API 키를 먼저 입력해 주세요."}), 400
+
     resolved_items = []
     for raw_item in items[:15]:
         if not isinstance(raw_item, dict):
@@ -2378,20 +2440,21 @@ def planner_resolve_qr_items():
         if not name and not address:
             continue
 
-        coord, meta, err = geocode_with_meta(address)
-        if coord:
+        resolved_address, err = resolve_kakao_address(address)
+        err = err or "카카오 주소 검색에 실패했습니다."
+        if resolved_address:
             resolved_items.append({
                 "name": name,
-                "address": address,
-                "display_address": (meta or {}).get("display_address") or address,
+                "address": "",
+                "display_address": resolved_address,
                 "ok": True,
                 "message": "",
             })
         else:
             resolved_items.append({
                 "name": name,
-                "address": address,
-                "display_address": address,
+                "address": "",
+                "display_address": "",
                 "ok": False,
                 "message": err or "주소 확인에 실패했습니다.",
             })
