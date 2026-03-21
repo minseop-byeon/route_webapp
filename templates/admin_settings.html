@@ -457,30 +457,29 @@
         .vehicle-log-card {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             padding: 0;
             overflow: hidden;
             background: #ffffff;
             border-color: #e5e7eb;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
         }
 
         .vehicle-log-visual {
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 132px;
-            margin: 16px 16px 0;
-            padding: 12px;
-            background: #f8fafc;
-            border: 1px solid #eef2f7;
-            border-radius: 14px;
+            min-height: 120px;
+            margin: 14px 14px 0;
+            padding: 10px;
+            background: #fafafa;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .vehicle-log-image {
             display: block;
             width: 100%;
-            max-width: 210px;
+            max-width: 198px;
             margin: 0 auto;
             object-fit: contain;
             filter: none;
@@ -504,8 +503,8 @@
         .vehicle-log-content {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding: 0 16px 16px;
+            gap: 0;
+            padding: 0 14px 14px;
         }
 
         .vehicle-log-card-head {
@@ -521,15 +520,15 @@
 
         .vehicle-log-card-title h4 {
             margin: 0;
-            font-size: 18px;
+            font-size: 16px;
             letter-spacing: -0.02em;
         }
 
         .vehicle-log-card-id {
-            margin-top: 6px;
+            margin-top: 4px;
             font-size: 12px;
             color: #64748b;
-            font-weight: 700;
+            font-weight: 600;
             word-break: break-all;
         }
 
@@ -537,12 +536,12 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 24px;
+            height: 24px;
             padding: 0;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            background: #ffffff;
+            border: none;
+            border-radius: 0;
+            background: transparent;
             color: #475569;
             cursor: pointer;
             flex: 0 0 auto;
@@ -550,43 +549,13 @@
         }
 
         .vehicle-log-edit-btn:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
             color: #0f172a;
         }
 
         .vehicle-log-edit-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             display: block;
-        }
-
-        .vehicle-log-meta {
-            display: grid;
-            gap: 10px;
-        }
-
-        .vehicle-log-meta-row {
-            padding: 11px 13px;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            background: #f8fafc;
-        }
-
-        .vehicle-log-meta-label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 12px;
-            color: #64748b;
-            font-weight: 700;
-        }
-
-        .vehicle-log-meta-value {
-            font-size: 14px;
-            color: #0f172a;
-            font-weight: 800;
-            line-height: 1.4;
-            word-break: break-word;
         }
 
         .address-row {
@@ -1598,20 +1567,10 @@
                                                 </div>
                                                 <button type="button" class="vehicle-log-edit-btn" aria-label="차량정보 수정" title="차량정보 수정">
                                                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                                        <path d="M4 20h4l9.8-9.8a1.8 1.8 0 0 0 0-2.5l-1.5-1.5a1.8 1.8 0 0 0-2.5 0L4 16v4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                                                        <path d="m12.5 7.5 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </button>
-                                            </div>
-                                            <div class="vehicle-log-meta">
-                                                <div class="vehicle-log-meta-row">
-                                                    <span class="vehicle-log-meta-label">차량번호</span>
-                                                    <div class="vehicle-log-meta-value vehicle-log-plate-display">{{ saved_plate_number or '차량번호 미등록' }}</div>
-                                                </div>
-                                                <div class="vehicle-log-meta-row">
-                                                    <span class="vehicle-log-meta-label">배차</span>
-                                                    <div class="vehicle-log-meta-value vehicle-log-team-display">{{ saved_team_assignment or '배차 미지정' }}</div>
-                                                </div>
                                             </div>
                                         </div>
                                         <input type="hidden" name="vehicle_log_car_id" value="{{ vehicle.car_id }}">
