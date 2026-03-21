@@ -1383,6 +1383,28 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="location-section">
+                                <h4 class="location-section-title">운행일지 설정</h4>
+                                <div class="help-text" style="margin:0 0 14px 0;">차량운행 화면에서 사용할 차량번호를 입력합니다. 이 값은 현재 앱 설정에 저장되어 웹페이지를 다시 열어도 유지됩니다.</div>
+                                <div class="form-grid" style="grid-template-columns: 1fr;">
+                                    {% if vehicle_log_vehicles %}
+                                        {% for vehicle in vehicle_log_vehicles %}
+                                        <div class="team-card" style="background:#fff;">
+                                            <h4>{{ vehicle.label or vehicle.car_id }}</h4>
+                                            <div class="form-group" style="margin-bottom:0;">
+                                                <label>차량번호</label>
+                                                <input type="hidden" name="vehicle_log_car_id" value="{{ vehicle.car_id }}">
+                                                <input type="text" name="vehicle_log_plate_number" value="{{ settings.vehicle_log.plate_numbers.get(vehicle.car_id, vehicle.plate_number or '') }}" placeholder="예: 14호1983">
+                                                <div class="help-text">차량 ID: {{ vehicle.car_id }}</div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="help-text" style="margin-top:0;">연동된 차량이 아직 없습니다. 차량운행 DB 연결 후 이 화면에서 차량번호를 입력할 수 있습니다.</div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
 
                         <input type="hidden" id="return_same_as_start" name="return_same_as_start" value="{{ 1 if settings.user.return_same_as_start else 0 }}">

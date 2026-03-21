@@ -78,6 +78,9 @@ DEFAULT_SETTINGS = {
     "parking": {
         "items": []
     },
+    "vehicle_log": {
+        "plate_numbers": {}
+    },
     "admin": {
         "admin_password": ADMIN_PASSWORD
     }
@@ -295,9 +298,9 @@ def migrate_legacy_settings(data):
     if not isinstance(data, dict):
         return merged
 
-    has_new_structure = any(k in data for k in ["mail", "api", "user", "restaurant", "parking", "admin"])
+    has_new_structure = any(k in data for k in ["mail", "api", "user", "restaurant", "parking", "vehicle_log", "admin"])
     if has_new_structure:
-        for section in ["mail", "api", "user", "restaurant", "parking", "admin"]:
+        for section in ["mail", "api", "user", "restaurant", "parking", "vehicle_log", "admin"]:
             if isinstance(data.get(section), dict):
                 merged[section].update(data[section])
     else:
@@ -363,6 +366,19 @@ def migrate_legacy_settings(data):
                 "address": str(item.get("address", "") or "").strip(),
             })
     merged["parking"]["items"] = normalized_parking
+    vehicle_log = merged.get("vehicle_log", {})
+    if not isinstance(vehicle_log, dict):
+        vehicle_log = {}
+    plate_numbers = vehicle_log.get("plate_numbers", {})
+    if not isinstance(plate_numbers, dict):
+        plate_numbers = {}
+    merged["vehicle_log"] = {
+        "plate_numbers": {
+            str(car_id).strip(): str(plate_number).strip()
+            for car_id, plate_number in plate_numbers.items()
+            if str(car_id).strip()
+        }
+    }
     if not merged["mail"].get("smtp_host"):
         merged["mail"]["smtp_host"] = "smtp.gmail.com"
     if not merged["mail"].get("smtp_port"):
@@ -438,6 +454,12 @@ def get_mail_config():
 def get_default_recipient_email():
     settings = load_settings()
     return (settings.get("mail", {}).get("default_recipient_email") or "").strip()
+
+
+def get_vehicle_log_plate_numbers(settings=None):
+    settings = settings or load_settings()
+    plate_numbers = (settings.get("vehicle_log", {}) or {}).get("plate_numbers", {})
+    return plate_numbers if isinstance(plate_numbers, dict) else {}
 
 
 def get_tmap_app_key():
@@ -567,6 +589,7 @@ def _normalize_vehicle_log_payload(payload):
 
 def get_vehicle_log_vehicles():
     db_path = get_vehicle_log_db_path()
+    plate_map = get_vehicle_log_plate_numbers()
     if not db_path:
         return [], "차량운행 DB 경로가 설정되지 않았습니다."
     if not os.path.exists(db_path):
@@ -614,7 +637,8 @@ def get_vehicle_log_vehicles():
             or item.get("car_id")
             or ""
         )
-        item["plate_number"] = str(item.get(plate_column) or "").strip() if 'plate_column' in locals() and plate_column else ""
+        db_plate_number = str(item.get(plate_column) or "").strip() if 'plate_column' in locals() and plate_column else ""
+        item["plate_number"] = str(plate_map.get(item.get("car_id")) or db_plate_number).strip()
         vehicles.append(item)
 
     return vehicles, ""
@@ -2636,7 +2660,8 @@ def admin_settings_page():
     if is_mobile_request():
         abort(403)
     settings = load_settings()
-    return render_template("admin_settings.html", settings=settings)
+    vehicle_log_vehicles, _ = get_vehicle_log_vehicles()
+    return render_template("admin_settings.html", settings=settings, vehicle_log_vehicles=vehicle_log_vehicles)
 
 
 @app.route("/admin/settings/verify-password", methods=["POST"])
@@ -2825,6 +2850,17 @@ def save_admin_settings_section():
                 return jsonify({"success": False, "message": "최소 1개의 카드를 유지해 주세요."})
 
             settings["user"]["team_users"] = normalize_team_users(team_users)
+            vehicle_log_car_ids = request.form.getlist("vehicle_log_car_id")
+            vehicle_log_plate_numbers = request.form.getlist("vehicle_log_plate_number")
+            plate_map = {}
+            for idx, raw_car_id in enumerate(vehicle_log_car_ids):
+                car_id = str(raw_car_id or "").strip()
+                if not car_id:
+                    continue
+                plate_number = str(vehicle_log_plate_numbers[idx] if idx < len(vehicle_log_plate_numbers) else "").strip()
+                if plate_number:
+                    plate_map[car_id] = plate_number
+            settings["vehicle_log"]["plate_numbers"] = plate_map
 
         elif section == "restaurant":
             names = request.form.getlist("restaurant_name")

@@ -34,11 +34,6 @@ body::before{content:"";position:fixed;top:0;left:0;right:0;height:var(--mobile-
 .header-sub{font-size:13px;font-weight:800;line-height:1.05;letter-spacing:-0.1px;color:var(--krds-sub);}
 .header-menu{width:56px;height:56px;display:inline-flex;align-items:center;justify-content:center;border:none;background:transparent;padding:0;color:#334155;cursor:default;flex:0 0 auto;}
 .header-menu svg{width:28px;height:28px;display:block;}
-.summary-wrap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px;}
-.summary-item{background:var(--krds-surface);border:1px solid var(--krds-border);border-radius:18px;padding:14px 13px;box-shadow:0 10px 24px rgba(15,23,42,.045);}
-.summary-label{font-size:12px;color:#6b7280;font-weight:700;}
-.summary-value{margin-top:4px;font-size:26px;font-weight:800;color:#111827;letter-spacing:-0.2px;word-break:break-word;}
-.summary-unit{margin-left:2px;font-size:17px;font-weight:700;}
 .section-card{background:transparent;border:none;border-radius:0;padding:0;margin-bottom:16px;}
 .section-title{margin:0 14px 10px;font-size:21px;color:#111827;font-weight:800;letter-spacing:-0.2px;}
 .empty-box{padding:18px;border-radius:10px;background:#fff;border:1px solid var(--krds-border);color:#64748b;font-size:14px;text-align:center;}
@@ -80,7 +75,7 @@ td input{height:40px;background:#fff;}
 .action-btn-primary:hover{background:var(--krds-primary-strong);border-color:var(--krds-primary-strong);}
 .action-btn svg{width:14px;height:14px;}
 @media (max-width:900px){
-  .filter-grid,.summary-wrap,.vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .filter-grid,.vehicle-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media (max-width:760px){
   body::before{opacity:1;}
@@ -93,10 +88,7 @@ td input{height:40px;background:#fff;}
   .header-sub{font-size:11px;line-height:1.02;}
   .header-menu{width:48px;height:48px;}
   .header-menu svg{width:24px;height:24px;}
-  .filter-grid,.summary-wrap,.vehicle-card-grid{grid-template-columns:1fr;}
-  .summary-item{padding:13px 12px;}
-  .summary-value{font-size:21px;}
-  .summary-unit{font-size:14px;}
+  .filter-grid,.vehicle-card-grid{grid-template-columns:1fr;}
   .section-title{font-size:18px;margin:0 10px 10px;}
   .toolbar-card,.toolbar-actions{flex-direction:column;align-items:stretch;}
   .toolbar-actions input[type="email"]{min-width:0;}
@@ -127,13 +119,6 @@ td input{height:40px;background:#fff;}
         <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
       </svg>
     </button>
-  </section>
-
-  <section class="summary-wrap" aria-label="차량운행 요약">
-    <div class="summary-item"><div class="summary-label">선택 차량</div><div class="summary-value">{{ selected_vehicle.label or "-" }}</div></div>
-    <div class="summary-item"><div class="summary-label">조회 건수</div><div class="summary-value">{{ row_count }}<span class="summary-unit">건</span></div></div>
-    <div class="summary-item"><div class="summary-label">합계 거리</div><div class="summary-value">{{ total_distance }}<span class="summary-unit">km</span></div></div>
-    <div class="summary-item"><div class="summary-label">기본 수신 메일</div><div class="summary-value" style="font-size:18px">{{ default_recipient_email or "-" }}</div></div>
   </section>
 
   {% with messages = get_flashed_messages() %}
