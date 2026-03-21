@@ -448,6 +448,88 @@
             margin-bottom: 0;
         }
 
+        .vehicle-log-cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .vehicle-log-card {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: #ffffff;
+        }
+
+        .vehicle-log-card-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .vehicle-log-card-title {
+            min-width: 0;
+        }
+
+        .vehicle-log-card-title h4 {
+            margin: 0;
+        }
+
+        .vehicle-log-card-id {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 700;
+            word-break: break-all;
+        }
+
+        .vehicle-log-edit-btn {
+            min-height: 36px;
+            padding: 0 14px;
+            border: none;
+            border-radius: 10px;
+            background: #eef0f4;
+            color: #0f172a;
+            font-size: 13px;
+            font-weight: 800;
+            font-family: Pretendard, sans-serif;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .vehicle-log-edit-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .vehicle-log-meta {
+            display: grid;
+            gap: 10px;
+        }
+
+        .vehicle-log-meta-row {
+            padding: 12px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .vehicle-log-meta-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .vehicle-log-meta-value {
+            font-size: 14px;
+            color: #0f172a;
+            font-weight: 800;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
         .address-row {
             display: grid;
             grid-template-columns: 1fr auto;
@@ -901,6 +983,19 @@
             margin-bottom: 18px;
         }
 
+        .vehicle-log-modal {
+            max-width: 460px;
+            padding: 24px;
+        }
+
+        .vehicle-log-modal .modal-title {
+            margin-bottom: 18px;
+        }
+
+        .vehicle-log-modal-actions {
+            margin-top: 18px;
+        }
+
         #parkingSearchResults {
             border: 1px solid #e5e7eb;
             border-radius: 10px;
@@ -1001,7 +1096,8 @@
             }
 
             .form-grid,
-            .team-cards {
+            .team-cards,
+            .vehicle-log-cards {
                 grid-template-columns: 1fr;
             }
 
@@ -1399,27 +1495,42 @@
                     </form>
                 </section>
 
-                <section id="panel-vehicle-log" class="panel">
+<section id="panel-vehicle-log" class="panel">
                     <h3 class="panel-title">운행일지 설정</h3>
-                    <p class="panel-desc">차량운행 화면에서 사용할 차량번호를 설정합니다. 저장된 값은 현재 앱 설정에 보관되어 재접속 후에도 유지됩니다.</p>
+                    <p class="panel-desc">운행일지 작성에 필요한 차량정보를 설정합니다.</p>
 
                     <form class="settings-form" data-section="user" id="vehicleLogSettingsForm">
                         <div class="location-section">
-                            <div class="form-grid" style="grid-template-columns: 1fr;">
+                            <div class="vehicle-log-cards">
                                 {% if vehicle_log_vehicles %}
                                     {% for vehicle in vehicle_log_vehicles %}
-                                    <div class="team-card" style="background:#fff;">
-                                        <h4>{{ vehicle.label or vehicle.car_id }}</h4>
-                                        <div class="form-group" style="margin-bottom:0;">
-                                            <label>차량번호</label>
-                                            <input type="hidden" name="vehicle_log_car_id" value="{{ vehicle.car_id }}">
-                                            <input type="text" name="vehicle_log_plate_number" value="{{ settings.vehicle_log.plate_numbers.get(vehicle.car_id, vehicle.plate_number or '') }}" placeholder="예: 14호1983">
-                                            <div class="help-text">차량 ID: {{ vehicle.car_id }}</div>
+                                    {% set saved_plate_number = settings.vehicle_log.plate_numbers.get(vehicle.car_id, vehicle.plate_number or '') %}
+                                    {% set saved_team_assignment = settings.vehicle_log.team_assignments.get(vehicle.car_id, vehicle.assigned_team or '') %}
+                                    <div class="team-card vehicle-log-card" data-car-id="{{ vehicle.car_id }}" data-label="{{ vehicle.label or vehicle.car_id }}">
+                                        <div class="vehicle-log-card-head">
+                                            <div class="vehicle-log-card-title">
+                                                <h4>{{ vehicle.label or vehicle.car_id }}</h4>
+                                                <div class="vehicle-log-card-id">차량 ID: {{ vehicle.car_id }}</div>
+                                            </div>
+                                            <button type="button" class="vehicle-log-edit-btn">수정</button>
                                         </div>
+                                        <div class="vehicle-log-meta">
+                                            <div class="vehicle-log-meta-row">
+                                                <span class="vehicle-log-meta-label">차량번호</span>
+                                                <div class="vehicle-log-meta-value vehicle-log-plate-display">{{ saved_plate_number or '차량번호 미등록' }}</div>
+                                            </div>
+                                            <div class="vehicle-log-meta-row">
+                                                <span class="vehicle-log-meta-label">배차</span>
+                                                <div class="vehicle-log-meta-value vehicle-log-team-display">{{ saved_team_assignment or '배차 미지정' }}</div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="vehicle_log_car_id" value="{{ vehicle.car_id }}">
+                                        <input type="hidden" name="vehicle_log_plate_number" value="{{ saved_plate_number }}">
+                                        <input type="hidden" name="vehicle_log_team_assignment" value="{{ saved_team_assignment }}">
                                     </div>
                                     {% endfor %}
                                 {% else %}
-                                    <div class="help-text" style="margin-top:0;">연동된 차량이 아직 없습니다. 차량운행 DB 연결 후 이 화면에서 차량번호를 입력할 수 있습니다.</div>
+                                    <div class="help-text" style="margin-top:0;">연동된 차량이 아직 없습니다.</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -1436,9 +1547,6 @@
                         <textarea name="team_users_block" class="hidden">{{ users | join('\n') }}</textarea>
                         {% endfor %}
 
-                        <div class="button-row">
-                            <button type="button" class="save-btn">변경사항 저장</button>
-                        </div>
                         <div class="section-status"></div>
                     </form>
                 </section>
@@ -1492,6 +1600,31 @@
         <div class="modal-buttons">
             <button type="button" class="modal-btn primary" id="modalSaveBtn">저장</button>
             <button type="button" class="modal-btn secondary" id="modalDiscardBtn">취소</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="vehicleLogModal">
+    <div class="modal vehicle-log-modal">
+        <h3 class="modal-title" id="vehicleLogModalTitle">차량정보 수정</h3>
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+            <div class="form-group">
+                <label for="vehicleLogModalPlateNumber">차량번호</label>
+                <input type="text" id="vehicleLogModalPlateNumber" placeholder="예: 14호1983">
+            </div>
+            <div class="form-group">
+                <label for="vehicleLogModalTeamAssignment">배차</label>
+                <select id="vehicleLogModalTeamAssignment">
+                    <option value="">배차 미지정</option>
+                    {% for team_name in settings.user.team_users.keys() %}
+                    <option value="{{ team_name }}">{{ team_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="modal-buttons vehicle-log-modal-actions">
+            <button type="button" class="modal-btn primary" id="vehicleLogModalSaveBtn">저장</button>
+            <button type="button" class="modal-btn secondary" id="vehicleLogModalCloseBtn">취소</button>
         </div>
     </div>
 </div>
@@ -1612,6 +1745,13 @@
     const confirmModal = document.getElementById('confirmModal');
     const modalSaveBtn = document.getElementById('modalSaveBtn');
     const modalDiscardBtn = document.getElementById('modalDiscardBtn');
+    const vehicleLogSettingsForm = document.getElementById('vehicleLogSettingsForm');
+    const vehicleLogModal = document.getElementById('vehicleLogModal');
+    const vehicleLogModalTitle = document.getElementById('vehicleLogModalTitle');
+    const vehicleLogModalPlateNumber = document.getElementById('vehicleLogModalPlateNumber');
+    const vehicleLogModalTeamAssignment = document.getElementById('vehicleLogModalTeamAssignment');
+    const vehicleLogModalSaveBtn = document.getElementById('vehicleLogModalSaveBtn');
+    const vehicleLogModalCloseBtn = document.getElementById('vehicleLogModalCloseBtn');
 
     const adminPasswordForm = document.getElementById('adminPasswordForm');
     const verifyAdminPasswordBtn = document.getElementById('verifyAdminPasswordBtn');
@@ -1664,6 +1804,7 @@
     let pendingPanelId = null;
     let pendingMenuButton = null;
     let dirtyForm = null;
+    let editingVehicleLogCard = null;
     let editingParkingRow = null;
     let pendingParkingDeleteRow = null;
     let editingRestaurantRow = null;
@@ -1756,6 +1897,20 @@
             }
             if (returnName.length > 10) {
                 return '복귀지명은 최대 10자까지 입력할 수 있습니다.';
+            }
+            return null;
+        }
+
+        if (form.id === 'vehicleLogSettingsForm') {
+            const teamAssignments = new Set();
+            const teamFields = Array.from(form.querySelectorAll('input[name="vehicle_log_team_assignment"]'));
+            for (const field of teamFields) {
+                const teamName = (field.value || '').trim();
+                if (!teamName) continue;
+                if (teamAssignments.has(teamName)) {
+                    return '같은 조는 한 대의 차량에만 배차할 수 있습니다.';
+                }
+                teamAssignments.add(teamName);
             }
             return null;
         }
@@ -2012,6 +2167,60 @@
         autoSaveTimers.set(form.id, timer);
     }
 
+    function applyVehicleLogCardDisplay(card) {
+        if (!card) return;
+        const plateInput = card.querySelector('input[name="vehicle_log_plate_number"]');
+        const teamInput = card.querySelector('input[name="vehicle_log_team_assignment"]');
+        const plateDisplay = card.querySelector('.vehicle-log-plate-display');
+        const teamDisplay = card.querySelector('.vehicle-log-team-display');
+        const plateValue = (plateInput?.value || '').trim();
+        const teamValue = (teamInput?.value || '').trim();
+        if (plateDisplay) {
+            plateDisplay.textContent = plateValue || '차량번호 미등록';
+        }
+        if (teamDisplay) {
+            teamDisplay.textContent = teamValue || '배차 미지정';
+        }
+    }
+
+    function clearVehicleLogModal() {
+        editingVehicleLogCard = null;
+        if (vehicleLogModalTitle) vehicleLogModalTitle.textContent = '차량정보 수정';
+        if (vehicleLogModalPlateNumber) vehicleLogModalPlateNumber.value = '';
+        if (vehicleLogModalTeamAssignment) vehicleLogModalTeamAssignment.value = '';
+    }
+
+    function openVehicleLogModal(card) {
+        if (!card || !vehicleLogModal) return;
+        editingVehicleLogCard = card;
+        const label = card.dataset.label || card.dataset.carId || '차량정보';
+        const plateValue = card.querySelector('input[name="vehicle_log_plate_number"]')?.value || '';
+        const teamValue = card.querySelector('input[name="vehicle_log_team_assignment"]')?.value || '';
+        if (vehicleLogModalTitle) {
+            vehicleLogModalTitle.textContent = `${label} 수정`;
+        }
+        if (vehicleLogModalPlateNumber) {
+            vehicleLogModalPlateNumber.value = plateValue;
+        }
+        if (vehicleLogModalTeamAssignment) {
+            vehicleLogModalTeamAssignment.value = teamValue;
+        }
+        vehicleLogModal.classList.add('show');
+    }
+
+    function bindVehicleLogCards() {
+        if (!vehicleLogSettingsForm) return;
+        vehicleLogSettingsForm.querySelectorAll('.vehicle-log-card').forEach(card => {
+            applyVehicleLogCardDisplay(card);
+            const editBtn = card.querySelector('.vehicle-log-edit-btn');
+            if (!editBtn) return;
+            editBtn.addEventListener('click', () => {
+                clearStatus(vehicleLogSettingsForm);
+                openVehicleLogModal(card);
+            });
+        });
+    }
+
     menuItems.forEach(item => {
         item.addEventListener('click', async () => {
             const targetPanelId = item.dataset.target;
@@ -2081,6 +2290,56 @@
             await saveForm(form);
         });
     });
+
+    bindVehicleLogCards();
+
+    if (vehicleLogModalCloseBtn) {
+        vehicleLogModalCloseBtn.addEventListener('click', () => {
+            clearVehicleLogModal();
+            vehicleLogModal.classList.remove('show');
+        });
+    }
+
+    if (vehicleLogModal) {
+        vehicleLogModal.addEventListener('click', (event) => {
+            if (event.target === vehicleLogModal) {
+                clearVehicleLogModal();
+                vehicleLogModal.classList.remove('show');
+            }
+        });
+    }
+
+    if (vehicleLogModalSaveBtn) {
+        vehicleLogModalSaveBtn.addEventListener('click', async () => {
+            if (!editingVehicleLogCard || !vehicleLogSettingsForm) return;
+
+            const plateInput = editingVehicleLogCard.querySelector('input[name="vehicle_log_plate_number"]');
+            const teamInput = editingVehicleLogCard.querySelector('input[name="vehicle_log_team_assignment"]');
+            const previousPlateValue = plateInput?.value || '';
+            const previousTeamValue = teamInput?.value || '';
+            if (plateInput) {
+                plateInput.value = (vehicleLogModalPlateNumber?.value || '').trim();
+            }
+            if (teamInput) {
+                teamInput.value = (vehicleLogModalTeamAssignment?.value || '').trim();
+            }
+
+            applyVehicleLogCardDisplay(editingVehicleLogCard);
+            const saved = await saveForm(vehicleLogSettingsForm);
+            if (saved) {
+                clearVehicleLogModal();
+                vehicleLogModal.classList.remove('show');
+            } else {
+                if (plateInput) {
+                    plateInput.value = previousPlateValue;
+                }
+                if (teamInput) {
+                    teamInput.value = previousTeamValue;
+                }
+                applyVehicleLogCardDisplay(editingVehicleLogCard);
+            }
+        });
+    }
 
     window.addEventListener('beforeunload', function (e) {
         let hasDirty = false;

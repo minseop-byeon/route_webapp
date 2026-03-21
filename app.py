@@ -79,7 +79,8 @@ DEFAULT_SETTINGS = {
         "items": []
     },
     "vehicle_log": {
-        "plate_numbers": {}
+        "plate_numbers": {},
+        "team_assignments": {}
     },
     "admin": {
         "admin_password": ADMIN_PASSWORD
@@ -372,12 +373,20 @@ def migrate_legacy_settings(data):
     plate_numbers = vehicle_log.get("plate_numbers", {})
     if not isinstance(plate_numbers, dict):
         plate_numbers = {}
+    team_assignments = vehicle_log.get("team_assignments", {})
+    if not isinstance(team_assignments, dict):
+        team_assignments = {}
     merged["vehicle_log"] = {
         "plate_numbers": {
             str(car_id).strip(): str(plate_number).strip()
             for car_id, plate_number in plate_numbers.items()
             if str(car_id).strip()
-        }
+        },
+        "team_assignments": {
+            str(car_id).strip(): str(team_name).strip()
+            for car_id, team_name in team_assignments.items()
+            if str(car_id).strip() and str(team_name).strip()
+        },
     }
     if not merged["mail"].get("smtp_host"):
         merged["mail"]["smtp_host"] = "smtp.gmail.com"
@@ -460,6 +469,12 @@ def get_vehicle_log_plate_numbers(settings=None):
     settings = settings or load_settings()
     plate_numbers = (settings.get("vehicle_log", {}) or {}).get("plate_numbers", {})
     return plate_numbers if isinstance(plate_numbers, dict) else {}
+
+
+def get_vehicle_log_team_assignments(settings=None):
+    settings = settings or load_settings()
+    team_assignments = (settings.get("vehicle_log", {}) or {}).get("team_assignments", {})
+    return team_assignments if isinstance(team_assignments, dict) else {}
 
 
 def get_tmap_app_key():
@@ -589,7 +604,9 @@ def _normalize_vehicle_log_payload(payload):
 
 def get_vehicle_log_vehicles():
     db_path = get_vehicle_log_db_path()
-    plate_map = get_vehicle_log_plate_numbers()
+    settings = load_settings()
+    plate_map = get_vehicle_log_plate_numbers(settings)
+    team_assignment_map = get_vehicle_log_team_assignments(settings)
     if not db_path:
         return [], "차량운행 DB 경로가 설정되지 않았습니다."
     if not os.path.exists(db_path):
@@ -639,6 +656,7 @@ def get_vehicle_log_vehicles():
         )
         db_plate_number = str(item.get(plate_column) or "").strip() if 'plate_column' in locals() and plate_column else ""
         item["plate_number"] = str(plate_map.get(item.get("car_id")) or db_plate_number).strip()
+        item["assigned_team"] = str(team_assignment_map.get(item.get("car_id")) or "").strip()
         vehicles.append(item)
 
     return vehicles, ""
@@ -2852,7 +2870,10 @@ def save_admin_settings_section():
             settings["user"]["team_users"] = normalize_team_users(team_users)
             vehicle_log_car_ids = request.form.getlist("vehicle_log_car_id")
             vehicle_log_plate_numbers = request.form.getlist("vehicle_log_plate_number")
+            vehicle_log_team_assignments = request.form.getlist("vehicle_log_team_assignment")
             plate_map = {}
+            team_assignment_map = {}
+            assigned_teams = set()
             for idx, raw_car_id in enumerate(vehicle_log_car_ids):
                 car_id = str(raw_car_id or "").strip()
                 if not car_id:
@@ -2860,7 +2881,16 @@ def save_admin_settings_section():
                 plate_number = str(vehicle_log_plate_numbers[idx] if idx < len(vehicle_log_plate_numbers) else "").strip()
                 if plate_number:
                     plate_map[car_id] = plate_number
+                team_name = str(vehicle_log_team_assignments[idx] if idx < len(vehicle_log_team_assignments) else "").strip()
+                if team_name:
+                    if team_name not in settings["user"]["team_users"]:
+                        return jsonify({"success": False, "message": "배차에는 등록된 조만 선택할 수 있습니다."})
+                    if team_name in assigned_teams:
+                        return jsonify({"success": False, "message": "같은 조는 한 대의 차량에만 배차할 수 있습니다."})
+                    assigned_teams.add(team_name)
+                    team_assignment_map[car_id] = team_name
             settings["vehicle_log"]["plate_numbers"] = plate_map
+            settings["vehicle_log"]["team_assignments"] = team_assignment_map
 
         elif section == "restaurant":
             names = request.form.getlist("restaurant_name")
