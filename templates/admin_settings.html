@@ -454,11 +454,105 @@
             gap: 14px;
         }
 
-        .vehicle-log-card {
+        .setting-cards {
+            display: grid;
+            gap: 14px;
+        }
+
+        .setting-card {
+            position: relative;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .setting-card-head {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .setting-card-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 850;
+            color: #0f172a;
+        }
+
+        .setting-card-sub {
+            margin-top: 5px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .setting-card-values {
+            display: grid;
             gap: 10px;
+            margin-top: 14px;
+        }
+
+        .setting-card-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            min-height: 28px;
+        }
+
+        .setting-card-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .setting-card-value {
+            min-width: 0;
+            text-align: right;
+            font-size: 13px;
+            color: #0f172a;
+            font-weight: 700;
+            word-break: break-all;
+        }
+
+        .icon-only-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
             padding: 0;
+            border: none;
+            background: transparent;
+            color: #475569;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .icon-only-btn:hover {
+            color: #0f172a;
+        }
+
+        .icon-only-btn svg {
+            width: 20px;
+            height: 20px;
+            display: block;
+        }
+
+        .masked-value {
+            letter-spacing: 0.14em;
+        }
+
+        .vehicle-log-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 150px;
+            align-items: stretch;
+            gap: 12px;
+            padding: 14px 14px 14px 16px;
             overflow: hidden;
             background: #ffffff;
             border-color: #e5e7eb;
@@ -469,17 +563,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 120px;
-            margin: 14px 14px 0;
+            min-height: 108px;
+            margin: 0;
             padding: 10px;
             background: #fafafa;
-            border-bottom: 1px solid #f1f5f9;
+            border: 1px solid #eef2f7;
+            border-radius: 14px;
+            grid-column: 2;
+            grid-row: 1 / span 2;
         }
 
         .vehicle-log-image {
             display: block;
             width: 100%;
-            max-width: 198px;
+            max-width: 138px;
             margin: 0 auto;
             object-fit: contain;
             filter: none;
@@ -503,8 +600,11 @@
         .vehicle-log-content {
             display: flex;
             flex-direction: column;
-            gap: 0;
-            padding: 0 14px 14px;
+            gap: 12px;
+            padding: 0;
+            min-width: 0;
+            grid-column: 1;
+            grid-row: 1;
         }
 
         .vehicle-log-card-head {
@@ -532,30 +632,41 @@
             word-break: break-all;
         }
 
-        .vehicle-log-edit-btn {
+        .vehicle-log-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .vehicle-log-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .vehicle-log-chip {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            border: none;
-            border-radius: 0;
-            background: transparent;
+            min-height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #1e3a8a;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1;
+            max-width: 100%;
+        }
+
+        .vehicle-log-team-text {
+            font-size: 13px;
             color: #475569;
-            cursor: pointer;
-            flex: 0 0 auto;
-            box-shadow: none;
-        }
-
-        .vehicle-log-edit-btn:hover {
-            color: #0f172a;
-        }
-
-        .vehicle-log-edit-btn svg {
-            width: 20px;
-            height: 20px;
-            display: block;
+            font-weight: 700;
+            line-height: 1.5;
         }
 
         .address-row {
@@ -1017,11 +1128,36 @@
         }
 
         .vehicle-log-modal .modal-title {
-            margin-bottom: 18px;
+            margin-bottom: 8px;
         }
 
         .vehicle-log-modal-actions {
             margin-top: 18px;
+        }
+
+        .vehicle-log-modal-id {
+            margin: 0 0 18px;
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .api-modal {
+            max-width: 520px;
+            padding: 24px;
+        }
+
+        .api-modal .modal-title {
+            margin-bottom: 8px;
+        }
+
+        .api-modal-sub {
+            margin: 0 0 18px;
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+            font-weight: 600;
         }
 
         #parkingSearchResults {
@@ -1130,7 +1266,23 @@
             }
 
             .vehicle-log-image {
-                max-width: 220px;
+                max-width: 170px;
+            }
+
+            .vehicle-log-card {
+                grid-template-columns: 1fr;
+                padding: 14px;
+            }
+
+            .vehicle-log-content,
+            .vehicle-log-summary,
+            .vehicle-log-visual {
+                grid-column: auto;
+                grid-row: auto;
+            }
+
+            .vehicle-log-visual {
+                min-height: 110px;
             }
 
             .address-row {
@@ -1211,7 +1363,7 @@
                     <button type="button" class="menu-item" data-target="panel-restaurant">추천식당 설정</button>
                     <button type="button" class="menu-item" data-target="panel-api">API 설정</button>
                     <button type="button" class="menu-item" data-target="panel-location">출발·복귀지 설정</button>
-                    <button type="button" class="menu-item" data-target="panel-vehicle-log">운행일지 설정</button>
+                    <button type="button" class="menu-item" data-target="panel-vehicle-log">차량 설정</button>
                     <button type="button" class="menu-item" data-target="panel-admin">관리자 비밀번호 설정</button>
                 </div>
             </div>
@@ -1221,47 +1373,81 @@
                     <h3 class="panel-title">API 설정</h3>
                     <p class="panel-desc">외부 연동에 필요한 API 정보를 설정합니다.</p>
 
-                    <form class="settings-form" data-section="api">
-                        <div class="location-sections">
-                            <div class="location-section">
-                                <h4 class="location-section-title">NAVER Cloud</h4>
-                                <div class="form-grid">
-                                    <div class="form-group">
-                                        <label for="client_id">Client ID</label>
-                                        <input type="text" id="client_id" name="client_id" value="{{ settings.api.client_id }}">
+                    <form class="settings-form" data-section="api" id="apiSettingsForm">
+                        <div class="setting-cards">
+                            <div class="setting-card api-setting-card" data-provider="naver">
+                                <div class="setting-card-head">
+                                    <div>
+                                        <h4 class="setting-card-title">NAVER</h4>
+                                        <div class="setting-card-sub">Cloud Platform 경로 API 인증 정보</div>
                                     </div>
-
-                                    <div class="form-group">
-                                        <label for="client_secret">Client Secret</label>
-                                        <input type="text" id="client_secret" name="client_secret" value="{{ settings.api.client_secret }}">
+                                    <button type="button" class="icon-only-btn api-edit-btn" aria-label="NAVER 설정 수정" title="NAVER 설정 수정">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="setting-card-values">
+                                    <div class="setting-card-row">
+                                        <span class="setting-card-label">Client ID</span>
+                                        <span class="setting-card-value masked-value api-display-client-id">{{ '***' if settings.api.client_id else '미입력' }}</span>
+                                    </div>
+                                    <div class="setting-card-row">
+                                        <span class="setting-card-label">Client Secret</span>
+                                        <span class="setting-card-value masked-value api-display-client-secret">{{ '***' if settings.api.client_secret else '미입력' }}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="location-section">
-                                <h4 class="location-section-title">Tmap</h4>
-                                <div class="form-grid">
-                                    <div class="form-group full">
-                                        <label for="tmap_app_key">App Key</label>
-                                        <input type="text" id="tmap_app_key" name="tmap_app_key" value="{{ settings.api.tmap_app_key }}">
+                            <div class="setting-card api-setting-card" data-provider="kakao">
+                                <div class="setting-card-head">
+                                    <div>
+                                        <h4 class="setting-card-title">KAKAO</h4>
+                                        <div class="setting-card-sub">Local API 주소 검색 인증 정보</div>
+                                    </div>
+                                    <button type="button" class="icon-only-btn api-edit-btn" aria-label="KAKAO 설정 수정" title="KAKAO 설정 수정">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="setting-card-values">
+                                    <div class="setting-card-row">
+                                        <span class="setting-card-label">REST API Key</span>
+                                        <span class="setting-card-value masked-value api-display-kakao-key">{{ '***' if settings.api.kakao_rest_api_key else '미입력' }}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="location-section">
-                                <h4 class="location-section-title">Kakao Local</h4>
-                                <div class="form-grid">
-                                    <div class="form-group full">
-                                        <label for="kakao_rest_api_key">REST API Key</label>
-                                        <input type="text" id="kakao_rest_api_key" name="kakao_rest_api_key" value="{{ settings.api.kakao_rest_api_key or '' }}">
+                            <div class="setting-card api-setting-card" data-provider="tmap">
+                                <div class="setting-card-head">
+                                    <div>
+                                        <h4 class="setting-card-title">TMAP</h4>
+                                        <div class="setting-card-sub">주차장 검색과 경로 보조 조회용 App Key</div>
+                                    </div>
+                                    <button type="button" class="icon-only-btn api-edit-btn" aria-label="TMAP 설정 수정" title="TMAP 설정 수정">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="setting-card-values">
+                                    <div class="setting-card-row">
+                                        <span class="setting-card-label">App Key</span>
+                                        <span class="setting-card-value masked-value api-display-tmap-key">{{ '***' if settings.api.tmap_app_key else '미입력' }}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="button-row">
-                            <button type="button" class="save-btn">변경사항 저장</button>
-                        </div>
+                        <input type="hidden" id="client_id" name="client_id" value="{{ settings.api.client_id }}">
+                        <input type="hidden" id="client_secret" name="client_secret" value="{{ settings.api.client_secret }}">
+                        <input type="hidden" id="kakao_rest_api_key" name="kakao_rest_api_key" value="{{ settings.api.kakao_rest_api_key or '' }}">
+                        <input type="hidden" id="tmap_app_key" name="tmap_app_key" value="{{ settings.api.tmap_app_key }}">
+
                         <div class="section-status"></div>
                     </form>
                 </section>
@@ -1527,8 +1713,8 @@
                     </form>
                 </section>
 
-<section id="panel-vehicle-log" class="panel">
-                    <h3 class="panel-title">운행일지 설정</h3>
+                <section id="panel-vehicle-log" class="panel">
+                    <h3 class="panel-title">차량 설정</h3>
                     <p class="panel-desc">운행일지 작성에 필요한 차량정보를 설정합니다.</p>
 
                     <form class="settings-form" data-section="user" id="vehicleLogSettingsForm">
@@ -1548,6 +1734,26 @@
                                         {% set image_file = 'casper.png' %}
                                     {% endif %}
                                     <div class="team-card vehicle-log-card" data-car-id="{{ vehicle.car_id }}" data-label="{{ vehicle.label or vehicle.car_id }}">
+                                        <div class="vehicle-log-content">
+                                            <div class="vehicle-log-card-head">
+                                                <div class="vehicle-log-card-title">
+                                                    <h4>{{ vehicle.label or vehicle.car_id }}</h4>
+                                                    <div class="vehicle-log-card-id">차량 ID: {{ vehicle.car_id }}</div>
+                                                </div>
+                                                <button type="button" class="icon-only-btn vehicle-log-edit-btn" aria-label="차량정보 수정" title="차량정보 수정">
+                                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                        <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="vehicle-log-summary">
+                                            <div class="vehicle-log-chip-row">
+                                                <span class="vehicle-log-chip vehicle-log-plate-display">{{ saved_plate_number or '차량번호 미등록' }}</span>
+                                            </div>
+                                            <div class="vehicle-log-team-text vehicle-log-team-display">{{ saved_team_assignment or '배차 미지정' }}</div>
+                                        </div>
                                         <div class="vehicle-log-visual">
                                             {% if image_file %}
                                             <img
@@ -1558,20 +1764,6 @@
                                             {% else %}
                                             <div class="vehicle-log-image-fallback">VEHICLE</div>
                                             {% endif %}
-                                        </div>
-                                        <div class="vehicle-log-content">
-                                            <div class="vehicle-log-card-head">
-                                                <div class="vehicle-log-card-title">
-                                                    <h4>{{ vehicle.label or vehicle.car_id }}</h4>
-                                                    <div class="vehicle-log-card-id">차량 ID: {{ vehicle.car_id }}</div>
-                                                </div>
-                                                <button type="button" class="vehicle-log-edit-btn" aria-label="차량정보 수정" title="차량정보 수정">
-                                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                                        <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                </button>
-                                            </div>
                                         </div>
                                         <input type="hidden" name="vehicle_log_car_id" value="{{ vehicle.car_id }}">
                                         <input type="hidden" name="vehicle_log_plate_number" value="{{ saved_plate_number }}">
@@ -1656,6 +1848,7 @@
 <div class="modal-backdrop" id="vehicleLogModal">
     <div class="modal vehicle-log-modal">
         <h3 class="modal-title" id="vehicleLogModalTitle">차량정보 수정</h3>
+        <p class="vehicle-log-modal-id" id="vehicleLogModalId">차량 ID: </p>
         <div class="form-grid" style="grid-template-columns: 1fr;">
             <div class="form-group">
                 <label for="vehicleLogModalPlateNumber">차량번호</label>
@@ -1674,6 +1867,35 @@
         <div class="modal-buttons vehicle-log-modal-actions">
             <button type="button" class="modal-btn primary" id="vehicleLogModalSaveBtn">저장</button>
             <button type="button" class="modal-btn secondary" id="vehicleLogModalCloseBtn">취소</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="apiModal">
+    <div class="modal api-modal">
+        <h3 class="modal-title" id="apiModalTitle">API 설정 수정</h3>
+        <p class="api-modal-sub" id="apiModalSub">필요한 항목만 수정 후 저장합니다.</p>
+        <div class="form-grid" style="grid-template-columns: 1fr;" id="apiModalFields">
+            <div class="form-group hidden" data-api-field="client_id">
+                <label for="apiModalClientId">Client ID</label>
+                <input type="text" id="apiModalClientId">
+            </div>
+            <div class="form-group hidden" data-api-field="client_secret">
+                <label for="apiModalClientSecret">Client Secret</label>
+                <input type="text" id="apiModalClientSecret">
+            </div>
+            <div class="form-group hidden" data-api-field="kakao_rest_api_key">
+                <label for="apiModalKakaoKey">REST API Key</label>
+                <input type="text" id="apiModalKakaoKey">
+            </div>
+            <div class="form-group hidden" data-api-field="tmap_app_key">
+                <label for="apiModalTmapKey">App Key</label>
+                <input type="text" id="apiModalTmapKey">
+            </div>
+        </div>
+        <div class="modal-buttons" style="margin-top: 18px;">
+            <button type="button" class="modal-btn primary" id="apiModalSaveBtn">저장</button>
+            <button type="button" class="modal-btn secondary" id="apiModalCloseBtn">취소</button>
         </div>
     </div>
 </div>
@@ -1794,9 +2016,20 @@
     const confirmModal = document.getElementById('confirmModal');
     const modalSaveBtn = document.getElementById('modalSaveBtn');
     const modalDiscardBtn = document.getElementById('modalDiscardBtn');
+    const apiSettingsForm = document.getElementById('apiSettingsForm');
+    const apiModal = document.getElementById('apiModal');
+    const apiModalTitle = document.getElementById('apiModalTitle');
+    const apiModalSub = document.getElementById('apiModalSub');
+    const apiModalSaveBtn = document.getElementById('apiModalSaveBtn');
+    const apiModalCloseBtn = document.getElementById('apiModalCloseBtn');
+    const apiModalClientId = document.getElementById('apiModalClientId');
+    const apiModalClientSecret = document.getElementById('apiModalClientSecret');
+    const apiModalKakaoKey = document.getElementById('apiModalKakaoKey');
+    const apiModalTmapKey = document.getElementById('apiModalTmapKey');
     const vehicleLogSettingsForm = document.getElementById('vehicleLogSettingsForm');
     const vehicleLogModal = document.getElementById('vehicleLogModal');
     const vehicleLogModalTitle = document.getElementById('vehicleLogModalTitle');
+    const vehicleLogModalId = document.getElementById('vehicleLogModalId');
     const vehicleLogModalPlateNumber = document.getElementById('vehicleLogModalPlateNumber');
     const vehicleLogModalTeamAssignment = document.getElementById('vehicleLogModalTeamAssignment');
     const vehicleLogModalSaveBtn = document.getElementById('vehicleLogModalSaveBtn');
@@ -1853,6 +2086,7 @@
     let pendingPanelId = null;
     let pendingMenuButton = null;
     let dirtyForm = null;
+    let editingApiProvider = null;
     let editingVehicleLogCard = null;
     let editingParkingRow = null;
     let pendingParkingDeleteRow = null;
@@ -2216,6 +2450,74 @@
         autoSaveTimers.set(form.id, timer);
     }
 
+    function maskSecretValue(value) {
+        const text = (value || '').trim();
+        return text ? '***' : '미입력';
+    }
+
+    function applyApiCardDisplay() {
+        if (!apiSettingsForm) return;
+        const clientId = apiSettingsForm.querySelector('#client_id')?.value || '';
+        const clientSecret = apiSettingsForm.querySelector('#client_secret')?.value || '';
+        const kakaoKey = apiSettingsForm.querySelector('#kakao_rest_api_key')?.value || '';
+        const tmapKey = apiSettingsForm.querySelector('#tmap_app_key')?.value || '';
+
+        const clientIdDisplay = apiSettingsForm.querySelector('.api-display-client-id');
+        const clientSecretDisplay = apiSettingsForm.querySelector('.api-display-client-secret');
+        const kakaoDisplay = apiSettingsForm.querySelector('.api-display-kakao-key');
+        const tmapDisplay = apiSettingsForm.querySelector('.api-display-tmap-key');
+
+        if (clientIdDisplay) clientIdDisplay.textContent = maskSecretValue(clientId);
+        if (clientSecretDisplay) clientSecretDisplay.textContent = maskSecretValue(clientSecret);
+        if (kakaoDisplay) kakaoDisplay.textContent = maskSecretValue(kakaoKey);
+        if (tmapDisplay) tmapDisplay.textContent = maskSecretValue(tmapKey);
+    }
+
+    function clearApiModal() {
+        editingApiProvider = null;
+        if (apiModalTitle) apiModalTitle.textContent = 'API 설정 수정';
+        if (apiModalSub) apiModalSub.textContent = '필요한 항목만 수정 후 저장합니다.';
+        document.querySelectorAll('#apiModalFields [data-api-field]').forEach(field => field.classList.add('hidden'));
+        if (apiModalClientId) apiModalClientId.value = '';
+        if (apiModalClientSecret) apiModalClientSecret.value = '';
+        if (apiModalKakaoKey) apiModalKakaoKey.value = '';
+        if (apiModalTmapKey) apiModalTmapKey.value = '';
+    }
+
+    function openApiModal(provider) {
+        if (!apiModal || !apiSettingsForm) return;
+        editingApiProvider = provider;
+        clearStatus(apiSettingsForm);
+        clearApiModal();
+        editingApiProvider = provider;
+
+        const clientIdInput = apiSettingsForm.querySelector('#client_id');
+        const clientSecretInput = apiSettingsForm.querySelector('#client_secret');
+        const kakaoInput = apiSettingsForm.querySelector('#kakao_rest_api_key');
+        const tmapInput = apiSettingsForm.querySelector('#tmap_app_key');
+
+        if (provider === 'naver') {
+            apiModalTitle.textContent = 'NAVER 설정 수정';
+            apiModalSub.textContent = 'Client ID와 Client Secret을 수정합니다.';
+            document.querySelector('[data-api-field="client_id"]')?.classList.remove('hidden');
+            document.querySelector('[data-api-field="client_secret"]')?.classList.remove('hidden');
+            if (apiModalClientId) apiModalClientId.value = clientIdInput?.value || '';
+            if (apiModalClientSecret) apiModalClientSecret.value = clientSecretInput?.value || '';
+        } else if (provider === 'kakao') {
+            apiModalTitle.textContent = 'KAKAO 설정 수정';
+            apiModalSub.textContent = 'REST API Key를 수정합니다.';
+            document.querySelector('[data-api-field="kakao_rest_api_key"]')?.classList.remove('hidden');
+            if (apiModalKakaoKey) apiModalKakaoKey.value = kakaoInput?.value || '';
+        } else if (provider === 'tmap') {
+            apiModalTitle.textContent = 'TMAP 설정 수정';
+            apiModalSub.textContent = 'App Key를 수정합니다.';
+            document.querySelector('[data-api-field="tmap_app_key"]')?.classList.remove('hidden');
+            if (apiModalTmapKey) apiModalTmapKey.value = tmapInput?.value || '';
+        }
+
+        apiModal.classList.add('show');
+    }
+
     function applyVehicleLogCardDisplay(card) {
         if (!card) return;
         const plateInput = card.querySelector('input[name="vehicle_log_plate_number"]');
@@ -2235,6 +2537,7 @@
     function clearVehicleLogModal() {
         editingVehicleLogCard = null;
         if (vehicleLogModalTitle) vehicleLogModalTitle.textContent = '차량정보 수정';
+        if (vehicleLogModalId) vehicleLogModalId.textContent = '차량 ID: ';
         if (vehicleLogModalPlateNumber) vehicleLogModalPlateNumber.value = '';
         if (vehicleLogModalTeamAssignment) vehicleLogModalTeamAssignment.value = '';
     }
@@ -2243,10 +2546,14 @@
         if (!card || !vehicleLogModal) return;
         editingVehicleLogCard = card;
         const label = card.dataset.label || card.dataset.carId || '차량정보';
+        const carId = card.dataset.carId || '';
         const plateValue = card.querySelector('input[name="vehicle_log_plate_number"]')?.value || '';
         const teamValue = card.querySelector('input[name="vehicle_log_team_assignment"]')?.value || '';
         if (vehicleLogModalTitle) {
             vehicleLogModalTitle.textContent = `${label} 수정`;
+        }
+        if (vehicleLogModalId) {
+            vehicleLogModalId.textContent = `차량 ID: ${carId}`;
         }
         if (vehicleLogModalPlateNumber) {
             vehicleLogModalPlateNumber.value = plateValue;
@@ -2266,6 +2573,19 @@
             editBtn.addEventListener('click', () => {
                 clearStatus(vehicleLogSettingsForm);
                 openVehicleLogModal(card);
+            });
+        });
+    }
+
+    function bindApiCards() {
+        if (!apiSettingsForm) return;
+        applyApiCardDisplay();
+        apiSettingsForm.querySelectorAll('.api-setting-card').forEach(card => {
+            const editBtn = card.querySelector('.api-edit-btn');
+            const provider = card.dataset.provider || '';
+            if (!editBtn || !provider) return;
+            editBtn.addEventListener('click', () => {
+                openApiModal(provider);
             });
         });
     }
@@ -2340,7 +2660,64 @@
         });
     });
 
+    bindApiCards();
     bindVehicleLogCards();
+
+    if (apiModalCloseBtn) {
+        apiModalCloseBtn.addEventListener('click', () => {
+            clearApiModal();
+            apiModal.classList.remove('show');
+        });
+    }
+
+    if (apiModal) {
+        apiModal.addEventListener('click', (event) => {
+            if (event.target === apiModal) {
+                clearApiModal();
+                apiModal.classList.remove('show');
+            }
+        });
+    }
+
+    if (apiModalSaveBtn) {
+        apiModalSaveBtn.addEventListener('click', async () => {
+            if (!editingApiProvider || !apiSettingsForm) return;
+
+            const clientIdInput = apiSettingsForm.querySelector('#client_id');
+            const clientSecretInput = apiSettingsForm.querySelector('#client_secret');
+            const kakaoInput = apiSettingsForm.querySelector('#kakao_rest_api_key');
+            const tmapInput = apiSettingsForm.querySelector('#tmap_app_key');
+
+            const previous = {
+                client_id: clientIdInput?.value || '',
+                client_secret: clientSecretInput?.value || '',
+                kakao_rest_api_key: kakaoInput?.value || '',
+                tmap_app_key: tmapInput?.value || '',
+            };
+
+            if (editingApiProvider === 'naver') {
+                if (clientIdInput) clientIdInput.value = (apiModalClientId?.value || '').trim();
+                if (clientSecretInput) clientSecretInput.value = (apiModalClientSecret?.value || '').trim();
+            } else if (editingApiProvider === 'kakao') {
+                if (kakaoInput) kakaoInput.value = (apiModalKakaoKey?.value || '').trim();
+            } else if (editingApiProvider === 'tmap') {
+                if (tmapInput) tmapInput.value = (apiModalTmapKey?.value || '').trim();
+            }
+
+            applyApiCardDisplay();
+            const saved = await saveForm(apiSettingsForm);
+            if (saved) {
+                clearApiModal();
+                apiModal.classList.remove('show');
+            } else {
+                if (clientIdInput) clientIdInput.value = previous.client_id;
+                if (clientSecretInput) clientSecretInput.value = previous.client_secret;
+                if (kakaoInput) kakaoInput.value = previous.kakao_rest_api_key;
+                if (tmapInput) tmapInput.value = previous.tmap_app_key;
+                applyApiCardDisplay();
+            }
+        });
+    }
 
     if (vehicleLogModalCloseBtn) {
         vehicleLogModalCloseBtn.addEventListener('click', () => {
