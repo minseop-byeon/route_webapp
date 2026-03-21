@@ -1488,6 +1488,10 @@
                                             <input type="text" id="start_address" name="start_address" value="{{ settings.user.start_address }}" readonly>
                                             <button type="button" class="search-btn" data-target-input="start_address">주소 검색</button>
                                         </div>
+                                        <div class="check-row" style="margin-top:10px;">
+                                            <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
+                                            <label for="return_same_as_start_checkbox" style="margin:0; font-weight:700; color:#475569;">출발지와 복귀지가 동일합니다.</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1504,10 +1508,6 @@
                                         <div class="address-row">
                                             <input type="text" id="return_address" name="return_address" value="{{ settings.user.return_address }}" readonly>
                                             <button type="button" class="search-btn" id="returnSearchBtn" data-target-input="return_address">주소 검색</button>
-                                        </div>
-                                        <div class="check-row" style="margin-top:10px;">
-                                            <input type="checkbox" id="return_same_as_start_checkbox" {% if settings.user.return_same_as_start %}checked{% endif %}>
-                                            <label for="return_same_as_start_checkbox" style="margin:0; font-weight:700; color:#475569;">출발지와 동일합니다.</label>
                                         </div>
                                     </div>
                                 </div>
