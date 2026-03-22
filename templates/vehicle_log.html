@@ -197,10 +197,11 @@ body::before{
   letter-spacing:-0.25px;
 }
 .detail-panel{
-  background:transparent;
-  border:none;
-  border-radius:0;
-  padding:0;
+  margin-top:10px;
+  background:#fff;
+  border:1px solid #dbe2ea;
+  border-radius:20px;
+  padding:14px 14px 12px;
   box-shadow:none;
 }
 .detail-hero{display:block;}
@@ -291,13 +292,6 @@ body::before{
 .history-header{margin-top:18px;display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;}
 .history-title{margin:0;font-size:17px;font-weight:800;letter-spacing:-0.18px;}
 .history-total{font-size:14px;color:#475569;font-weight:700;}
-.history-panel{
-  margin-top:12px;
-  padding:14px 14px 12px;
-  border:1px solid #dbe2ea;
-  border-radius:20px;
-  background:#fff;
-}
 .history-list{display:grid;gap:10px;margin-top:10px;}
 .history-item{border:1px solid #d8e1ee;border-radius:16px;padding:12px 12px 10px;background:#fff;}
 .history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
@@ -563,93 +557,91 @@ body::before{
       {% endif %}
     </div>
 
-    <section class="history-panel">
-      <div class="history-header">
-        <h3 class="history-title">{{ selected_month }}&#50900; &#50868;&#54665; &#51060;&#47141;</h3>
-        <div class="history-total">{{ selected_month }}&#50900; &#52509; &#50868;&#54665;&#44144;&#47532; {{ total_distance }}km</div>
-      </div>
+    <div class="history-header">
+      <h3 class="history-title">{{ selected_month }}&#50900; &#50868;&#54665; &#51060;&#47141;</h3>
+      <div class="history-total">{{ selected_month }}&#50900; &#52509; &#50868;&#54665;&#44144;&#47532; {{ total_distance }}km</div>
+    </div>
 
-      {% if selected_month_data.rows %}
-      <div class="history-list">
-        {% for row in selected_month_data.rows %}
-        <article class="history-item">
-          <div class="history-head">
-            <div class="history-date">{{ row.drive_date_label }}</div>
-            <button
-              type="button"
-              class="icon-only-btn history-edit-btn"
-              aria-label="&#50868;&#54665; &#51060;&#47141; &#49688;&#51221;"
-              data-drive-date="{{ row.drive_date }}"
-              data-passenger-name="{{ row.display_passenger_name }}"
-              data-start-time="{{ row.start_time or '' }}"
-              data-end-time="{{ row.end_time or '' }}"
-              data-odometer-start="{{ row.odometer_start_text or '' }}"
-              data-odometer-end="{{ row.odometer_end_text or '' }}"
-              data-distance-km="{{ row.distance_km_text or '' }}"
-              data-accident="{{ row.accident_text or '' }}"
-              data-original-passenger-name="{{ row.original_passenger_name or '' }}"
-              data-original-start-time="{{ row.original_start_time or '' }}"
-              data-original-end-time="{{ row.original_end_time or '' }}"
-              data-original-odometer-start="{{ row.original_odometer_start or '' }}"
-              data-original-odometer-end="{{ row.original_odometer_end or '' }}"
-              data-original-distance-km="{{ row.original_distance_km or '' }}"
-              data-original-accident="{{ row.original_accident or '' }}"
-            >
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
+    {% if selected_month_data.rows %}
+    <div class="history-list">
+      {% for row in selected_month_data.rows %}
+      <article class="history-item">
+        <div class="history-head">
+          <div class="history-date">{{ row.drive_date_label }}</div>
+          <button
+            type="button"
+            class="icon-only-btn history-edit-btn"
+            aria-label="&#50868;&#54665; &#51060;&#47141; &#49688;&#51221;"
+            data-drive-date="{{ row.drive_date }}"
+            data-passenger-name="{{ row.display_passenger_name }}"
+            data-start-time="{{ row.start_time or '' }}"
+            data-end-time="{{ row.end_time or '' }}"
+            data-odometer-start="{{ row.odometer_start_text or '' }}"
+            data-odometer-end="{{ row.odometer_end_text or '' }}"
+            data-distance-km="{{ row.distance_km_text or '' }}"
+            data-accident="{{ row.accident_text or '' }}"
+            data-original-passenger-name="{{ row.original_passenger_name or '' }}"
+            data-original-start-time="{{ row.original_start_time or '' }}"
+            data-original-end-time="{{ row.original_end_time or '' }}"
+            data-original-odometer-start="{{ row.original_odometer_start or '' }}"
+            data-original-odometer-end="{{ row.original_odometer_end or '' }}"
+            data-original-distance-km="{{ row.original_distance_km or '' }}"
+            data-original-accident="{{ row.original_accident or '' }}"
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="history-body">
+          <div class="history-row">
+            <div class="history-label">&#53457;&#49849;&#51088;</div>
+            <div class="history-value">{{ row.display_passenger_name }}</div>
           </div>
-          <div class="history-body">
-            <div class="history-row">
-              <div class="history-label">&#53457;&#49849;&#51088;</div>
-              <div class="history-value">{{ row.display_passenger_name }}</div>
-            </div>
-            <div class="history-row">
-              <div class="history-label">&#52636;&#48156;</div>
-              <div class="history-pair">
-                <div class="history-pair-box">
-                  <span class="history-pair-title">&#52636;&#48156;&#49884;&#44036;</span>
-                  <span class="history-pair-value">{{ row.start_time or '-' }}</span>
-                </div>
-                <div class="history-pair-box">
-                  <span class="history-pair-title">&#52636;&#48156;&#53412;&#47196;&#49688;</span>
-                  <span class="history-pair-value">{{ row.odometer_start_display }}</span>
-                </div>
+          <div class="history-row">
+            <div class="history-label">&#52636;&#48156;</div>
+            <div class="history-pair">
+              <div class="history-pair-box">
+                <span class="history-pair-title">&#52636;&#48156;&#49884;&#44036;</span>
+                <span class="history-pair-value">{{ row.start_time or '-' }}</span>
               </div>
-            </div>
-            <div class="history-row">
-              <div class="history-label">&#48373;&#44480;</div>
-              <div class="history-pair">
-                <div class="history-pair-box">
-                  <span class="history-pair-title">&#48373;&#44480;&#49884;&#44036;</span>
-                  <span class="history-pair-value">{{ row.end_time or '-' }}</span>
-                </div>
-                <div class="history-pair-box">
-                  <span class="history-pair-title">&#48373;&#44480;&#53412;&#47196;&#49688;</span>
-                  <span class="history-pair-value">{{ row.odometer_end_display }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="history-stat-grid">
-              <div class="history-stat-card">
-                <span class="history-stat-title">&#50868;&#54665;&#44144;&#47532;</span>
-                <span class="history-stat-value">{{ row.distance_display }}</span>
-              </div>
-              <div class="history-stat-card">
-                <span class="history-stat-title">&#49324;&#44256;&#50976;&#47924;</span>
-                <span class="history-stat-value{% if row.accident_is_yes %} history-accident-yes{% endif %}">{{ row.accident_display }}</span>
+              <div class="history-pair-box">
+                <span class="history-pair-title">&#52636;&#48156;&#53412;&#47196;&#49688;</span>
+                <span class="history-pair-value">{{ row.odometer_start_display }}</span>
               </div>
             </div>
           </div>
-        </article>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="empty-box">{{ selected_month }}&#50900; &#50868;&#54665; &#51060;&#47141;&#51060; &#50630;&#49845;&#45768;&#45796;.</div>
-      {% endif %}
-    </section>
+          <div class="history-row">
+            <div class="history-label">&#48373;&#44480;</div>
+            <div class="history-pair">
+              <div class="history-pair-box">
+                <span class="history-pair-title">&#48373;&#44480;&#49884;&#44036;</span>
+                <span class="history-pair-value">{{ row.end_time or '-' }}</span>
+              </div>
+              <div class="history-pair-box">
+                <span class="history-pair-title">&#48373;&#44480;&#53412;&#47196;&#49688;</span>
+                <span class="history-pair-value">{{ row.odometer_end_display }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="history-stat-grid">
+            <div class="history-stat-card">
+              <span class="history-stat-title">&#50868;&#54665;&#44144;&#47532;</span>
+              <span class="history-stat-value">{{ row.distance_display }}</span>
+            </div>
+            <div class="history-stat-card">
+              <span class="history-stat-title">&#49324;&#44256;&#50976;&#47924;</span>
+              <span class="history-stat-value{% if row.accident_is_yes %} history-accident-yes{% endif %}">{{ row.accident_display }}</span>
+            </div>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-box">{{ selected_month }}&#50900; &#50868;&#54665; &#51060;&#47141;&#51060; &#50630;&#49845;&#45768;&#45796;.</div>
+    {% endif %}
   </section>
   {% endif %}
 
