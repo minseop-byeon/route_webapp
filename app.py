@@ -2738,6 +2738,17 @@ def vehicle_log_page():
     enabled_months = [item["month"] for item in month_sections if item.get("enabled")]
     prev_month = next((month for month in reversed(enabled_months) if month < selected_month), None)
     next_month = next((month for month in enabled_months if month > selected_month), None)
+    visible_months = []
+    for month in range(selected_month - 2, selected_month + 3):
+        if month < 1 or month > 12:
+            continue
+        month_info = month_map.get(month) or {}
+        visible_months.append({
+            "month": month,
+            "label": f"{month}월",
+            "enabled": bool(month_info.get("enabled")),
+            "active": month == selected_month,
+        })
     total_distance_all = 0
     for item in month_sections:
         if item["month"] <= today_value.month:
@@ -2753,6 +2764,7 @@ def vehicle_log_page():
         selected_month_data=selected_month_data,
         prev_month=prev_month,
         next_month=next_month,
+        visible_months=visible_months,
         db_message=db_message,
         history_error=history_error,
         default_recipient_email=get_default_recipient_email(),
