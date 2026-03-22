@@ -324,6 +324,11 @@ body::before{
 .history-stat-title{display:block;font-size:11px;color:#64748b;font-weight:700;line-height:1.3;}
 .history-stat-value{display:block;margin-top:1px;font-size:13px;color:#111827;font-weight:850;line-height:1.3;}
 .history-stat-card.passenger-card{grid-column:1 / -1;}
+.history-stat-card.start-card{grid-column:1 / -1;}
+.history-inline-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:6px;}
+.history-inline-item{padding:0;}
+.history-inline-title{display:block;font-size:11px;color:#64748b;font-weight:700;line-height:1.3;}
+.history-inline-value{display:block;margin-top:1px;font-size:13px;color:#111827;font-weight:850;line-height:1.3;}
 .history-accident-yes{color:var(--danger);}
 .empty-box{
   margin-top:10px;
@@ -596,19 +601,6 @@ body::before{
         </div>
         <div class="history-body">
           <div class="history-row">
-            <div class="history-label">&#52636;&#48156;</div>
-            <div class="history-pair">
-              <div class="history-pair-box">
-                <span class="history-pair-title">&#52636;&#48156;&#49884;&#44036;</span>
-                <span class="history-pair-value">{{ row.start_time or '-' }}</span>
-              </div>
-              <div class="history-pair-box">
-                <span class="history-pair-title">&#52636;&#48156;&#53412;&#47196;&#49688;</span>
-                <span class="history-pair-value">{{ row.odometer_start_display }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="history-row">
             <div class="history-label">&#48373;&#44480;</div>
             <div class="history-pair">
               <div class="history-pair-box">
@@ -622,6 +614,19 @@ body::before{
             </div>
           </div>
           <div class="history-stat-grid">
+            <div class="history-stat-card start-card">
+              <span class="history-stat-title">&#52636;&#48156;</span>
+              <div class="history-inline-grid">
+                <div class="history-inline-item">
+                  <span class="history-inline-title">&#52636;&#48156;&#49884;&#44036;</span>
+                  <span class="history-inline-value">{{ row.start_time or '-' }}</span>
+                </div>
+                <div class="history-inline-item">
+                  <span class="history-inline-title">&#52636;&#48156;&#53412;&#47196;&#49688;</span>
+                  <span class="history-inline-value">{{ row.odometer_start_display }}</span>
+                </div>
+              </div>
+            </div>
             <div class="history-stat-card passenger-card">
               <span class="history-stat-title">&#53457;&#49849;&#51088;</span>
               <span class="history-stat-value">{{ row.display_passenger_name }}</span>
