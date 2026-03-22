@@ -933,6 +933,18 @@ body::before{
   const historyModalCloseBtn = document.getElementById('historyModalCloseBtn');
   const historyEditButtons = document.querySelectorAll('.history-edit-btn');
 
+  function syncHistoryDistanceKm() {
+    const startValue = String(historyOdometerStart?.value || '').trim();
+    const endValue = String(historyOdometerEnd?.value || '').trim();
+    if (!startValue || !endValue) return;
+
+    const startNumber = Number(startValue.replace(/,/g, ''));
+    const endNumber = Number(endValue.replace(/,/g, ''));
+    if (!Number.isFinite(startNumber) || !Number.isFinite(endNumber)) return;
+
+    historyDistanceKm.value = String(endNumber - startNumber);
+  }
+
   function openHistoryModal(button) {
     const driveDate = button.dataset.driveDate || '';
     historyModalTitle.textContent = '\uC6B4\uD589 \uC774\uB825 \uC218\uC815';
@@ -967,6 +979,14 @@ body::before{
 
   if (historyModalCloseBtn) {
     historyModalCloseBtn.addEventListener('click', closeHistoryModal);
+  }
+
+  if (historyOdometerStart) {
+    historyOdometerStart.addEventListener('input', syncHistoryDistanceKm);
+  }
+
+  if (historyOdometerEnd) {
+    historyOdometerEnd.addEventListener('input', syncHistoryDistanceKm);
   }
 
   historyModal.addEventListener('click', function(event) {

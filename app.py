@@ -696,6 +696,17 @@ def _vehicle_log_key(car_id, drive_date_text):
     return f"{car_id}|{drive_date_text}"
 
 
+def calculate_vehicle_log_distance_km(odometer_start, odometer_end, fallback=None):
+    try:
+        if odometer_start is None or odometer_end is None:
+            return fallback
+        start_value = int(str(odometer_start).strip())
+        end_value = int(str(odometer_end).strip())
+        return end_value - start_value
+    except Exception:
+        return fallback
+
+
 def _normalize_vehicle_log_payload(payload):
     normalized = {}
     normalized["passenger_name"] = str(payload.get("passenger_name") or "").strip() or None
@@ -711,6 +722,11 @@ def _normalize_vehicle_log_payload(payload):
             normalized[field] = None
     if normalized["accident"] == "":
         normalized["accident"] = None
+    normalized["distance_km"] = calculate_vehicle_log_distance_km(
+        normalized.get("odometer_start"),
+        normalized.get("odometer_end"),
+        normalized.get("distance_km"),
+    )
     return normalized
 
 
@@ -1011,6 +1027,11 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
             row["accident"] = override_item.get("accident")
             row["source"] = "현재앱 수정"
 
+        row["distance_km"] = calculate_vehicle_log_distance_km(
+            row.get("odometer_start"),
+            row.get("odometer_end"),
+            row.get("distance_km"),
+        )
         row["odometer_start_text"] = "" if row["odometer_start"] is None else str(row["odometer_start"])
         row["odometer_end_text"] = "" if row["odometer_end"] is None else str(row["odometer_end"])
         row["distance_km_text"] = "" if row["distance_km"] is None else str(row["distance_km"])
