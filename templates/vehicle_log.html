@@ -136,8 +136,8 @@ body::before{
   display:flex;
   flex-direction:column;
   align-items:flex-start;
-  gap:12px;
-  margin-bottom:18px;
+  gap:10px;
+  margin-bottom:16px;
 }
 .detail-vehicle-label{
   font-size:26px;
@@ -145,17 +145,20 @@ body::before{
   color:#111827;
   line-height:1.1;
   letter-spacing:-0.35px;
+  margin-left:2px;
 }
 .detail-visual{
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
-  min-height:176px;
+  gap:10px;
+  min-height:212px;
   width:100%;
-  padding:18px;
+  padding:18px 18px 16px;
   border-radius:22px;
-  border:1px solid #e7edf5;
-  background:linear-gradient(180deg,#fbfcff 0%,#f4f7fb 100%);
+  border:1px solid #e2e8f0;
+  background:#fff;
   overflow:hidden;
 }
 .detail-image{display:block;width:100%;max-width:260px;object-fit:contain;}
@@ -173,79 +176,99 @@ body::before{
   letter-spacing:.05em;
   background:#fff;
 }
+.detail-visual-meta{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+  text-align:center;
+}
+.detail-visual-label{
+  font-size:12px;
+  line-height:1.4;
+  font-weight:700;
+  color:#64748b;
+}
+.detail-visual-value{
+  font-size:20px;
+  line-height:1.2;
+  font-weight:850;
+  color:#111827;
+  letter-spacing:-0.25px;
+}
 .detail-panel{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:18px;
-  box-shadow:0 10px 24px rgba(15,23,42,.05);
+  background:transparent;
+  border:none;
+  border-radius:0;
+  padding:0;
+  box-shadow:none;
 }
 .detail-hero{display:block;}
-.detail-copy{display:flex;flex-direction:column;gap:14px;min-width:0;}
-.detail-title-wrap{display:flex;flex-direction:column;gap:10px;}
+.detail-copy{display:flex;flex-direction:column;gap:8px;min-width:0;}
+.detail-title-wrap{display:flex;flex-direction:column;gap:2px;}
 .detail-title{margin:0;font-size:32px;font-weight:850;line-height:1.08;letter-spacing:-0.45px;color:#111827;}
-.detail-total{
-  display:inline-flex;
-  align-items:center;
-  min-height:36px;
-  width:max-content;
-  max-width:100%;
-  padding:0 14px;
-  border-radius:999px;
-  background:var(--chip);
-  color:#1e3a8a;
-  font-size:14px;
+.detail-subtitle{
+  font-size:18px;
+  line-height:1.35;
   font-weight:800;
+  color:#111827;
+  letter-spacing:-0.22px;
 }
 .month-pager{
-  margin-top:24px;
-  display:grid;
-  grid-template-columns:56px minmax(0,1fr) 56px;
-  gap:12px;
+  margin-top:14px;
+  display:flex;
   align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  min-height:26px;
+}
+.month-pager-spacer{
+  flex:0 0 auto;
+  width:16px;
+  height:1px;
 }
 .month-nav{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:56px;
-  height:56px;
-  border:1px solid var(--border);
-  border-radius:18px;
-  background:#fff;
-  color:#0f172a;
+  width:18px;
+  height:18px;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  color:#6b7280;
   text-decoration:none;
-  transition:.15s ease;
+  transition:color .15s ease;
 }
-.month-nav:hover{border-color:#bfd1ee;background:#f8fbff;}
+.month-nav:hover{color:#111827;background:transparent;}
 .month-nav.disabled{
-  border-color:#e5e7eb;
-  background:#f8fafc;
   color:#94a3b8;
   pointer-events:none;
   cursor:default;
 }
-.month-nav svg{width:22px;height:22px;display:block;}
+.month-nav svg{width:18px;height:18px;display:block;}
 .month-current{
-  min-height:56px;
   display:flex;
   align-items:center;
-  justify-content:center;
-  border:1px solid #dbe2ea;
-  border-radius:18px;
-  background:#fff;
-  font-size:20px;
+  justify-content:flex-start;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  min-height:0;
+  padding:0;
+  font-size:17px;
   font-weight:850;
   color:#111827;
-  letter-spacing:-0.25px;
+  line-height:1.35;
+  letter-spacing:-0.2px;
 }
-.history-header{margin-top:24px;display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;}
-.history-title{margin:0;font-size:19px;font-weight:800;letter-spacing:-0.2px;}
-.history-total{font-size:15px;color:#1e3a8a;font-weight:800;}
-.history-list{display:grid;gap:12px;margin-top:14px;}
-.history-item{border:1px solid var(--border);border-radius:18px;padding:16px;background:#fff;}
+.history-header{margin-top:18px;display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+.history-title{margin:0;font-size:17px;font-weight:800;letter-spacing:-0.18px;}
+.history-total{font-size:14px;color:#475569;font-weight:700;}
+.history-list{display:grid;gap:8px;margin-top:10px;}
+.history-item{border:1px solid #e5e7eb;border-radius:14px;padding:12px 12px 11px;background:#fff;}
 .history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
-.history-date{font-size:18px;font-weight:850;color:#0f172a;line-height:1.25;}
+.history-date{font-size:16px;font-weight:850;color:#0f172a;line-height:1.25;}
 .icon-only-btn{
   display:inline-flex;
   align-items:center;
@@ -262,18 +285,18 @@ body::before{
 }
 .icon-only-btn:hover{color:#0f172a;}
 .icon-only-btn svg{width:20px;height:20px;display:block;}
-.history-body{display:grid;gap:12px;margin-top:14px;}
-.history-row{display:grid;grid-template-columns:116px minmax(0,1fr);gap:10px;align-items:start;}
+.history-body{display:grid;gap:8px;margin-top:10px;}
+.history-row{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;align-items:start;}
 .history-label{font-size:12px;color:#64748b;font-weight:700;line-height:1.6;}
-.history-value{font-size:15px;color:#111827;font-weight:800;line-height:1.55;word-break:break-word;}
-.history-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-.history-pair-box{padding:12px 14px;border-radius:14px;background:#f8fafc;border:1px solid #edf2f7;}
+.history-value{font-size:14px;color:#111827;font-weight:800;line-height:1.5;word-break:break-word;}
+.history-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.history-pair-box{padding:0;border:none;border-radius:0;background:transparent;}
 .history-pair-title{display:block;font-size:12px;color:#64748b;font-weight:700;}
-.history-pair-value{display:block;margin-top:5px;font-size:15px;color:#111827;font-weight:800;line-height:1.4;}
-.history-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-.history-stat-card{padding:13px 14px;border-radius:16px;background:#f8fafc;border:1px solid #edf2f7;}
+.history-pair-value{display:block;margin-top:2px;font-size:14px;color:#111827;font-weight:800;line-height:1.4;}
+.history-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.history-stat-card{padding:0;border:none;border-radius:0;background:transparent;}
 .history-stat-title{display:block;font-size:12px;color:#64748b;font-weight:700;}
-.history-stat-value{display:block;margin-top:6px;font-size:18px;color:#111827;font-weight:850;line-height:1.3;}
+.history-stat-value{display:block;margin-top:2px;font-size:14px;color:#111827;font-weight:850;line-height:1.4;}
 .history-accident-yes{color:var(--danger);}
 .empty-box{
   margin-top:14px;
@@ -376,9 +399,9 @@ body::before{
   .detail-vehicle-label{font-size:22px;}
   .detail-title{font-size:26px;}
   .detail-image{max-width:220px;}
-  .month-pager{grid-template-columns:48px minmax(0,1fr) 48px;gap:10px;}
-  .month-nav{width:48px;height:48px;border-radius:16px;}
-  .month-current{min-height:48px;font-size:18px;border-radius:16px;}
+  .detail-visual-value{font-size:18px;}
+  .month-pager{gap:8px;}
+  .month-current{font-size:16px;}
   .history-row{grid-template-columns:1fr;}
   .history-pair{grid-template-columns:1fr;}
   .history-stat-grid{grid-template-columns:1fr;}
@@ -451,13 +474,17 @@ body::before{
   </section>
   {% else %}
   <section class="detail-vehicle-head">
-    <div class="detail-vehicle-label">{{ selected_vehicle.label }}</div>
+    <div class="detail-vehicle-label">{{ selected_vehicle.plate_number or selected_vehicle.label }}</div>
     <div class="detail-visual">
       {% if selected_vehicle.image_file %}
       <img class="detail-image" src="{{ url_for('static', filename='images/' ~ selected_vehicle.image_file) }}" alt="{{ selected_vehicle.label }}">
       {% else %}
       <div class="detail-image-fallback">VEHICLE</div>
       {% endif %}
+      <div class="detail-visual-meta">
+        <div class="detail-visual-label">&#52509; &#50868;&#54665;&#44144;&#47532;</div>
+        <div class="detail-visual-value">{{ total_distance_all }}km</div>
+      </div>
     </div>
   </section>
 
@@ -466,7 +493,7 @@ body::before{
       <div class="detail-copy">
         <div class="detail-title-wrap">
           <h2 class="detail-title">{{ selected_vehicle.plate_number or selected_vehicle.label }}</h2>
-          <div class="detail-total">{{ selected_month }}&#50900; &#52509; &#50868;&#54665;&#44144;&#47532; {{ total_distance }}km</div>
+          <div class="detail-subtitle">&#50868;&#54665;&#51060;&#47141;</div>
         </div>
       </div>
     </div>
@@ -477,7 +504,7 @@ body::before{
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       </a>
       {% else %}
-      <span class="month-nav disabled" aria-hidden="true">
+      <span class="month-nav disabled month-pager-spacer" aria-hidden="true">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18L9 12L15 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       </span>
       {% endif %}
@@ -489,7 +516,7 @@ body::before{
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6L15 12L9 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       </a>
       {% else %}
-      <span class="month-nav disabled" aria-hidden="true">
+      <span class="month-nav disabled month-pager-spacer" aria-hidden="true">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6L15 12L9 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
       </span>
       {% endif %}
