@@ -495,6 +495,59 @@ def get_vehicle_log_main_drivers(settings=None):
     return main_drivers if isinstance(main_drivers, dict) else {}
 
 
+def update_vehicle_log_setting(settings, car_id, plate_number="", team_name="", main_driver=""):
+    car_id = str(car_id or "").strip()
+    if not car_id:
+        raise ValueError("차량 ID가 올바르지 않습니다.")
+
+    plate_number = str(plate_number or "").strip()
+    team_name = str(team_name or "").strip()
+    main_driver = str(main_driver or "").strip()
+
+    team_users = normalize_team_users((settings.get("user") or {}).get("team_users", {}))
+    plate_map = dict(get_vehicle_log_plate_numbers(settings))
+    team_assignment_map = dict(get_vehicle_log_team_assignments(settings))
+    main_driver_map = dict(get_vehicle_log_main_drivers(settings))
+
+    if plate_number:
+        plate_map[car_id] = plate_number
+    else:
+        plate_map.pop(car_id, None)
+
+    if team_name:
+        if team_name not in team_users:
+            raise ValueError("배차는 등록된 조만 선택할 수 있습니다.")
+        for assigned_car_id, assigned_team_name in team_assignment_map.items():
+            if assigned_car_id == car_id:
+                continue
+            if str(assigned_team_name or "").strip() == team_name:
+                raise ValueError("같은 조는 한 대의 차량에만 배차할 수 있습니다.")
+        team_assignment_map[car_id] = team_name
+    else:
+        team_assignment_map.pop(car_id, None)
+
+    effective_team_name = str(team_assignment_map.get(car_id) or "").strip()
+    if main_driver:
+        if not effective_team_name:
+            raise ValueError("주 운전자를 선택하려면 먼저 배차를 지정해 주세요.")
+        team_members = list(team_users.get(effective_team_name, []))
+        if team_members and main_driver not in team_members:
+            raise ValueError("주 운전자는 배차된 조의 인원 중에서만 선택할 수 있습니다.")
+        main_driver_map[car_id] = main_driver
+    else:
+        main_driver_map.pop(car_id, None)
+
+    settings["vehicle_log"]["plate_numbers"] = plate_map
+    settings["vehicle_log"]["team_assignments"] = team_assignment_map
+    settings["vehicle_log"]["main_drivers"] = main_driver_map
+
+    return {
+        "plate_number": plate_map.get(car_id, ""),
+        "team_assignment": team_assignment_map.get(car_id, ""),
+        "main_driver": main_driver_map.get(car_id, ""),
+    }
+
+
 def get_tmap_app_key():
     settings = load_settings()
     return (settings.get("api", {}).get("tmap_app_key") or TMAP_DEFAULT_APP_KEY).strip()
@@ -2689,6 +2742,8 @@ initialize_storage()
 def vehicle_log_page():
     vehicles, db_message = get_vehicle_log_vehicles()
     vehicle_map = {item.get("car_id"): item for item in vehicles}
+    settings = load_settings()
+    team_users_map = normalize_team_users((settings.get("user") or {}).get("team_users", {}))
     today_value = date.today()
     default_start = date(today_value.year, 3, 1)
     default_end = date(today_value.year, 10, 31)
@@ -2741,6 +2796,8 @@ def vehicle_log_page():
             row_count=0,
             default_recipient_email=get_default_recipient_email(),
             db_path=get_vehicle_log_db_path(),
+            vehicle_team_names=list(team_users_map.keys()),
+            vehicle_team_users=team_users_map,
         )
 
     rows = []
@@ -2806,6 +2863,8 @@ def vehicle_log_page():
         main_driver=selected_vehicle.get("main_driver") or "",
         row_count=len(selected_month_data.get("rows", [])),
         db_path=get_vehicle_log_db_path(),
+        vehicle_team_names=list(team_users_map.keys()),
+        vehicle_team_users=team_users_map,
     )
 
 
@@ -3226,6 +3285,24 @@ def save_admin_settings_section():
 
     except Exception as e:
         return jsonify({"success": False, "message": f"저장 중 오류가 발생했습니다: {e}"}), 500
+
+
+@app.route("/vehicle-log/save-vehicle-settings", methods=["POST"])
+def vehicle_log_save_vehicle_settings():
+    settings = load_settings()
+    car_id = (request.form.get("car_id") or "").strip()
+    try:
+        payload = update_vehicle_log_setting(
+            settings,
+            car_id=car_id,
+            plate_number=request.form.get("plate_number"),
+            team_name=request.form.get("team_assignment"),
+            main_driver=request.form.get("main_driver"),
+        )
+        save_settings(settings)
+        return jsonify({"success": True, "message": "차량정보를 저장했습니다.", "data": payload})
+    except Exception as exc:
+        return jsonify({"success": False, "message": str(exc)}), 400
 
 
 @app.route("/planner/resolve-qr-items", methods=["POST"])

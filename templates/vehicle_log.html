@@ -147,6 +147,32 @@ body::before{
   letter-spacing:-0.28px;
   margin-left:0;
 }
+.detail-vehicle-tools{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.detail-vehicle-chip{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid #dbe2ea;
+  background:#f8fafc;
+  color:#475569;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.2;
+}
+.detail-vehicle-edit{
+  width:24px;
+  height:24px;
+  color:#94a3b8;
+}
+.detail-vehicle-edit:hover{color:#0f172a;}
 .detail-visual{
   display:flex;
   flex-direction:column;
@@ -435,6 +461,8 @@ body::before{
   .vehicle-card{grid-template-columns:minmax(0,1fr) 112px;padding:16px;}
   .vehicle-title{font-size:20px;}
   .detail-vehicle-label{font-size:22px;}
+  .detail-vehicle-tools{align-items:flex-start;}
+  .detail-vehicle-chip{font-size:11px;}
   .detail-title{font-size:17px;}
   .detail-image{max-width:220px;}
   .detail-visual-value{font-size:18px;}
@@ -514,6 +542,15 @@ body::before{
   {% else %}
   <section class="detail-vehicle-head">
     <div class="detail-vehicle-label">{{ selected_vehicle.plate_number or '차량번호 미등록' }}</div>
+    <div class="detail-vehicle-tools">
+      <span class="detail-vehicle-chip">{{ selected_vehicle.label or '차량이름 미등록' }}</span>
+      <button type="button" class="icon-only-btn detail-vehicle-edit" id="vehicleSettingsOpenBtn" aria-label="차량정보 수정" title="차량정보 수정">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="m14.75 6.25 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
     <div class="detail-visual">
       {% if selected_vehicle.image_file %}
       <img class="detail-image" src="{{ url_for('static', filename='images/' ~ selected_vehicle.image_file) }}" alt="{{ selected_vehicle.label }}">
@@ -521,7 +558,7 @@ body::before{
       <div class="detail-image-fallback">VEHICLE</div>
       {% endif %}
       <div class="detail-visual-meta">
-        <div class="detail-visual-label">&#52509; &#50868;&#54665;&#44144;&#47532;</div>
+        <div class="detail-visual-label">전체 운행거리</div>
         <div class="detail-visual-value">{{ total_distance_all }}km</div>
       </div>
     </div>
@@ -671,6 +708,38 @@ body::before{
 </div>
 
 {% if selected_vehicle %}
+<div class="modal-backdrop" id="vehicleSettingsModal">
+  <div class="modal vehicle-log-modal">
+    <h3 class="modal-title" id="vehicleSettingsModalTitle">차량정보 수정</h3>
+    <p class="vehicle-log-modal-id" id="vehicleSettingsModalId">차량 ID: {{ selected_vehicle.car_id }}</p>
+    <div class="form-grid" style="grid-template-columns: 1fr;">
+      <div class="form-group">
+        <label for="vehicleSettingsPlateNumber">차량번호</label>
+        <input type="text" id="vehicleSettingsPlateNumber" value="{{ selected_vehicle.plate_number or '' }}" placeholder="예: 14호1983">
+      </div>
+      <div class="form-group">
+        <label for="vehicleSettingsTeamAssignment">배차</label>
+        <select id="vehicleSettingsTeamAssignment">
+          <option value="">배차 미지정</option>
+          {% for team_name in vehicle_team_names %}
+          <option value="{{ team_name }}" {% if selected_vehicle.assigned_team == team_name %}selected{% endif %}>{{ team_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="vehicleSettingsMainDriver">주 운전자</label>
+        <select id="vehicleSettingsMainDriver">
+          <option value="">자동 선택</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-buttons vehicle-log-modal-actions">
+      <button type="button" class="modal-btn primary" id="vehicleSettingsSaveBtn">저장</button>
+      <button type="button" class="modal-btn secondary" id="vehicleSettingsCloseBtn">취소</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="historyModal">
   <div class="modal">
     <h3 class="modal-title" id="historyModalTitle">&#50868;&#54665; &#51060;&#47141; &#49688;&#51221;</h3>
@@ -747,6 +816,89 @@ body::before{
       if (!menuPopover.contains(event.target) && !menuButton.contains(event.target)) {
         menuPopover.classList.remove('show');
         menuButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  const vehicleSettingsOpenBtn = document.getElementById('vehicleSettingsOpenBtn');
+  const vehicleSettingsModal = document.getElementById('vehicleSettingsModal');
+  const vehicleSettingsCloseBtn = document.getElementById('vehicleSettingsCloseBtn');
+  const vehicleSettingsSaveBtn = document.getElementById('vehicleSettingsSaveBtn');
+  const vehicleSettingsPlateNumber = document.getElementById('vehicleSettingsPlateNumber');
+  const vehicleSettingsTeamAssignment = document.getElementById('vehicleSettingsTeamAssignment');
+  const vehicleSettingsMainDriver = document.getElementById('vehicleSettingsMainDriver');
+  const vehicleTeamUsers = {{ vehicle_team_users|tojson }};
+  const selectedVehicleCarId = {{ (selected_vehicle.car_id or '')|tojson }};
+  const selectedVehicleMainDriver = {{ (selected_vehicle.main_driver or '')|tojson }};
+
+  function syncVehicleSettingsDriverOptions(teamName, selectedDriver) {
+    if (!vehicleSettingsMainDriver) return;
+    const users = Array.isArray(vehicleTeamUsers[teamName]) ? [...vehicleTeamUsers[teamName]] : [];
+    users.sort((a, b) => String(a).localeCompare(String(b), 'ko'));
+    vehicleSettingsMainDriver.innerHTML = '<option value="">자동 선택</option>';
+    users.forEach((userName) => {
+      const option = document.createElement('option');
+      option.value = userName;
+      option.textContent = userName;
+      vehicleSettingsMainDriver.appendChild(option);
+    });
+    vehicleSettingsMainDriver.value = selectedDriver && users.includes(selectedDriver) ? selectedDriver : '';
+  }
+
+  function openVehicleSettingsModal() {
+    if (!vehicleSettingsModal) return;
+    syncVehicleSettingsDriverOptions(vehicleSettingsTeamAssignment?.value || '', selectedVehicleMainDriver);
+    vehicleSettingsModal.classList.add('show');
+  }
+
+  function closeVehicleSettingsModal() {
+    if (!vehicleSettingsModal) return;
+    vehicleSettingsModal.classList.remove('show');
+  }
+
+  if (vehicleSettingsOpenBtn) {
+    vehicleSettingsOpenBtn.addEventListener('click', openVehicleSettingsModal);
+  }
+
+  if (vehicleSettingsCloseBtn) {
+    vehicleSettingsCloseBtn.addEventListener('click', closeVehicleSettingsModal);
+  }
+
+  if (vehicleSettingsModal) {
+    vehicleSettingsModal.addEventListener('click', function(event) {
+      if (event.target === vehicleSettingsModal) {
+        closeVehicleSettingsModal();
+      }
+    });
+  }
+
+  if (vehicleSettingsTeamAssignment) {
+    vehicleSettingsTeamAssignment.addEventListener('change', function() {
+      syncVehicleSettingsDriverOptions(vehicleSettingsTeamAssignment.value || '', '');
+    });
+  }
+
+  if (vehicleSettingsSaveBtn) {
+    vehicleSettingsSaveBtn.addEventListener('click', async function() {
+      const formData = new FormData();
+      formData.set('car_id', selectedVehicleCarId);
+      formData.set('plate_number', vehicleSettingsPlateNumber?.value || '');
+      formData.set('team_assignment', vehicleSettingsTeamAssignment?.value || '');
+      formData.set('main_driver', vehicleSettingsMainDriver?.value || '');
+
+      try {
+        const response = await fetch('/vehicle-log/save-vehicle-settings', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || '차량정보를 저장하지 못했습니다.');
+        }
+        closeVehicleSettingsModal();
+        window.location.reload();
+      } catch (error) {
+        window.alert(error.message || '차량정보를 저장하지 못했습니다.');
       }
     });
   }
