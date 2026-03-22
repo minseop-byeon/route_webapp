@@ -20,6 +20,7 @@ except Exception:
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "replace-this-with-your-secure-secret-key")
 app.logger.setLevel(logging.INFO)
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 START_ADDRESS = "서울특별시 종로구 율곡로2길 19"
 RETURN_ADDRESS = "서울특별시 종로구 율곡로2길 19"
@@ -29,6 +30,7 @@ SETTINGS_FILE = "admin_settings.json"
 GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
 VEHICLE_LOG_OVERRIDES_FILE = "vehicle_log_overrides.json"
+VEHICLE_LOG_BUNDLED_DB_FILE = "vehicle_log_source.db"
 VEHICLE_LOG_DB_PATH_DEFAULT = r"C:\Users\MINSEOP\Desktop\개발\hyundai-api-test\app.db"
 VEHICLE_LOG_EDITABLE_FIELDS = (
     "passenger_name",
@@ -567,7 +569,38 @@ def resolve_kakao_address(query: str):
 
 
 def get_vehicle_log_db_path():
-    return (os.getenv("VEHICLE_LOG_DB_PATH") or VEHICLE_LOG_DB_PATH_DEFAULT).strip()
+    for candidate in get_vehicle_log_db_candidates():
+        if os.path.exists(candidate):
+            return candidate
+    candidates = get_vehicle_log_db_candidates()
+    return candidates[0] if candidates else ""
+
+
+def get_vehicle_log_db_candidates():
+    candidates = []
+    env_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
+    if env_path:
+        candidates.append(env_path)
+    candidates.append(os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE))
+    candidates.append(VEHICLE_LOG_DB_PATH_DEFAULT)
+
+    unique_candidates = []
+    seen = set()
+    for item in candidates:
+        path = str(item or "").strip()
+        if not path:
+            continue
+        normalized_path = os.path.normpath(path)
+        if normalized_path in seen:
+            continue
+        seen.add(normalized_path)
+        unique_candidates.append(path)
+    return unique_candidates
+
+
+def get_vehicle_log_db_missing_message():
+    searched = ", ".join(get_vehicle_log_db_candidates())
+    return f"차량운행 DB 파일을 찾지 못했습니다. 검색 경로: {searched}"
 
 
 def get_vehicle_log_overrides():
@@ -673,9 +706,9 @@ def get_vehicle_log_vehicles():
     main_driver_map = get_vehicle_log_main_drivers(settings)
     team_users_map = normalize_team_users((settings.get("user") or {}).get("team_users", {}))
     if not db_path:
-        return [], "차량운행 DB 경로가 설정되지 않았습니다."
+        return [], get_vehicle_log_db_missing_message()
     if not os.path.exists(db_path):
-        return [], f"차량운행 DB 파일을 찾지 못했습니다: {db_path}"
+        return [], get_vehicle_log_db_missing_message()
 
     try:
         with sqlite3.connect(db_path) as conn:
@@ -824,7 +857,7 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
 
     db_path = get_vehicle_log_db_path()
     if not db_path or not os.path.exists(db_path):
-        return [], f"차량운행 DB 파일을 찾지 못했습니다: {db_path}"
+        return [], get_vehicle_log_db_missing_message()
 
     try:
         with sqlite3.connect(db_path) as conn:
