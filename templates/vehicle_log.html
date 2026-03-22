@@ -139,6 +139,13 @@ body::before{
   gap:8px;
   margin-bottom:14px;
 }
+.detail-vehicle-top{
+  width:100%;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
 .detail-vehicle-label{
   font-size:23px;
   font-weight:800;
@@ -147,24 +154,17 @@ body::before{
   letter-spacing:-0.28px;
   margin-left:0;
 }
-.detail-vehicle-tools{
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
 .detail-vehicle-chip{
   display:inline-flex;
   align-items:center;
   min-height:28px;
   padding:0 10px;
   border-radius:999px;
-  border:1px solid #dbe2ea;
-  background:#f8fafc;
-  color:#475569;
+  border:1px solid #bfd1ee;
+  background:#eaf2ff;
+  color:#1d4ed8;
   font-size:12px;
-  font-weight:700;
+  font-weight:800;
   line-height:1.2;
 }
 .detail-vehicle-edit{
@@ -186,6 +186,11 @@ body::before{
   border:1px solid #dbe2ea;
   background:#fff;
   overflow:hidden;
+}
+.detail-visual-chip-wrap{
+  width:100%;
+  display:flex;
+  justify-content:flex-start;
 }
 .detail-image{display:block;width:100%;max-width:260px;object-fit:contain;}
 .detail-image-fallback{
@@ -461,7 +466,7 @@ body::before{
   .vehicle-card{grid-template-columns:minmax(0,1fr) 112px;padding:16px;}
   .vehicle-title{font-size:20px;}
   .detail-vehicle-label{font-size:22px;}
-  .detail-vehicle-tools{align-items:flex-start;}
+  .detail-vehicle-top{align-items:flex-start;}
   .detail-vehicle-chip{font-size:11px;}
   .detail-title{font-size:17px;}
   .detail-image{max-width:220px;}
@@ -541,9 +546,8 @@ body::before{
   </section>
   {% else %}
   <section class="detail-vehicle-head">
-    <div class="detail-vehicle-label">{{ selected_vehicle.plate_number or '차량번호 미등록' }}</div>
-    <div class="detail-vehicle-tools">
-      <span class="detail-vehicle-chip">{{ selected_vehicle.label or '차량이름 미등록' }}</span>
+    <div class="detail-vehicle-top">
+      <div class="detail-vehicle-label">{{ selected_vehicle.plate_number or '차량번호 미등록' }}</div>
       <button type="button" class="icon-only-btn detail-vehicle-edit" id="vehicleSettingsOpenBtn" aria-label="차량정보 수정" title="차량정보 수정">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M15.518 5.43a1.5 1.5 0 0 1 2.121 0l.931.931a1.5 1.5 0 0 1 0 2.121l-8.937 8.937-3.218.537.537-3.218 8.566-8.308Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -552,6 +556,9 @@ body::before{
       </button>
     </div>
     <div class="detail-visual">
+      <div class="detail-visual-chip-wrap">
+        <span class="detail-vehicle-chip">{{ selected_vehicle.label or '차량이름 미등록' }}</span>
+      </div>
       {% if selected_vehicle.image_file %}
       <img class="detail-image" src="{{ url_for('static', filename='images/' ~ selected_vehicle.image_file) }}" alt="{{ selected_vehicle.label }}">
       {% else %}
