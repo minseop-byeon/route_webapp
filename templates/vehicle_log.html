@@ -196,7 +196,13 @@ body::before{
   color:#111827;
   letter-spacing:-0.25px;
 }
-.detail-panel{margin-top:8px;}
+.detail-panel{
+  margin-top:8px;
+  background:#fff;
+  border:1px solid #dbe2ea;
+  border-radius:20px;
+  padding:12px 12px 10px;
+}
 .detail-hero{display:block;}
 .detail-copy{display:flex;flex-direction:column;gap:10px;min-width:0;}
 .detail-title-wrap{
@@ -509,15 +515,15 @@ body::before{
     </div>
   </section>
 
-  <div class="detail-hero">
-    <div class="detail-copy">
-      <div class="detail-title-wrap">
-        <h2 class="detail-title">&#50868;&#54665;&#51060;&#47141;</h2>
+  <section class="detail-panel">
+    <div class="detail-hero">
+      <div class="detail-copy">
+        <div class="detail-title-wrap">
+          <h2 class="detail-title">&#50868;&#54665;&#51060;&#47141;</h2>
+        </div>
       </div>
     </div>
-  </div>
 
-  <section class="detail-panel">
     <div class="month-pager">
       {% if prev_month %}
       <a class="month-nav" href="{{ url_for('vehicle_log_page', car_id=selected_car_id, month=prev_month) }}" aria-label="이전 월">
