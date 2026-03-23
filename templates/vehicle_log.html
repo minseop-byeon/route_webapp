@@ -515,8 +515,18 @@ body::before{
   {% if db_message %}
     <div class="notice-box">{{ db_message }}</div>
   {% endif %}
+  {% if db_status and db_status.warning_messages %}
+    {% for message in db_status.warning_messages %}
+    <div class="notice-box">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
   {% if history_error %}
     <div class="notice-box">{{ history_error }}</div>
+  {% endif %}
+  {% if db_status and db_status.exists %}
+    <div class="notice-box">
+      DB {{ db_status.source }} | 최신 운행일 {{ db_status.latest_report_date or '-' }} | 최신 로그일 {{ db_status.latest_log_date or '-' }} | 운행 {{ db_status.report_count }}건 | 로그 {{ db_status.log_count }}건
+    </div>
   {% endif %}
 
   {% if not selected_vehicle %}

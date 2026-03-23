@@ -656,6 +656,97 @@ def get_vehicle_log_db_missing_message():
     return f"차량운행 DB 파일을 찾지 못했습니다. 검색 경로: {searched}"
 
 
+def get_vehicle_log_db_status(today_value=None):
+    today_value = today_value or date.today()
+    candidates = get_vehicle_log_db_candidates()
+    selected_path = ""
+    selected_source = "missing"
+    bundled_path = os.path.normpath(os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE))
+    default_path = os.path.normpath(VEHICLE_LOG_DB_PATH_DEFAULT)
+    env_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
+    normalized_env = os.path.normpath(env_path) if env_path else ""
+
+    for candidate in candidates:
+        if not os.path.exists(candidate):
+            continue
+        selected_path = candidate
+        normalized_selected = os.path.normpath(candidate)
+        if normalized_env and normalized_selected == normalized_env:
+            selected_source = "env"
+        elif normalized_selected == bundled_path:
+            selected_source = "bundled"
+        elif normalized_selected == default_path:
+            selected_source = "default"
+        else:
+            selected_source = "other"
+        break
+
+    status = {
+        "path": selected_path or (candidates[0] if candidates else ""),
+        "exists": bool(selected_path and os.path.exists(selected_path)),
+        "source": selected_source,
+        "latest_report_date": "",
+        "latest_log_date": "",
+        "report_count": 0,
+        "log_count": 0,
+        "warning_messages": [],
+    }
+    if not status["exists"]:
+        status["warning_messages"].append(get_vehicle_log_db_missing_message())
+        return status
+
+    try:
+        with sqlite3.connect(selected_path) as conn:
+            latest_report_raw = conn.execute("SELECT MAX(drive_date) FROM daily_reports").fetchone()[0]
+            latest_log_raw = conn.execute("SELECT MAX(log_date) FROM odometer_logs").fetchone()[0]
+            report_count = conn.execute("SELECT COUNT(*) FROM daily_reports").fetchone()[0]
+            log_count = conn.execute("SELECT COUNT(*) FROM odometer_logs").fetchone()[0]
+    except Exception as exc:
+        app.logger.exception("Failed to inspect vehicle log DB status.")
+        status["warning_messages"].append(f"李⑤웾?댄뻾 DB ?곹깭瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲?? {exc}")
+        return status
+
+    def parse_date(value):
+        raw = str(value or "").strip()
+        if not raw:
+            return None
+        try:
+            return date.fromisoformat(raw)
+        except ValueError:
+            return None
+
+    latest_report_date = parse_date(latest_report_raw)
+    latest_log_date = parse_date(latest_log_raw)
+    status["latest_report_date"] = latest_report_date.isoformat() if latest_report_date else ""
+    status["latest_log_date"] = latest_log_date.isoformat() if latest_log_date else ""
+    status["report_count"] = int(report_count or 0)
+    status["log_count"] = int(log_count or 0)
+
+    if status["source"] == "bundled":
+        status["warning_messages"].append(
+            "현재 운행이력은 앱에 포함된 번들 DB를 읽고 있습니다. 운영 DB 연결이 없으면 최신 이동이 반영되지 않을 수 있습니다."
+        )
+
+    if not latest_report_date and not latest_log_date:
+        status["warning_messages"].append("운행이력 DB에 수집 데이터가 없습니다.")
+        return status
+
+    stale_reference = latest_report_date or latest_log_date
+    if stale_reference:
+        stale_days = (today_value - stale_reference).days
+        if stale_days >= 1:
+            status["warning_messages"].append(
+                f"운행이력 DB 최신 일자가 {stale_reference.isoformat()} 로 {stale_days}일 지연되어 있습니다."
+            )
+
+    if latest_log_date and latest_report_date and latest_log_date > latest_report_date:
+        status["warning_messages"].append(
+            f"주행 로그 최신일({latest_log_date.isoformat()})이 운행이력 최신일({latest_report_date.isoformat()})보다 앞서 있습니다. 일일 리포트 생성 점검이 필요합니다."
+        )
+
+    return status
+
+
 def get_vehicle_log_overrides():
     data = load_persistent_json("vehicle_log_overrides", VEHICLE_LOG_OVERRIDES_FILE, {})
     return data if isinstance(data, dict) else {}
@@ -2766,6 +2857,7 @@ def vehicle_log_page():
     settings = load_settings()
     team_users_map = normalize_team_users((settings.get("user") or {}).get("team_users", {}))
     today_value = date.today()
+    db_status = get_vehicle_log_db_status(today_value)
     default_start = date(today_value.year, 3, 1)
     default_end = date(today_value.year, 10, 31)
     default_month = today_value.month if 3 <= today_value.month <= 10 else 3
@@ -2817,6 +2909,7 @@ def vehicle_log_page():
             row_count=0,
             default_recipient_email=get_default_recipient_email(),
             db_path=get_vehicle_log_db_path(),
+            db_status=db_status,
             vehicle_team_names=list(team_users_map.keys()),
             vehicle_team_users=team_users_map,
         )
@@ -2884,6 +2977,7 @@ def vehicle_log_page():
         main_driver=selected_vehicle.get("main_driver") or "",
         row_count=len(selected_month_data.get("rows", [])),
         db_path=get_vehicle_log_db_path(),
+        db_status=db_status,
         vehicle_team_names=list(team_users_map.keys()),
         vehicle_team_users=team_users_map,
     )
