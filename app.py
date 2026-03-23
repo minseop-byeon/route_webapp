@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, Response, flash, abort, jsonify
+﻿from flask import Flask, render_template, request, redirect, url_for, session, Response, flash, abort, jsonify
 import requests
 import os
 import json
@@ -116,6 +116,7 @@ RETURN_LIMIT = 16 * 60 + 30
 BEAM_WIDTH = 24
 LOCAL_IMPROVE_ITER = 80
 MAX_PARTIAL_CANDIDATES = 1200
+ORDER_CANDIDATE_LIMIT = 12
 APP_STATE_TABLE = "app_state"
 ROUTE_CACHE_MEMORY = None
 ROUTE_CACHE_DIRTY = False
@@ -1973,10 +1974,10 @@ def partial_path_score(path, visits, dist_matrix, time_matrix):
     )
 
 
-def beam_search_route(visits, dist_matrix, time_matrix):
+def beam_search_route_candidates(visits, dist_matrix, time_matrix, top_k=BEAM_WIDTH):
     n = len(visits)
     if n == 0:
-        return []
+        return [[]]
 
     seeds = []
     nn = nearest_neighbor_seed(visits, dist_matrix)
@@ -2027,7 +2028,24 @@ def beam_search_route(visits, dist_matrix, time_matrix):
         if len(candidates) > MAX_PARTIAL_CANDIDATES:
             beams = beams[:BEAM_WIDTH]
 
-    return min(beams, key=lambda x: x[1])[0]
+    beams.sort(key=lambda x: x[1])
+    unique_orders = []
+    seen = set()
+    for path, _score in beams:
+        key = tuple(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_orders.append(path)
+
+    if not unique_orders:
+        unique_orders = [best_seed]
+
+    return unique_orders[:max(1, int(top_k or 1))]
+
+
+def beam_search_route(visits, dist_matrix, time_matrix):
+    return beam_search_route_candidates(visits, dist_matrix, time_matrix, top_k=1)[0]
 
 
 def two_opt(order, dist_matrix, time_matrix, visits, max_iter=LOCAL_IMPROVE_ITER):
@@ -2139,13 +2157,79 @@ def or_opt_improve(order, dist_matrix, time_matrix, visits, max_iter=LOCAL_IMPRO
     return best
 
 
-def optimize_route(visits, dist_matrix, time_matrix):
-    order = beam_search_route(visits, dist_matrix, time_matrix)
+def optimize_route_from_order(base_order, visits, dist_matrix, time_matrix):
+    order = list(base_order or [])
     order = two_opt(order, dist_matrix, time_matrix, visits)
     order = relocate_improve(order, dist_matrix, time_matrix, visits)
     order = or_opt_improve(order, dist_matrix, time_matrix, visits)
     order = two_opt(order, dist_matrix, time_matrix, visits)
     return order
+
+
+def optimize_route(visits, dist_matrix, time_matrix):
+    order = beam_search_route(visits, dist_matrix, time_matrix)
+    return optimize_route_from_order(order, visits, dist_matrix, time_matrix)
+
+
+def optimize_route_candidates(visits, dist_matrix, time_matrix, max_candidates=ORDER_CANDIDATE_LIMIT):
+    n = len(visits)
+    if n == 0:
+        return [[]]
+
+    max_candidates = max(1, int(max_candidates or 1))
+
+    seeds = []
+    nn = nearest_neighbor_seed(visits, dist_matrix)
+    ga = greedy_appointment_seed(visits, dist_matrix, time_matrix)
+    seeds.append(nn)
+    if ga != nn:
+        seeds.append(ga)
+
+    appointment_nodes = [i for i, v in enumerate(visits, start=1) if v["has_appointment"]]
+    if appointment_nodes:
+        earliest_appt_node = min(
+            appointment_nodes,
+            key=lambda x: visits[x - 1]["appointment_minute"] if visits[x - 1]["appointment_minute"] is not None else (24 * 60),
+        )
+        remaining = [x for x in range(1, n + 1) if x != earliest_appt_node]
+        remaining.sort(key=lambda x: dist_matrix[earliest_appt_node][x])
+        seeds.append([earliest_appt_node] + remaining)
+
+    beam_orders = beam_search_route_candidates(visits, dist_matrix, time_matrix, top_k=max(BEAM_WIDTH, max_candidates))
+    seeds.extend(beam_orders)
+
+    unique_seed_orders = []
+    seen_seed = set()
+    for order in seeds:
+        key = tuple(order)
+        if len(order) != n or key in seen_seed:
+            continue
+        seen_seed.add(key)
+        unique_seed_orders.append(order)
+        if len(unique_seed_orders) >= max_candidates * 2:
+            break
+
+    optimized_orders = []
+    for base in unique_seed_orders:
+        improved = optimize_route_from_order(base, visits, dist_matrix, time_matrix)
+        optimized_orders.append(improved)
+        optimized_orders.append(base)
+
+    ranked = []
+    seen_ranked = set()
+    for order in optimized_orders:
+        key = tuple(order)
+        if len(order) != n or key in seen_ranked:
+            continue
+        seen_ranked.add(key)
+        score = partial_path_score(order, visits, dist_matrix, time_matrix) + route_distance_with_return(order, dist_matrix)
+        ranked.append((score, order))
+
+    ranked.sort(key=lambda x: x[0])
+    if not ranked:
+        return [optimize_route(visits, dist_matrix, time_matrix)]
+
+    return [order for _score, order in ranked[:max_candidates]]
 
 
 def append_wait_block(route_view, start_min, end_min, name="대기"):
@@ -2645,15 +2729,15 @@ def simulate_order(order, visits, time_matrix, distance_matrix, start_display_ad
 
             if visit["has_appointment"]:
                 target = visit["appointment_minute"]
+                if target is not None and arrival_time > target:
+                    # Appointment is a hard constraint: skip this branch immediately.
+                    continue
                 if target is not None and arrival_time < target:
                     # Keep movement first and waiting after arrival when both are adjacent.
                     # (travel -> wait is allowed, wait -> travel is not allowed)
                     added_wait_count = append_wait_block(new_route, arrival_time, target, wait_label)
                     added_wait_total = target - arrival_time
                     arrival_time = target
-                if arrival_time > target:
-                    appt_violation += 1
-                    appt_late += arrival_time - target
 
             add_visit_block(new_route, visit_no + 1, visit, arrival_time, travel_m, travel_min)
             new_time = arrival_time + visit["service_time"]
@@ -2690,42 +2774,39 @@ def choose_best_schedule(visits, distance_matrix, time_matrix, start_display_add
         save_route_cache(force=True)
         return [], result
 
-    order = optimize_route(visits, distance_matrix, time_matrix)
     best = None
-    for start_time in build_departure_candidates(order, visits, time_matrix):
-        candidate = simulate_order(
-            order,
-            visits,
-            time_matrix,
-            distance_matrix,
-            start_display_address,
-            return_display_address,
-            coords,
-            trip_date,
-            start_time=start_time,
-            leg_cache=shared_leg_cache,
-            route_cache=route_cache,
-        )
-        if candidate is None:
-            continue
-        if best is None or candidate["score"] < best["score"]:
-            best = candidate
+    best_order = []
+    candidate_orders = optimize_route_candidates(visits, distance_matrix, time_matrix, max_candidates=ORDER_CANDIDATE_LIMIT)
+    if candidate_orders:
+        best_order = candidate_orders[0]
+
+    for order in candidate_orders:
+        for start_time in build_departure_candidates(order, visits, time_matrix):
+            candidate = simulate_order(
+                order,
+                visits,
+                time_matrix,
+                distance_matrix,
+                start_display_address,
+                return_display_address,
+                coords,
+                trip_date,
+                start_time=start_time,
+                leg_cache=shared_leg_cache,
+                route_cache=route_cache,
+            )
+            if candidate is None:
+                continue
+            if best is None or candidate["score"] < best["score"]:
+                best = candidate
+                best_order = order
+
     if best is None:
-        best = simulate_order(
-            order,
-            visits,
-            time_matrix,
-            distance_matrix,
-            start_display_address,
-            return_display_address,
-            coords,
-            trip_date,
-            start_time=DAY_START,
-            leg_cache=shared_leg_cache,
-            route_cache=route_cache,
-        )
+        save_route_cache(force=True)
+        return best_order, None
+
     save_route_cache(force=True)
-    return order, best
+    return best_order, best
 
 
 def choose_shortest_distance_order(visits, distance_matrix):
@@ -3771,13 +3852,19 @@ def planner():
             )
 
         if best is None:
+            has_any_appointment = any(v.get("has_appointment") for v in visits)
+            fail_message = (
+                "지정한 약속시간을 모두 만족하는 경로를 찾지 못했습니다. 약속시간, 방문 순서, 방문 소요시간을 조정해 주세요."
+                if has_any_appointment
+                else "조건에 맞는 경로를 계산하지 못했습니다."
+            )
             payload = {
                 "route": [],
                 "total_count": len(visits),
                 "total_distance": "--",
                 "total_time": "--",
                 "end_time": "--:--",
-                "warning_message": "조건에 맞는 경로를 계산하지 못했습니다.",
+                "warning_message": fail_message,
                 "team_no": trip_meta["team_no"],
                 "user_name": trip_meta["user_name"],
                 "trip_date": trip_meta["trip_date"]
