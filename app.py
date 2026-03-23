@@ -7,6 +7,7 @@ import math
 import html
 import smtplib
 import sqlite3
+import time
 from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from zoneinfo import ZoneInfo
@@ -31,7 +32,19 @@ GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
 VEHICLE_LOG_OVERRIDES_FILE = "vehicle_log_overrides.json"
 VEHICLE_LOG_BUNDLED_DB_FILE = "vehicle_log_source.db"
+VEHICLE_LOG_REMOTE_CACHE_DB_FILE = "vehicle_log_remote_cache.db"
 VEHICLE_LOG_DB_PATH_DEFAULT = r"C:\Users\MINSEOP\Desktop\개발\hyundai-api-test\app.db"
+VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT = (
+    os.getenv("VEHICLE_LOG_REMOTE_SNAPSHOT_URL")
+    or "https://raw.githubusercontent.com/minseop-byeon/hyundai-log/main/vehicle_log_snapshot.db"
+).strip()
+try:
+    VEHICLE_LOG_REMOTE_CACHE_TTL_SECONDS = max(
+        60,
+        int((os.getenv("VEHICLE_LOG_REMOTE_CACHE_TTL_SECONDS") or "300").strip() or "300"),
+    )
+except Exception:
+    VEHICLE_LOG_REMOTE_CACHE_TTL_SECONDS = 300
 VEHICLE_LOG_EDITABLE_FIELDS = (
     "passenger_name",
     "start_time",
@@ -630,10 +643,14 @@ def get_vehicle_log_db_path():
 
 
 def get_vehicle_log_db_candidates():
+    refresh_vehicle_log_remote_snapshot()
     candidates = []
     env_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
     if env_path:
         candidates.append(env_path)
+    remote_cache_path = get_vehicle_log_remote_cache_path()
+    if remote_cache_path:
+        candidates.append(remote_cache_path)
     candidates.append(os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE))
     candidates.append(VEHICLE_LOG_DB_PATH_DEFAULT)
 
@@ -662,6 +679,7 @@ def get_vehicle_log_db_status(today_value=None):
     selected_path = ""
     selected_source = "missing"
     bundled_path = os.path.normpath(os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE))
+    remote_cache_path = os.path.normpath(get_vehicle_log_remote_cache_path()) if get_vehicle_log_remote_cache_path() else ""
     default_path = os.path.normpath(VEHICLE_LOG_DB_PATH_DEFAULT)
     env_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
     normalized_env = os.path.normpath(env_path) if env_path else ""
@@ -673,6 +691,8 @@ def get_vehicle_log_db_status(today_value=None):
         normalized_selected = os.path.normpath(candidate)
         if normalized_env and normalized_selected == normalized_env:
             selected_source = "env"
+        elif remote_cache_path and normalized_selected == remote_cache_path:
+            selected_source = "remote"
         elif normalized_selected == bundled_path:
             selected_source = "bundled"
         elif normalized_selected == default_path:
@@ -856,6 +876,42 @@ def build_vehicle_log_passenger_summary(main_driver, team_members):
     if others:
         return f"{driver_name} 외 {others}명"
     return driver_name
+
+
+def get_vehicle_log_remote_cache_path():
+    if not VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT:
+        return ""
+    return os.path.join(APP_ROOT, VEHICLE_LOG_REMOTE_CACHE_DB_FILE)
+
+
+def refresh_vehicle_log_remote_snapshot(force=False):
+    cache_path = get_vehicle_log_remote_cache_path()
+    if not cache_path:
+        return ""
+    try:
+        if (
+            not force
+            and os.path.exists(cache_path)
+            and (time.time() - os.path.getmtime(cache_path)) < VEHICLE_LOG_REMOTE_CACHE_TTL_SECONDS
+        ):
+            return cache_path
+    except Exception:
+        pass
+
+    try:
+        response = requests.get(VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT, timeout=10)
+        response.raise_for_status()
+        payload = response.content
+        if not payload:
+            return cache_path if os.path.exists(cache_path) else ""
+        temp_path = f"{cache_path}.tmp"
+        with open(temp_path, "wb") as f:
+            f.write(payload)
+        os.replace(temp_path, cache_path)
+        return cache_path
+    except Exception:
+        app.logger.warning("Failed to refresh remote vehicle log snapshot.")
+        return cache_path if os.path.exists(cache_path) else ""
 
 
 def get_vehicle_log_vehicles():
