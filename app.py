@@ -678,10 +678,10 @@ def resolve_kakao_address(query: str):
 
 
 def get_vehicle_log_db_path():
-    for candidate in get_vehicle_log_db_candidates():
-        if os.path.exists(candidate):
-            return candidate
     candidates = get_vehicle_log_db_candidates()
+    selected_path, _source, _meta = select_vehicle_log_db(candidates)
+    if selected_path:
+        return selected_path
     return candidates[0] if candidates else ""
 
 
@@ -711,6 +711,103 @@ def get_vehicle_log_db_candidates():
     return unique_candidates
 
 
+def _vehicle_log_source_label(path, env_path="", remote_cache_path="", bundled_path="", default_path=""):
+    normalized = os.path.normpath(str(path or "").strip())
+    if not normalized:
+        return "missing"
+    if env_path and normalized == env_path:
+        return "env"
+    if remote_cache_path and normalized == remote_cache_path:
+        return "remote"
+    if bundled_path and normalized == bundled_path:
+        return "bundled"
+    if default_path and normalized == default_path:
+        return "default"
+    return "other"
+
+
+def inspect_vehicle_log_db(path):
+    empty = {
+        "path": path or "",
+        "exists": bool(path and os.path.exists(path)),
+        "valid": False,
+        "latest_report_date": "",
+        "latest_log_date": "",
+        "report_count": 0,
+        "log_count": 0,
+    }
+    if not empty["exists"]:
+        return empty
+
+    try:
+        with sqlite3.connect(path) as conn:
+            report_count = int(conn.execute("SELECT COUNT(*) FROM daily_reports").fetchone()[0] or 0)
+            log_count = int(conn.execute("SELECT COUNT(*) FROM odometer_logs").fetchone()[0] or 0)
+            latest_report_raw = conn.execute("SELECT MAX(drive_date) FROM daily_reports").fetchone()[0]
+            latest_log_raw = conn.execute("SELECT MAX(log_date) FROM odometer_logs").fetchone()[0]
+
+        return {
+            "path": path,
+            "exists": True,
+            "valid": True,
+            "latest_report_date": str(latest_report_raw or "").strip(),
+            "latest_log_date": str(latest_log_raw or "").strip(),
+            "report_count": report_count,
+            "log_count": log_count,
+        }
+    except Exception:
+        return empty
+
+
+def select_vehicle_log_db(candidates):
+    bundled_path = os.path.normpath(os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE))
+    remote_cache_path = os.path.normpath(get_vehicle_log_remote_cache_path()) if get_vehicle_log_remote_cache_path() else ""
+    default_path = os.path.normpath(VEHICLE_LOG_DB_PATH_DEFAULT)
+    env_path_raw = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
+    env_path = os.path.normpath(env_path_raw) if env_path_raw else ""
+
+    existing = []
+    for candidate in candidates:
+        if not os.path.exists(candidate):
+            continue
+        source = _vehicle_log_source_label(
+            candidate,
+            env_path=env_path,
+            remote_cache_path=remote_cache_path,
+            bundled_path=bundled_path,
+            default_path=default_path,
+        )
+        meta = inspect_vehicle_log_db(candidate)
+        existing.append((candidate, source, meta))
+
+    if not existing:
+        return "", "missing", None
+
+    dataful = []
+    for candidate, source, meta in existing:
+        if not meta or not meta.get("valid"):
+            continue
+        if int(meta.get("report_count") or 0) > 0 or int(meta.get("log_count") or 0) > 0:
+            dataful.append((candidate, source, meta))
+
+    if dataful:
+        source_priority = {"env": 5, "remote": 4, "default": 3, "bundled": 2, "other": 1}
+
+        def score(item):
+            _path, src, meta = item
+            latest = max(str(meta.get("latest_report_date") or ""), str(meta.get("latest_log_date") or ""))
+            return (
+                source_priority.get(src, 0),
+                latest,
+                int(meta.get("report_count") or 0) + int(meta.get("log_count") or 0),
+            )
+
+        best = max(dataful, key=score)
+        return best
+
+    return existing[0]
+
+
 def get_vehicle_log_db_missing_message():
     searched = ", ".join(get_vehicle_log_db_candidates())
     return f"차량운행 DB 파일을 찾지 못했습니다. 검색 경로: {searched}"
@@ -719,30 +816,7 @@ def get_vehicle_log_db_missing_message():
 def get_vehicle_log_db_status(today_value=None):
     today_value = today_value or date.today()
     candidates = get_vehicle_log_db_candidates()
-    selected_path = ""
-    selected_source = "missing"
-    bundled_path = os.path.normpath(os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE))
-    remote_cache_path = os.path.normpath(get_vehicle_log_remote_cache_path()) if get_vehicle_log_remote_cache_path() else ""
-    default_path = os.path.normpath(VEHICLE_LOG_DB_PATH_DEFAULT)
-    env_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
-    normalized_env = os.path.normpath(env_path) if env_path else ""
-
-    for candidate in candidates:
-        if not os.path.exists(candidate):
-            continue
-        selected_path = candidate
-        normalized_selected = os.path.normpath(candidate)
-        if normalized_env and normalized_selected == normalized_env:
-            selected_source = "env"
-        elif remote_cache_path and normalized_selected == remote_cache_path:
-            selected_source = "remote"
-        elif normalized_selected == bundled_path:
-            selected_source = "bundled"
-        elif normalized_selected == default_path:
-            selected_source = "default"
-        else:
-            selected_source = "other"
-        break
+    selected_path, selected_source, selected_meta = select_vehicle_log_db(candidates)
 
     status = {
         "path": selected_path or (candidates[0] if candidates else ""),
@@ -758,14 +832,12 @@ def get_vehicle_log_db_status(today_value=None):
         status["warning_messages"].append(get_vehicle_log_db_missing_message())
         return status
 
-    try:
-        with sqlite3.connect(selected_path) as conn:
-            latest_report_raw = conn.execute("SELECT MAX(drive_date) FROM daily_reports").fetchone()[0]
-            latest_log_raw = conn.execute("SELECT MAX(log_date) FROM odometer_logs").fetchone()[0]
-            report_count = conn.execute("SELECT COUNT(*) FROM daily_reports").fetchone()[0]
-            log_count = conn.execute("SELECT COUNT(*) FROM odometer_logs").fetchone()[0]
-    except Exception as exc:
-        app.logger.exception("Failed to inspect vehicle log DB status.")
+    if not selected_meta or not selected_meta.get("valid"):
+        selected_meta = inspect_vehicle_log_db(selected_path)
+
+    if not selected_meta or not selected_meta.get("valid"):
+        exc = "selected DB is invalid or unreadable"
+        app.logger.warning("Failed to inspect vehicle log DB status: %s", exc)
         status["warning_messages"].append(f"李⑤웾?댄뻾 DB ?곹깭瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲?? {exc}")
         return status
 
@@ -778,12 +850,12 @@ def get_vehicle_log_db_status(today_value=None):
         except ValueError:
             return None
 
-    latest_report_date = parse_date(latest_report_raw)
-    latest_log_date = parse_date(latest_log_raw)
+    latest_report_date = parse_date(selected_meta.get("latest_report_date"))
+    latest_log_date = parse_date(selected_meta.get("latest_log_date"))
     status["latest_report_date"] = latest_report_date.isoformat() if latest_report_date else ""
     status["latest_log_date"] = latest_log_date.isoformat() if latest_log_date else ""
-    status["report_count"] = int(report_count or 0)
-    status["log_count"] = int(log_count or 0)
+    status["report_count"] = int(selected_meta.get("report_count") or 0)
+    status["log_count"] = int(selected_meta.get("log_count") or 0)
 
     if status["source"] == "bundled":
         status["warning_messages"].append(
