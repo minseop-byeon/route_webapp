@@ -5,8 +5,10 @@ import json
 import logging
 import math
 import html
+import base64
 import smtplib
 import sqlite3
+import threading
 import time
 from datetime import date, datetime, timedelta
 from email.message import EmailMessage
@@ -123,6 +125,17 @@ ROUTE_CACHE_DIRTY = False
 USE_TRAFFIC_FOR_PLANNING = (os.getenv("USE_TRAFFIC_FOR_PLANNING", "0").strip() == "1")
 PARKING_RESOLVED_CACHE_KEY = None
 PARKING_RESOLVED_CACHE = []
+HYUNDAI_COLLECT_INTERVAL_SECONDS = max(60, int((os.getenv("HYUNDAI_COLLECT_INTERVAL_SECONDS") or "300").strip() or "300"))
+HYUNDAI_COLLECT_START_HOUR = max(0, min(23, int((os.getenv("HYUNDAI_COLLECT_START_HOUR") or "10").strip() or "10")))
+HYUNDAI_COLLECT_END_HOUR = max(0, min(23, int((os.getenv("HYUNDAI_COLLECT_END_HOUR") or "18").strip() or "18")))
+HYUNDAI_COLLECT_ALLOW_NON_WORKING_DAYS = (os.getenv("HYUNDAI_COLLECT_ALLOW_NON_WORKING_DAYS", "1").strip() == "1")
+ENABLE_HYUNDAI_MILEAGE_COLLECTOR = (os.getenv("ENABLE_HYUNDAI_MILEAGE_COLLECTOR", "1").strip() == "1")
+HYUNDAI_AUTH_BASE = (os.getenv("HYUNDAI_AUTH_BASE") or "").strip().rstrip("/")
+HYUNDAI_DATA_BASE = (os.getenv("HYUNDAI_DATA_BASE") or "").strip().rstrip("/")
+HYUNDAI_CLIENT_ID = (os.getenv("HYUNDAI_CLIENT_ID") or "").strip()
+HYUNDAI_CLIENT_SECRET = (os.getenv("HYUNDAI_CLIENT_SECRET") or "").strip()
+HYUNDAI_COLLECTOR_THREAD = None
+HYUNDAI_COLLECTOR_STARTED = False
 
 
 def load_json_file(path, default_value):
@@ -1047,6 +1060,369 @@ def refresh_vehicle_log_remote_snapshot(force=False):
     except Exception:
         app.logger.warning("Failed to refresh remote vehicle log snapshot.")
         return cache_path if os.path.exists(cache_path) else ""
+
+
+def _ensure_vehicle_log_collection_db():
+    cache_path = get_vehicle_log_remote_cache_path()
+    if not cache_path:
+        return ""
+    if os.path.exists(cache_path):
+        return cache_path
+
+    bundled_path = os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE)
+    if os.path.exists(bundled_path):
+        try:
+            with open(bundled_path, "rb") as src, open(cache_path, "wb") as dst:
+                dst.write(src.read())
+            return cache_path
+        except Exception:
+            app.logger.warning("Failed to seed collector DB from bundled snapshot.")
+
+    try:
+        with sqlite3.connect(cache_path) as conn:
+            conn.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS token_store (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    access_token TEXT,
+                    refresh_token TEXT,
+                    expires_at TEXT,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS vehicle_store (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    car_id TEXT NOT NULL,
+                    car_name TEXT,
+                    car_nickname TEXT,
+                    car_sellname TEXT,
+                    car_type TEXT,
+                    created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS odometer_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    car_id TEXT NOT NULL,
+                    log_date TEXT NOT NULL,
+                    log_time TEXT NOT NULL,
+                    odometer_value INTEGER NOT NULL,
+                    api_timestamp TEXT,
+                    created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS daily_reports (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    car_id TEXT NOT NULL,
+                    drive_date TEXT NOT NULL,
+                    start_time TEXT,
+                    end_time TEXT,
+                    odometer_start INTEGER,
+                    odometer_end INTEGER,
+                    distance_km INTEGER,
+                    is_working_day INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS daily_manual_entries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    car_id TEXT NOT NULL,
+                    drive_date TEXT NOT NULL,
+                    passenger_name TEXT,
+                    start_time TEXT,
+                    end_time TEXT,
+                    odometer_start INTEGER,
+                    odometer_end INTEGER,
+                    distance_km INTEGER,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                """
+            )
+        return cache_path
+    except Exception:
+        app.logger.warning("Failed to initialize empty collector DB.")
+        return ""
+
+
+def _is_collect_window(local_now):
+    if not HYUNDAI_COLLECT_ALLOW_NON_WORKING_DAYS and local_now.weekday() >= 5:
+        return False
+    if local_now.hour < HYUNDAI_COLLECT_START_HOUR or local_now.hour > HYUNDAI_COLLECT_END_HOUR:
+        return False
+    return True
+
+
+def _parse_iso_datetime(value):
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw)
+    except Exception:
+        return None
+
+
+def _hyundai_basic_auth_headers():
+    if not HYUNDAI_CLIENT_ID or not HYUNDAI_CLIENT_SECRET:
+        return None
+    basic = base64.b64encode(f"{HYUNDAI_CLIENT_ID}:{HYUNDAI_CLIENT_SECRET}".encode("utf-8")).decode("utf-8")
+    return {
+        "Authorization": f"Basic {basic}",
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
+
+def _refresh_access_token_in_db(conn, refresh_token):
+    if not HYUNDAI_AUTH_BASE:
+        return None
+    headers = _hyundai_basic_auth_headers()
+    if not headers:
+        return None
+    try:
+        response = requests.post(
+            f"{HYUNDAI_AUTH_BASE}/api/v1/user/oauth2/token",
+            data={"grant_type": "refresh_token", "refresh_token": refresh_token},
+            headers=headers,
+            timeout=20,
+        )
+        payload = response.json() if "application/json" in (response.headers.get("content-type") or "") else {}
+        access_token = str(payload.get("access_token") or "").strip()
+        if not access_token:
+            return None
+        new_refresh = str(payload.get("refresh_token") or "").strip() or refresh_token
+        expires_in = int(payload.get("expires_in") or 3600)
+        expires_at = (datetime.utcnow() + timedelta(seconds=max(expires_in - 60, 60))).isoformat(sep=" ")
+        now_iso = datetime.utcnow().isoformat(sep=" ")
+        conn.execute(
+            "UPDATE token_store SET access_token=?, refresh_token=?, expires_at=?, updated_at=? WHERE id=1",
+            (access_token, new_refresh, expires_at, now_iso),
+        )
+        conn.commit()
+        return access_token
+    except Exception:
+        app.logger.warning("Hyundai token refresh failed.")
+        return None
+
+
+def _ensure_access_token(conn):
+    row = conn.execute("SELECT id, access_token, refresh_token, expires_at FROM token_store ORDER BY id ASC LIMIT 1").fetchone()
+    if not row:
+        return None
+    access_token = str(row[1] or "").strip()
+    refresh_token = str(row[2] or "").strip()
+    expires_at = _parse_iso_datetime(row[3])
+    now_utc = datetime.utcnow()
+    if access_token and expires_at and expires_at > now_utc:
+        return access_token
+    if not refresh_token:
+        return None
+    return _refresh_access_token_in_db(conn, refresh_token)
+
+
+def _resolve_car_ids_for_collection(conn):
+    car_ids = []
+    preferred_many = str(os.getenv("HYUNDAI_CAR_IDS") or "").replace("\n", ",").split(",")
+    for raw in preferred_many:
+        v = str(raw or "").strip()
+        if v and v not in car_ids:
+            car_ids.append(v)
+    preferred_one = str(os.getenv("HYUNDAI_CAR_ID") or "").strip()
+    if preferred_one and preferred_one not in car_ids:
+        car_ids.append(preferred_one)
+    if car_ids:
+        return car_ids
+
+    rows = conn.execute("SELECT car_id FROM vehicle_store ORDER BY created_at ASC, id ASC").fetchall()
+    return [str(item[0]).strip() for item in rows if str(item[0] or "").strip()]
+
+
+def _derive_daily_report_fields_from_window(log_rows):
+    if not log_rows:
+        return None
+    min_value = min(int(row["odometer_value"]) for row in log_rows)
+    max_value = max(int(row["odometer_value"]) for row in log_rows)
+    min_rows = [row for row in log_rows if int(row["odometer_value"]) == min_value]
+    max_rows = [row for row in log_rows if int(row["odometer_value"]) == max_value]
+    return {
+        "start_time": str(min_rows[-1]["log_time"]) if min_rows else None,  # min value last maintained time
+        "end_time": str(max_rows[0]["log_time"]) if max_rows else None,      # max value first started time
+        "odometer_start": min_value,
+        "odometer_end": max_value,
+        "distance_km": max_value - min_value,
+    }
+
+
+def _upsert_daily_report_for_today(conn, car_id, target_date):
+    rows = conn.execute(
+        """
+        SELECT log_time, odometer_value
+        FROM odometer_logs
+        WHERE car_id = ? AND log_date = ?
+        ORDER BY log_time ASC
+        """,
+        (car_id, target_date),
+    ).fetchall()
+
+    window_rows = []
+    for row in rows:
+        raw = str(row["log_time"] or "").strip()
+        hh = int(raw.split(":")[0]) if ":" in raw else -1
+        if HYUNDAI_COLLECT_START_HOUR <= hh <= HYUNDAI_COLLECT_END_HOUR:
+            window_rows.append(row)
+
+    derived = _derive_daily_report_fields_from_window(window_rows)
+    if not derived:
+        return
+
+    now_iso = datetime.utcnow().isoformat(sep=" ")
+    existing = conn.execute(
+        "SELECT id FROM daily_reports WHERE car_id = ? AND drive_date = ? LIMIT 1",
+        (car_id, target_date),
+    ).fetchone()
+    if existing:
+        conn.execute(
+            """
+            UPDATE daily_reports
+            SET start_time=?, end_time=?, odometer_start=?, odometer_end=?, distance_km=?, is_working_day=1, updated_at=?
+            WHERE id=?
+            """,
+            (
+                derived["start_time"],
+                derived["end_time"],
+                derived["odometer_start"],
+                derived["odometer_end"],
+                derived["distance_km"],
+                now_iso,
+                int(existing[0]),
+            ),
+        )
+    else:
+        conn.execute(
+            """
+            INSERT INTO daily_reports (
+                car_id, drive_date, start_time, end_time, odometer_start, odometer_end, distance_km,
+                is_working_day, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+            """,
+            (
+                car_id,
+                target_date,
+                derived["start_time"],
+                derived["end_time"],
+                derived["odometer_start"],
+                derived["odometer_end"],
+                derived["distance_km"],
+                now_iso,
+                now_iso,
+            ),
+        )
+    conn.commit()
+
+
+def _collect_odometer_once(db_path):
+    if not HYUNDAI_DATA_BASE:
+        return
+    local_now = datetime.now()
+    if not _is_collect_window(local_now):
+        return
+
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        access_token = _ensure_access_token(conn)
+        if not access_token:
+            app.logger.warning("Hyundai collector: valid access token not available.")
+            return
+
+        car_ids = _resolve_car_ids_for_collection(conn)
+        if not car_ids:
+            app.logger.warning("Hyundai collector: no car_id configured.")
+            return
+
+        for car_id in car_ids:
+            try:
+                response = requests.get(
+                    f"{HYUNDAI_DATA_BASE}/api/v1/car/status/{car_id}/odometer",
+                    headers={"Authorization": f"Bearer {access_token}"},
+                    timeout=20,
+                )
+                payload = response.json() if "application/json" in (response.headers.get("content-type") or "") else {}
+                odometers = payload.get("odometers") or []
+                if not odometers:
+                    continue
+                latest = odometers[0] if isinstance(odometers[0], dict) else {}
+                value = latest.get("value")
+                if value is None:
+                    continue
+                log_date = local_now.date().isoformat()
+                log_time = local_now.strftime("%H:%M")
+                api_timestamp = str(latest.get("timestamp") or "").strip()
+                now_iso = datetime.utcnow().isoformat(sep=" ")
+
+                existing = conn.execute(
+                    """
+                    SELECT id FROM odometer_logs
+                    WHERE car_id=? AND log_date=? AND log_time=?
+                    LIMIT 1
+                    """,
+                    (car_id, log_date, log_time),
+                ).fetchone()
+                if existing:
+                    conn.execute(
+                        "UPDATE odometer_logs SET odometer_value=?, api_timestamp=? WHERE id=?",
+                        (int(value), api_timestamp, int(existing[0])),
+                    )
+                else:
+                    conn.execute(
+                        """
+                        INSERT INTO odometer_logs (car_id, log_date, log_time, odometer_value, api_timestamp, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        """,
+                        (car_id, log_date, log_time, int(value), api_timestamp, now_iso),
+                    )
+                conn.commit()
+                _upsert_daily_report_for_today(conn, car_id, log_date)
+            except Exception:
+                app.logger.warning("Hyundai collector: odometer collect failed for car_id=%s", car_id)
+
+
+def _hyundai_collector_loop(db_path):
+    while True:
+        try:
+            _collect_odometer_once(db_path)
+        except Exception:
+            app.logger.warning("Hyundai collector loop iteration failed.")
+        time.sleep(HYUNDAI_COLLECT_INTERVAL_SECONDS)
+
+
+def start_hyundai_mileage_collector():
+    global HYUNDAI_COLLECTOR_THREAD, HYUNDAI_COLLECTOR_STARTED
+    if HYUNDAI_COLLECTOR_STARTED:
+        return
+    HYUNDAI_COLLECTOR_STARTED = True
+
+    if not ENABLE_HYUNDAI_MILEAGE_COLLECTOR:
+        app.logger.info("Hyundai mileage collector is disabled by env.")
+        return
+    if not HYUNDAI_AUTH_BASE or not HYUNDAI_DATA_BASE or not HYUNDAI_CLIENT_ID or not HYUNDAI_CLIENT_SECRET:
+        app.logger.warning("Hyundai mileage collector is not configured. Missing HYUNDAI_* envs.")
+        return
+
+    db_path = _ensure_vehicle_log_collection_db()
+    if not db_path:
+        app.logger.warning("Hyundai mileage collector could not initialize collection DB.")
+        return
+
+    HYUNDAI_COLLECTOR_THREAD = threading.Thread(
+        target=_hyundai_collector_loop,
+        args=(db_path,),
+        name="hyundai-mileage-collector",
+        daemon=True,
+    )
+    HYUNDAI_COLLECTOR_THREAD.start()
+    app.logger.info(
+        "Hyundai mileage collector started. interval=%ss window=%02d:00-%02d:59 db=%s",
+        HYUNDAI_COLLECT_INTERVAL_SECONDS,
+        HYUNDAI_COLLECT_START_HOUR,
+        HYUNDAI_COLLECT_END_HOUR,
+        db_path,
+    )
 
 
 def get_vehicle_log_vehicles():
@@ -3119,6 +3495,7 @@ def build_phone_groups(visits, order, dist_matrix, preferred_size, start_display
 
 
 initialize_storage()
+start_hyundai_mileage_collector()
 
 
 @app.route("/vehicle-log", methods=["GET", "POST"])
