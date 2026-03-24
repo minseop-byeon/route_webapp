@@ -140,10 +140,15 @@ def save_json_file(path, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def get_database_url():
+    return (os.getenv("DATABASE_URL") or DATABASE_URL or "").strip()
+
+
 def has_database_storage():
-    if not DATABASE_URL:
+    db_url = get_database_url()
+    if not db_url:
         return False
-    if "://" not in DATABASE_URL:
+    if "://" not in db_url:
         app.logger.warning("DATABASE_URL format is invalid; falling back to file storage.")
         return False
     if psycopg2 is None:
@@ -161,17 +166,53 @@ def _remove_query_param(url, param_name):
 def _database_url_candidates():
     if not has_database_storage():
         return []
-    candidates = [DATABASE_URL]
-    if "channel_binding=" in DATABASE_URL:
-        candidates.append(_remove_query_param(DATABASE_URL, "channel_binding"))
-    return candidates
+
+    db_url = get_database_url()
+    candidates = [db_url]
+
+    # Render/Postgres providers sometimes inject options not supported by
+    # psycopg2/libpq versions in runtime images. Try sanitized variants too.
+    removable_params = (
+        "channel_binding",
+        "gssencmode",
+        "target_session_attrs",
+    )
+    sanitized = db_url
+    for param_name in removable_params:
+        if f"{param_name}=" in sanitized:
+            sanitized = _remove_query_param(sanitized, param_name)
+    if sanitized != db_url:
+        candidates.append(sanitized)
+
+    if "sslmode=" not in sanitized:
+        sep = "&" if "?" in sanitized else "?"
+        candidates.append(f"{sanitized}{sep}sslmode=require")
+
+    if "sslrootcert=" in sanitized:
+        no_rootcert = _remove_query_param(sanitized, "sslrootcert")
+        if no_rootcert != sanitized:
+            candidates.append(no_rootcert)
+            if "sslmode=" not in no_rootcert:
+                sep = "&" if "?" in no_rootcert else "?"
+                candidates.append(f"{no_rootcert}{sep}sslmode=require")
+
+    # Preserve order while removing duplicates.
+    deduped = []
+    seen = set()
+    for item in candidates:
+        key = item.strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(key)
+    return deduped
 
 
 def _connect_postgres():
     last_error = None
     for index, candidate in enumerate(_database_url_candidates()):
         try:
-            conn = psycopg2.connect(candidate)
+            conn = psycopg2.connect(candidate, connect_timeout=6)
             conn.autocommit = True
             if index > 0:
                 app.logger.warning("Connected to Postgres after removing unsupported DATABASE_URL options.")
@@ -179,6 +220,7 @@ def _connect_postgres():
         except Exception as exc:
             last_error = exc
     if last_error:
+        app.logger.warning("Postgres connection attempts exhausted. last_error=%s", str(last_error))
         raise last_error
     raise RuntimeError("Database storage is not configured.")
 
