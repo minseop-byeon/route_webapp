@@ -1019,9 +1019,29 @@ def refresh_vehicle_log_remote_snapshot(force=False):
         payload = response.content
         if not payload:
             return cache_path if os.path.exists(cache_path) else ""
+
+        existing_meta = inspect_vehicle_log_db(cache_path) if os.path.exists(cache_path) else None
+        existing_rows = int((existing_meta or {}).get("report_count") or 0) + int((existing_meta or {}).get("log_count") or 0)
+
         temp_path = f"{cache_path}.tmp"
         with open(temp_path, "wb") as f:
             f.write(payload)
+
+        incoming_meta = inspect_vehicle_log_db(temp_path)
+        incoming_rows = int((incoming_meta or {}).get("report_count") or 0) + int((incoming_meta or {}).get("log_count") or 0)
+
+        # Never replace a dataful cache with an empty/invalid snapshot.
+        if existing_rows > 0 and incoming_rows <= 0:
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+            app.logger.warning(
+                "Skipped remote snapshot replacement: incoming DB has no rows while existing cache has %s rows.",
+                existing_rows,
+            )
+            return cache_path
+
         os.replace(temp_path, cache_path)
         return cache_path
     except Exception:
