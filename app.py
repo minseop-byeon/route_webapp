@@ -1373,6 +1373,9 @@ def _upsert_daily_report_for_today(conn, car_id, target_date):
 
     derived = _derive_daily_report_fields_from_window(window_rows)
     if not derived:
+        # If no valid logs in 10:00~17:59 window, there must be no daily card for that date.
+        conn.execute("DELETE FROM daily_reports WHERE car_id = ? AND drive_date = ?", (car_id, target_date))
+        conn.commit()
         return
 
     now_iso = datetime.utcnow().isoformat(sep=" ")
