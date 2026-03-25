@@ -148,6 +148,9 @@ HYUNDAI_AUTH_BASE = (os.getenv("HYUNDAI_AUTH_BASE") or "").strip().rstrip("/")
 HYUNDAI_DATA_BASE = (os.getenv("HYUNDAI_DATA_BASE") or "").strip().rstrip("/")
 HYUNDAI_CLIENT_ID = (os.getenv("HYUNDAI_CLIENT_ID") or "").strip()
 HYUNDAI_CLIENT_SECRET = (os.getenv("HYUNDAI_CLIENT_SECRET") or "").strip()
+HYUNDAI_REFRESH_TOKEN = (os.getenv("HYUNDAI_REFRESH_TOKEN") or "").strip()
+HYUNDAI_ACCESS_TOKEN = (os.getenv("HYUNDAI_ACCESS_TOKEN") or "").strip()
+HYUNDAI_ACCESS_TOKEN_EXPIRES_AT = (os.getenv("HYUNDAI_ACCESS_TOKEN_EXPIRES_AT") or "").strip()
 DAILY_CARD_WINDOW_START_HOUR = 10
 DAILY_CARD_WINDOW_END_HOUR = 17
 DAILY_CARD_FINALIZE_HOUR = 17
@@ -1407,6 +1410,11 @@ def _refresh_access_token_in_db(conn, refresh_token):
         payload = response.json() if "application/json" in (response.headers.get("content-type") or "") else {}
         access_token = str(payload.get("access_token") or "").strip()
         if not access_token:
+            app.logger.warning(
+                "Hyundai token refresh returned no access token. status=%s body=%s",
+                response.status_code,
+                str(payload or response.text or "")[:300],
+            )
             return None
         new_refresh = str(payload.get("refresh_token") or "").strip() or refresh_token
         expires_in = int(payload.get("expires_in") or 3600)
@@ -1423,7 +1431,45 @@ def _refresh_access_token_in_db(conn, refresh_token):
         return None
 
 
+def _seed_token_store_from_env(conn):
+    refresh_token = HYUNDAI_REFRESH_TOKEN
+    access_token = HYUNDAI_ACCESS_TOKEN
+    if not refresh_token and not access_token:
+        return False
+    now_utc = datetime.utcnow()
+    expires_at = _parse_iso_datetime(HYUNDAI_ACCESS_TOKEN_EXPIRES_AT)
+    if access_token and not expires_at:
+        expires_at = now_utc + timedelta(minutes=5)
+    now_iso = now_utc.isoformat(sep=" ")
+
+    row = conn.execute("SELECT id, refresh_token FROM token_store ORDER BY id ASC LIMIT 1").fetchone()
+    if row:
+        current_refresh = str(row[1] or "").strip()
+        merged_refresh = refresh_token or current_refresh
+        merged_access = access_token or ""
+        merged_expires = (expires_at.isoformat(sep=" ") if expires_at else None)
+        conn.execute(
+            """
+            UPDATE token_store
+            SET access_token=?, refresh_token=?, expires_at=?, updated_at=?
+            WHERE id=?
+            """,
+            (merged_access, merged_refresh, merged_expires, now_iso, int(row[0])),
+        )
+    else:
+        conn.execute(
+            """
+            INSERT INTO token_store (id, access_token, refresh_token, expires_at, updated_at)
+            VALUES (1, ?, ?, ?, ?)
+            """,
+            (access_token or "", refresh_token or "", (expires_at.isoformat(sep=" ") if expires_at else None), now_iso),
+        )
+    conn.commit()
+    return True
+
+
 def _ensure_access_token(conn):
+    _seed_token_store_from_env(conn)
     row = conn.execute("SELECT id, access_token, refresh_token, expires_at FROM token_store ORDER BY id ASC LIMIT 1").fetchone()
     if not row:
         return None
