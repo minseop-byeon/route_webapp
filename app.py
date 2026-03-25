@@ -780,7 +780,7 @@ def inspect_vehicle_log_db(path):
         return empty
 
     try:
-        with sqlite3.connect(path) as conn:
+        with open_vehicle_log_db(path) as conn:
             report_count = int(conn.execute("SELECT COUNT(*) FROM daily_reports").fetchone()[0] or 0)
             log_count = int(conn.execute("SELECT COUNT(*) FROM odometer_logs").fetchone()[0] or 0)
             latest_report_raw = conn.execute("SELECT MAX(drive_date) FROM daily_reports").fetchone()[0]
@@ -797,6 +797,17 @@ def inspect_vehicle_log_db(path):
         }
     except Exception:
         return empty
+
+
+def open_vehicle_log_db(path):
+    conn = sqlite3.connect(path, timeout=30)
+    try:
+        conn.execute("PRAGMA busy_timeout=30000")
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+    except Exception:
+        pass
+    return conn
 
 
 def select_vehicle_log_db(candidates):
@@ -1333,7 +1344,7 @@ def _ensure_vehicle_log_collection_db():
 
     if os.path.exists(cache_path):
         try:
-            with sqlite3.connect(cache_path) as conn:
+            with open_vehicle_log_db(cache_path) as conn:
                 ensure_schema(conn)
             return cache_path
         except Exception:
@@ -1344,14 +1355,14 @@ def _ensure_vehicle_log_collection_db():
         try:
             with open(bundled_path, "rb") as src, open(cache_path, "wb") as dst:
                 dst.write(src.read())
-            with sqlite3.connect(cache_path) as conn:
+            with open_vehicle_log_db(cache_path) as conn:
                 ensure_schema(conn)
             return cache_path
         except Exception:
             app.logger.warning("Failed to seed collector DB from bundled snapshot.")
 
     try:
-        with sqlite3.connect(cache_path) as conn:
+        with open_vehicle_log_db(cache_path) as conn:
             ensure_schema(conn)
         return cache_path
     except Exception:
@@ -1642,7 +1653,7 @@ def _collect_odometer_once(db_path):
     if not _is_collect_window(local_now):
         return
 
-    with sqlite3.connect(db_path) as conn:
+    with open_vehicle_log_db(db_path) as conn:
         conn.row_factory = sqlite3.Row
         access_token = _ensure_access_token(conn)
         if not access_token:
@@ -1791,7 +1802,7 @@ def get_vehicle_log_vehicles():
         return [], get_vehicle_log_db_missing_message()
 
     try:
-        with sqlite3.connect(db_path) as conn:
+        with open_vehicle_log_db(db_path) as conn:
             conn.row_factory = sqlite3.Row
             columns = {
                 str(row["name"]).strip()
@@ -1940,7 +1951,7 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
         return [], get_vehicle_log_db_missing_message()
 
     try:
-        with sqlite3.connect(db_path) as conn:
+        with open_vehicle_log_db(db_path) as conn:
             conn.row_factory = sqlite3.Row
             reports = conn.execute(
                 """
@@ -4882,7 +4893,7 @@ def vehicle_log_debug():
         normalized_db_path = os.path.normpath(str(db_path or ""))
         normalized_runtime_dir = os.path.normpath(str(runtime_dir or ""))
         db_in_runtime_dir = normalized_db_path.startswith(normalized_runtime_dir) if normalized_runtime_dir else False
-        with sqlite3.connect(db_path) as conn:
+        with open_vehicle_log_db(db_path) as conn:
             conn.row_factory = sqlite3.Row
 
             if not selected_car_id:
@@ -5034,3 +5045,4 @@ def vehicle_log_debug():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
