@@ -1142,7 +1142,9 @@ def _ensure_vehicle_log_collection_db():
     if not cache_path:
         return ""
     legacy_path = os.path.join(APP_ROOT, VEHICLE_LOG_REMOTE_CACHE_DB_FILE)
+    allow_legacy_migration = (os.getenv("VEHICLE_LOG_ALLOW_LEGACY_MIGRATION", "0").strip() == "1")
     if (
+        allow_legacy_migration
         legacy_path != cache_path
         and not os.path.exists(cache_path)
         and os.path.exists(legacy_path)
