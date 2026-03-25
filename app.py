@@ -1009,7 +1009,20 @@ def build_vehicle_log_passenger_summary(main_driver, team_members):
 def get_vehicle_log_remote_cache_path():
     if not VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT:
         return ""
-    return os.path.join(APP_ROOT, VEHICLE_LOG_REMOTE_CACHE_DB_FILE)
+    runtime_dir = str(os.getenv("VEHICLE_LOG_RUNTIME_DIR") or "").strip()
+    if not runtime_dir:
+        render_disk_root = str(os.getenv("RENDER_DISK_ROOT") or "").strip()
+        if render_disk_root:
+            runtime_dir = render_disk_root
+        elif os.path.isdir("/var/data"):
+            runtime_dir = "/var/data"
+        else:
+            runtime_dir = APP_ROOT
+    try:
+        os.makedirs(runtime_dir, exist_ok=True)
+    except Exception:
+        runtime_dir = APP_ROOT
+    return os.path.join(runtime_dir, VEHICLE_LOG_REMOTE_CACHE_DB_FILE)
 
 
 def refresh_vehicle_log_remote_snapshot(force=False):
@@ -1043,7 +1056,16 @@ def refresh_vehicle_log_remote_snapshot(force=False):
         incoming_meta = inspect_vehicle_log_db(temp_path)
         incoming_rows = int((incoming_meta or {}).get("report_count") or 0) + int((incoming_meta or {}).get("log_count") or 0)
 
-        # Never replace a dataful cache with an empty/invalid snapshot.
+        def _latest_meta_date(meta):
+            report_date = str((meta or {}).get("latest_report_date") or "").strip()
+            log_date = str((meta or {}).get("latest_log_date") or "").strip()
+            latest = max(report_date, log_date)
+            return latest
+
+        existing_latest = _latest_meta_date(existing_meta)
+        incoming_latest = _latest_meta_date(incoming_meta)
+
+        # Never replace a dataful cache with an empty/older snapshot.
         if existing_rows > 0 and incoming_rows <= 0:
             try:
                 os.remove(temp_path)
@@ -1052,6 +1074,28 @@ def refresh_vehicle_log_remote_snapshot(force=False):
             app.logger.warning(
                 "Skipped remote snapshot replacement: incoming DB has no rows while existing cache has %s rows.",
                 existing_rows,
+            )
+            return cache_path
+        if existing_rows > incoming_rows:
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+            app.logger.warning(
+                "Skipped remote snapshot replacement: incoming DB rows(%s) < existing cache rows(%s).",
+                incoming_rows,
+                existing_rows,
+            )
+            return cache_path
+        if existing_latest and incoming_latest and incoming_latest < existing_latest:
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+            app.logger.warning(
+                "Skipped remote snapshot replacement: incoming latest(%s) older than existing latest(%s).",
+                incoming_latest,
+                existing_latest,
             )
             return cache_path
 
