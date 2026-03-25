@@ -135,6 +135,10 @@ HYUNDAI_AUTH_BASE = (os.getenv("HYUNDAI_AUTH_BASE") or "").strip().rstrip("/")
 HYUNDAI_DATA_BASE = (os.getenv("HYUNDAI_DATA_BASE") or "").strip().rstrip("/")
 HYUNDAI_CLIENT_ID = (os.getenv("HYUNDAI_CLIENT_ID") or "").strip()
 HYUNDAI_CLIENT_SECRET = (os.getenv("HYUNDAI_CLIENT_SECRET") or "").strip()
+DAILY_CARD_WINDOW_START_HOUR = 10
+DAILY_CARD_WINDOW_END_HOUR = 17
+DAILY_CARD_FINALIZE_HOUR = 17
+DAILY_CARD_FINALIZE_MINUTE = 30
 HYUNDAI_COLLECTOR_THREAD = None
 HYUNDAI_COLLECTOR_STARTED = False
 
@@ -1224,6 +1228,25 @@ def _is_collect_window(local_now):
     return True
 
 
+def _is_daily_card_window_log_time(log_time_text):
+    raw = str(log_time_text or "").strip()
+    if ":" not in raw:
+        return False
+    try:
+        hour_value = int(raw.split(":", 1)[0])
+    except Exception:
+        return False
+    return DAILY_CARD_WINDOW_START_HOUR <= hour_value <= DAILY_CARD_WINDOW_END_HOUR
+
+
+def _is_after_daily_finalize(local_now):
+    if local_now.hour > DAILY_CARD_FINALIZE_HOUR:
+        return True
+    if local_now.hour < DAILY_CARD_FINALIZE_HOUR:
+        return False
+    return local_now.minute >= DAILY_CARD_FINALIZE_MINUTE
+
+
 def _parse_iso_datetime(value):
     raw = str(value or "").strip()
     if not raw:
@@ -1325,6 +1348,14 @@ def _derive_daily_report_fields_from_window(log_rows):
 
 
 def _upsert_daily_report_for_today(conn, car_id, target_date):
+    local_now = datetime.now()
+    today_text = local_now.date().isoformat()
+    if target_date == today_text and not _is_after_daily_finalize(local_now):
+        # Before 17:30, today's history card must not exist.
+        conn.execute("DELETE FROM daily_reports WHERE car_id = ? AND drive_date = ?", (car_id, target_date))
+        conn.commit()
+        return
+
     rows = conn.execute(
         """
         SELECT log_time, odometer_value
@@ -1337,9 +1368,7 @@ def _upsert_daily_report_for_today(conn, car_id, target_date):
 
     window_rows = []
     for row in rows:
-        raw = str(row["log_time"] or "").strip()
-        hh = int(raw.split(":")[0]) if ":" in raw else -1
-        if HYUNDAI_COLLECT_START_HOUR <= hh <= HYUNDAI_COLLECT_END_HOUR:
+        if _is_daily_card_window_log_time(row["log_time"]):
             window_rows.append(row)
 
     derived = _derive_daily_report_fields_from_window(window_rows)
@@ -1755,9 +1784,16 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
         app.logger.exception("Failed to load vehicle history from vehicle log DB.")
         return [], f"운행 이력을 불러오지 못했습니다: {exc}"
 
+    local_now = datetime.now()
+    today_text = local_now.date().isoformat()
+    allow_today_card = _is_after_daily_finalize(local_now)
+
     report_map = {}
     for row in reports:
         item = dict(row)
+        drive_date_text = str(item.get("drive_date") or "").strip()
+        if drive_date_text == today_text and not allow_today_card:
+            continue
         report_map[item["drive_date"]] = {
             "drive_date": item["drive_date"],
             "passenger_name": "",
@@ -1778,11 +1814,9 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
         log_time_text = str(row["log_time"] or "").strip()
         if not log_date_text or not log_time_text:
             continue
-        try:
-            hour_value = int(log_time_text.split(":", 1)[0])
-        except Exception:
+        if log_date_text == today_text and not allow_today_card:
             continue
-        if hour_value < HYUNDAI_COLLECT_START_HOUR or hour_value > HYUNDAI_COLLECT_END_HOUR:
+        if not _is_daily_card_window_log_time(log_time_text):
             continue
         logs_by_date.setdefault(log_date_text, []).append(row)
 
@@ -1823,6 +1857,8 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
     all_dates = set(report_map.keys()) | set(manual_map.keys()) | override_dates
     rows = []
     for drive_date_text in sorted(all_dates, reverse=True):
+        if drive_date_text == today_text and not allow_today_card:
+            continue
         row = report_map.get(drive_date_text, {
             "drive_date": drive_date_text,
             "passenger_name": "",
@@ -4704,12 +4740,7 @@ def vehicle_log_debug():
 
             window_logs = []
             for row in day_logs:
-                log_time_text = str(row["log_time"] or "").strip()
-                try:
-                    hour_value = int(log_time_text.split(":", 1)[0])
-                except Exception:
-                    continue
-                if HYUNDAI_COLLECT_START_HOUR <= hour_value <= HYUNDAI_COLLECT_END_HOUR:
+                if _is_daily_card_window_log_time(row["log_time"]):
                     window_logs.append(row)
 
             derived = _derive_daily_report_fields_from_window(window_logs)
@@ -4739,6 +4770,8 @@ def vehicle_log_debug():
                 "selected_car_id": selected_car_id,
                 "target_date": target_date_text,
                 "window_hours": [HYUNDAI_COLLECT_START_HOUR, HYUNDAI_COLLECT_END_HOUR],
+                "card_window_hours": [DAILY_CARD_WINDOW_START_HOUR, DAILY_CARD_WINDOW_END_HOUR],
+                "card_finalize_time": f"{DAILY_CARD_FINALIZE_HOUR:02d}:{DAILY_CARD_FINALIZE_MINUTE:02d}",
                 "overall": {
                     "report_min_date": str(overall_reports[0] or "") if overall_reports else "",
                     "report_max_date": str(overall_reports[1] or "") if overall_reports else "",
