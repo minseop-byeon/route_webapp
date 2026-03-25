@@ -1598,6 +1598,15 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
                 """,
                 (car_id, start_date_value.isoformat(), end_date_value.isoformat()),
             ).fetchall()
+            log_rows = conn.execute(
+                """
+                SELECT log_date, log_time, odometer_value
+                FROM odometer_logs
+                WHERE car_id = ? AND log_date >= ? AND log_date <= ?
+                ORDER BY log_date ASC, log_time ASC
+                """,
+                (car_id, start_date_value.isoformat(), end_date_value.isoformat()),
+            ).fetchall()
             manuals = conn.execute(
                 """
                 SELECT drive_date, passenger_name, start_time, end_time, odometer_start, odometer_end, distance_km
@@ -1624,6 +1633,38 @@ def get_vehicle_log_history(car_id, start_date_value, end_date_value):
             "distance_km": item.get("distance_km"),
             "accident": None,
             "source": "원본",
+        }
+
+    # Fallback: build day reports directly from odometer logs (10~18 window)
+    # so same-day records are visible even before/without daily_reports upsert.
+    logs_by_date = {}
+    for row in log_rows:
+        log_date_text = str(row["log_date"] or "").strip()
+        log_time_text = str(row["log_time"] or "").strip()
+        if not log_date_text or not log_time_text:
+            continue
+        try:
+            hour_value = int(log_time_text.split(":", 1)[0])
+        except Exception:
+            continue
+        if hour_value < HYUNDAI_COLLECT_START_HOUR or hour_value > HYUNDAI_COLLECT_END_HOUR:
+            continue
+        logs_by_date.setdefault(log_date_text, []).append(row)
+
+    for log_date_text, day_rows in logs_by_date.items():
+        derived = _derive_daily_report_fields_from_window(day_rows)
+        if not derived:
+            continue
+        report_map[log_date_text] = {
+            "drive_date": log_date_text,
+            "passenger_name": "",
+            "start_time": derived.get("start_time") or "",
+            "end_time": derived.get("end_time") or "",
+            "odometer_start": derived.get("odometer_start"),
+            "odometer_end": derived.get("odometer_end"),
+            "distance_km": derived.get("distance_km"),
+            "accident": None,
+            "source": "로그계산",
         }
 
     manual_map = {}
