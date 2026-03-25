@@ -4586,6 +4586,10 @@ def vehicle_log_debug():
                 "SELECT MIN(log_date), MAX(log_date), COUNT(*) FROM odometer_logs WHERE car_id = ?",
                 (selected_car_id,),
             ).fetchone()
+            token_row = conn.execute(
+                "SELECT access_token, refresh_token, expires_at, updated_at FROM token_store ORDER BY id ASC LIMIT 1"
+            ).fetchone()
+            vehicle_count_row = conn.execute("SELECT COUNT(*) FROM vehicle_store").fetchone()
 
             report_row = conn.execute(
                 """
@@ -4652,6 +4656,23 @@ def vehicle_log_debug():
                     "log_max_date": str(car_log_range[1] or "") if car_log_range else "",
                     "log_count": int(car_log_range[2] or 0) if car_log_range else 0,
                 },
+                "collector": {
+                    "enabled": ENABLE_HYUNDAI_MILEAGE_COLLECTOR,
+                    "interval_seconds": HYUNDAI_COLLECT_INTERVAL_SECONDS,
+                    "window_hours": [HYUNDAI_COLLECT_START_HOUR, HYUNDAI_COLLECT_END_HOUR],
+                    "auth_base_set": bool(HYUNDAI_AUTH_BASE),
+                    "data_base_set": bool(HYUNDAI_DATA_BASE),
+                    "client_id_set": bool(HYUNDAI_CLIENT_ID),
+                    "client_secret_set": bool(HYUNDAI_CLIENT_SECRET),
+                },
+                "token_store": {
+                    "has_row": bool(token_row),
+                    "has_access_token": bool(str(token_row[0] or "").strip()) if token_row else False,
+                    "has_refresh_token": bool(str(token_row[1] or "").strip()) if token_row else False,
+                    "expires_at": str(token_row[2] or "") if token_row else "",
+                    "updated_at": str(token_row[3] or "") if token_row else "",
+                },
+                "vehicle_store_count": int(vehicle_count_row[0] or 0) if vehicle_count_row else 0,
                 "daily_report_row": dict(report_row) if report_row else None,
                 "target_day_log_count": len(day_logs),
                 "target_day_window_log_count": len(window_logs),
