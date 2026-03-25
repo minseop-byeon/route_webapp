@@ -823,6 +823,18 @@ def select_vehicle_log_db(candidates):
     if not existing:
         return "", "missing", None
 
+    # Always prefer active write targets first so read/write stay on the same DB.
+    if env_path:
+        for item in existing:
+            candidate, source, _meta = item
+            if os.path.normpath(candidate) == env_path:
+                return item
+    if remote_cache_path:
+        for item in existing:
+            candidate, source, _meta = item
+            if os.path.normpath(candidate) == remote_cache_path:
+                return item
+
     dataful = []
     for candidate, source, meta in existing:
         if not meta or not meta.get("valid"):
@@ -4936,14 +4948,20 @@ def vehicle_log_debug():
                 """,
                 (selected_car_id,),
             ).fetchall()
-            latest_collector_runs = conn.execute(
-                """
-                SELECT run_date, run_time, status, car_id, message, details
-                FROM collector_runs
-                ORDER BY id DESC
-                LIMIT 30
-                """
+            table_rows = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='collector_runs' LIMIT 1"
             ).fetchall()
+            has_collector_runs = bool(table_rows)
+            latest_collector_runs = []
+            if has_collector_runs:
+                latest_collector_runs = conn.execute(
+                    """
+                    SELECT run_date, run_time, status, car_id, message, details
+                    FROM collector_runs
+                    ORDER BY id DESC
+                    LIMIT 30
+                    """
+                ).fetchall()
 
             return jsonify({
                 "ok": True,
@@ -5000,6 +5018,7 @@ def vehicle_log_debug():
                 "target_day_window_log_count": len(window_logs),
                 "target_day_window_derived": derived,
                 "latest_logs": [dict(row) for row in latest_logs],
+                "has_collector_runs_table": has_collector_runs,
                 "latest_collector_runs": [dict(row) for row in latest_collector_runs],
             })
     except Exception as exc:
