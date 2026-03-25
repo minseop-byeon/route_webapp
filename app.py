@@ -1014,23 +1014,41 @@ def build_vehicle_log_passenger_summary(main_driver, team_members):
     return driver_name
 
 
+def _detect_vehicle_log_runtime_dir():
+    candidates = []
+    explicit_runtime_dir = str(os.getenv("VEHICLE_LOG_RUNTIME_DIR") or "").strip()
+    explicit_db_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
+    if explicit_runtime_dir:
+        candidates.append(explicit_runtime_dir)
+    if explicit_db_path:
+        candidates.append(os.path.dirname(explicit_db_path))
+    for key in ("RENDER_DISK_ROOT", "RENDER_DISK_PATH", "RENDER_DISK_MOUNT_PATH"):
+        value = str(os.getenv(key) or "").strip()
+        if value:
+            candidates.append(value)
+    candidates.extend(["/var/data", "/opt/render/project/data"])
+
+    for candidate in candidates:
+        path = str(candidate or "").strip()
+        if not path:
+            continue
+        try:
+            os.makedirs(path, exist_ok=True)
+            test_file = os.path.join(path, ".vehicle_log_write_test")
+            with open(test_file, "w", encoding="utf-8") as f:
+                f.write("ok")
+            os.remove(test_file)
+            return path
+        except Exception:
+            continue
+    return APP_ROOT
+
+
 def get_vehicle_log_remote_cache_path():
-    runtime_dir = str(os.getenv("VEHICLE_LOG_RUNTIME_DIR") or "").strip()
-    if not runtime_dir:
-        render_disk_root = str(os.getenv("RENDER_DISK_ROOT") or "").strip()
-        if render_disk_root:
-            runtime_dir = render_disk_root
-        elif os.path.isdir("/var/data"):
-            runtime_dir = "/var/data"
-        else:
-            runtime_dir = APP_ROOT
-    try:
-        os.makedirs(runtime_dir, exist_ok=True)
-    except Exception:
-        runtime_dir = APP_ROOT
     env_db_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
     if env_db_path:
         return env_db_path
+    runtime_dir = _detect_vehicle_log_runtime_dir()
     use_legacy_name = (os.getenv("VEHICLE_LOG_USE_LEGACY_CACHE_NAME", "1").strip() == "1")
     file_name = VEHICLE_LOG_REMOTE_CACHE_DB_FILE if use_legacy_name else VEHICLE_LOG_RUNTIME_DB_FILE
     return os.path.join(runtime_dir, file_name)
@@ -1123,6 +1141,18 @@ def _ensure_vehicle_log_collection_db():
     cache_path = get_vehicle_log_remote_cache_path()
     if not cache_path:
         return ""
+    legacy_path = os.path.join(APP_ROOT, VEHICLE_LOG_REMOTE_CACHE_DB_FILE)
+    if (
+        legacy_path != cache_path
+        and not os.path.exists(cache_path)
+        and os.path.exists(legacy_path)
+    ):
+        try:
+            with open(legacy_path, "rb") as src, open(cache_path, "wb") as dst:
+                dst.write(src.read())
+            app.logger.info("Migrated vehicle log DB to runtime path: %s", cache_path)
+        except Exception:
+            app.logger.warning("Failed to migrate vehicle log DB to runtime path.")
 
     def ensure_schema(conn):
         conn.executescript(
@@ -4692,6 +4722,10 @@ def vehicle_log_debug():
     target_date_text = target_date.isoformat()
 
     try:
+        runtime_dir = _detect_vehicle_log_runtime_dir()
+        normalized_db_path = os.path.normpath(str(db_path or ""))
+        normalized_runtime_dir = os.path.normpath(str(runtime_dir or ""))
+        db_in_runtime_dir = normalized_db_path.startswith(normalized_runtime_dir) if normalized_runtime_dir else False
         with sqlite3.connect(db_path) as conn:
             conn.row_factory = sqlite3.Row
 
@@ -4770,6 +4804,8 @@ def vehicle_log_debug():
             return jsonify({
                 "ok": True,
                 "db_path": db_path,
+                "runtime_dir": runtime_dir,
+                "db_in_runtime_dir": db_in_runtime_dir,
                 "selected_car_id": selected_car_id,
                 "target_date": target_date_text,
                 "window_hours": [HYUNDAI_COLLECT_START_HOUR, HYUNDAI_COLLECT_END_HOUR],
