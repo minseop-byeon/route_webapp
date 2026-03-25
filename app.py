@@ -1145,6 +1145,7 @@ def _ensure_vehicle_log_collection_db():
     allow_legacy_migration = (os.getenv("VEHICLE_LOG_ALLOW_LEGACY_MIGRATION", "0").strip() == "1")
     if (
         allow_legacy_migration
+        and
         legacy_path != cache_path
         and not os.path.exists(cache_path)
         and os.path.exists(legacy_path)
