@@ -6,6 +6,7 @@ import logging
 import math
 import html
 import base64
+import hashlib
 import smtplib
 import sqlite3
 import threading
@@ -13,7 +14,7 @@ import time
 from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from zoneinfo import ZoneInfo
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit, quote
 
 try:
     import psycopg2
@@ -37,10 +38,22 @@ VEHICLE_LOG_BUNDLED_DB_FILE = "vehicle_log_source.db"
 VEHICLE_LOG_REMOTE_CACHE_DB_FILE = "vehicle_log_remote_cache.db"
 VEHICLE_LOG_RUNTIME_DB_FILE = "vehicle_log_runtime.db"
 VEHICLE_LOG_DB_PATH_DEFAULT = r"C:\Users\MINSEOP\Desktop\개발\hyundai-api-test\app.db"
+VEHICLE_LOG_SNAPSHOT_REPO = (os.getenv("VEHICLE_LOG_SNAPSHOT_REPO") or "minseop-byeon/hyundai-log").strip()
+VEHICLE_LOG_SNAPSHOT_BRANCH = (os.getenv("VEHICLE_LOG_SNAPSHOT_BRANCH") or "main").strip()
+VEHICLE_LOG_SNAPSHOT_PATH = (os.getenv("VEHICLE_LOG_SNAPSHOT_PATH") or "vehicle_log_snapshot.db").strip().lstrip("/")
 VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT = (
     os.getenv("VEHICLE_LOG_REMOTE_SNAPSHOT_URL")
-    or ""
+    or (f"https://raw.githubusercontent.com/{VEHICLE_LOG_SNAPSHOT_REPO}/{VEHICLE_LOG_SNAPSHOT_BRANCH}/{quote(VEHICLE_LOG_SNAPSHOT_PATH)}" if VEHICLE_LOG_SNAPSHOT_REPO and VEHICLE_LOG_SNAPSHOT_PATH else "")
 ).strip()
+VEHICLE_LOG_GITHUB_TOKEN = (os.getenv("VEHICLE_LOG_GITHUB_TOKEN") or os.getenv("GITHUB_TOKEN") or "").strip()
+VEHICLE_LOG_SYNC_ENABLED = (os.getenv("VEHICLE_LOG_SYNC_ENABLED", "1").strip() == "1")
+try:
+    VEHICLE_LOG_SYNC_MIN_SECONDS = max(
+        60,
+        int((os.getenv("VEHICLE_LOG_SYNC_MIN_SECONDS") or "300").strip() or "300"),
+    )
+except Exception:
+    VEHICLE_LOG_SYNC_MIN_SECONDS = 300
 try:
     VEHICLE_LOG_REMOTE_CACHE_TTL_SECONDS = max(
         60,
@@ -141,6 +154,9 @@ DAILY_CARD_FINALIZE_HOUR = 17
 DAILY_CARD_FINALIZE_MINUTE = 30
 HYUNDAI_COLLECTOR_THREAD = None
 HYUNDAI_COLLECTOR_STARTED = False
+VEHICLE_LOG_LAST_SYNC_AT = 0.0
+VEHICLE_LOG_LAST_SYNC_HASH = ""
+VEHICLE_LOG_SYNC_LOCK = threading.Lock()
 
 
 def load_json_file(path, default_value):
@@ -1054,6 +1070,81 @@ def get_vehicle_log_remote_cache_path():
     return os.path.join(runtime_dir, file_name)
 
 
+def _parse_snapshot_repo():
+    raw = str(VEHICLE_LOG_SNAPSHOT_REPO or "").strip().strip("/")
+    if "/" not in raw:
+        return "", ""
+    owner, repo = raw.split("/", 1)
+    return owner.strip(), repo.strip()
+
+
+def upload_vehicle_log_snapshot_if_needed(db_path, force=False):
+    global VEHICLE_LOG_LAST_SYNC_AT, VEHICLE_LOG_LAST_SYNC_HASH
+    if not VEHICLE_LOG_SYNC_ENABLED:
+        return False
+    if not db_path or not os.path.exists(db_path):
+        return False
+    owner, repo = _parse_snapshot_repo()
+    if not owner or not repo or not VEHICLE_LOG_SNAPSHOT_PATH:
+        return False
+    if not VEHICLE_LOG_GITHUB_TOKEN:
+        return False
+
+    with VEHICLE_LOG_SYNC_LOCK:
+        now_ts = time.time()
+        if not force and (now_ts - VEHICLE_LOG_LAST_SYNC_AT) < VEHICLE_LOG_SYNC_MIN_SECONDS:
+            return False
+        try:
+            with open(db_path, "rb") as f:
+                payload_bytes = f.read()
+        except Exception:
+            app.logger.warning("Snapshot sync: failed to read DB file.")
+            return False
+        if not payload_bytes:
+            return False
+        digest = hashlib.sha256(payload_bytes).hexdigest()
+        if not force and digest == VEHICLE_LOG_LAST_SYNC_HASH:
+            VEHICLE_LOG_LAST_SYNC_AT = now_ts
+            return False
+
+        headers = {
+            "Authorization": f"Bearer {VEHICLE_LOG_GITHUB_TOKEN}",
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "route-webapp-vehicle-log-sync",
+        }
+        encoded_path = quote(VEHICLE_LOG_SNAPSHOT_PATH, safe="/")
+        content_api = f"https://api.github.com/repos/{owner}/{repo}/contents/{encoded_path}"
+        sha_value = ""
+        try:
+            get_resp = requests.get(content_api, headers=headers, params={"ref": VEHICLE_LOG_SNAPSHOT_BRANCH}, timeout=20)
+            if get_resp.status_code == 200:
+                current_payload = get_resp.json() if "application/json" in (get_resp.headers.get("content-type") or "") else {}
+                sha_value = str(current_payload.get("sha") or "").strip()
+        except Exception:
+            app.logger.warning("Snapshot sync: failed to fetch current snapshot metadata.")
+
+        body = {
+            "message": f"Update vehicle log snapshot {datetime.utcnow().isoformat()}",
+            "content": base64.b64encode(payload_bytes).decode("utf-8"),
+            "branch": VEHICLE_LOG_SNAPSHOT_BRANCH,
+        }
+        if sha_value:
+            body["sha"] = sha_value
+
+        try:
+            put_resp = requests.put(content_api, headers=headers, json=body, timeout=30)
+            if put_resp.status_code not in {200, 201}:
+                app.logger.warning("Snapshot sync failed: status=%s", put_resp.status_code)
+                return False
+            VEHICLE_LOG_LAST_SYNC_AT = now_ts
+            VEHICLE_LOG_LAST_SYNC_HASH = digest
+            app.logger.info("Snapshot sync success: repo=%s/%s path=%s", owner, repo, VEHICLE_LOG_SNAPSHOT_PATH)
+            return True
+        except Exception:
+            app.logger.warning("Snapshot sync failed due to request exception.")
+            return False
+
+
 def refresh_vehicle_log_remote_snapshot(force=False):
     if not VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT:
         return ""
@@ -1580,6 +1671,10 @@ def _collect_odometer_once(db_path):
 
         if success_count == 0 and fail_count == 0:
             _record_collector_run(conn, "no_target", message="no car produced data")
+        if success_count > 0:
+            synced = upload_vehicle_log_snapshot_if_needed(db_path)
+            if synced:
+                _record_collector_run(conn, "snapshot_synced", message="github snapshot updated")
 
 
 def _hyundai_collector_loop(db_path):
@@ -4838,6 +4933,13 @@ def vehicle_log_debug():
                     "data_base_set": bool(HYUNDAI_DATA_BASE),
                     "client_id_set": bool(HYUNDAI_CLIENT_ID),
                     "client_secret_set": bool(HYUNDAI_CLIENT_SECRET),
+                    "snapshot_sync_enabled": VEHICLE_LOG_SYNC_ENABLED,
+                    "snapshot_repo": VEHICLE_LOG_SNAPSHOT_REPO,
+                    "snapshot_branch": VEHICLE_LOG_SNAPSHOT_BRANCH,
+                    "snapshot_path": VEHICLE_LOG_SNAPSHOT_PATH,
+                    "snapshot_remote_url": VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT,
+                    "snapshot_token_set": bool(VEHICLE_LOG_GITHUB_TOKEN),
+                    "snapshot_sync_min_seconds": VEHICLE_LOG_SYNC_MIN_SECONDS,
                 },
                 "token_store": {
                     "has_row": bool(token_row),
