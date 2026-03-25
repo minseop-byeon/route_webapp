@@ -4543,5 +4543,131 @@ def healthz():
     return jsonify({"ok": True}), 200
 
 
+@app.route("/vehicle-log/debug", methods=["GET"])
+def vehicle_log_debug():
+    db_path = get_vehicle_log_db_path()
+    if not db_path or not os.path.exists(db_path):
+        return jsonify({
+            "ok": False,
+            "error": get_vehicle_log_db_missing_message(),
+            "db_path": db_path,
+        }), 404
+
+    selected_car_id = str(request.args.get("car_id") or "").strip()
+    date_arg = str(request.args.get("date") or "").strip()
+    try:
+        target_date = date.fromisoformat(date_arg) if date_arg else date.today()
+    except ValueError:
+        target_date = date.today()
+    target_date_text = target_date.isoformat()
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            conn.row_factory = sqlite3.Row
+
+            if not selected_car_id:
+                picked = conn.execute(
+                    "SELECT car_id FROM vehicle_store ORDER BY created_at ASC, id ASC LIMIT 1"
+                ).fetchone()
+                selected_car_id = str(picked[0] or "").strip() if picked else ""
+
+            overall_reports = conn.execute(
+                "SELECT MIN(drive_date), MAX(drive_date), COUNT(*) FROM daily_reports"
+            ).fetchone()
+            overall_logs = conn.execute(
+                "SELECT MIN(log_date), MAX(log_date), COUNT(*) FROM odometer_logs"
+            ).fetchone()
+
+            car_report_range = conn.execute(
+                "SELECT MIN(drive_date), MAX(drive_date), COUNT(*) FROM daily_reports WHERE car_id = ?",
+                (selected_car_id,),
+            ).fetchone()
+            car_log_range = conn.execute(
+                "SELECT MIN(log_date), MAX(log_date), COUNT(*) FROM odometer_logs WHERE car_id = ?",
+                (selected_car_id,),
+            ).fetchone()
+
+            report_row = conn.execute(
+                """
+                SELECT drive_date, start_time, end_time, odometer_start, odometer_end, distance_km
+                FROM daily_reports
+                WHERE car_id = ? AND drive_date = ?
+                LIMIT 1
+                """,
+                (selected_car_id, target_date_text),
+            ).fetchone()
+
+            day_logs = conn.execute(
+                """
+                SELECT log_time, odometer_value, api_timestamp
+                FROM odometer_logs
+                WHERE car_id = ? AND log_date = ?
+                ORDER BY log_time ASC
+                """,
+                (selected_car_id, target_date_text),
+            ).fetchall()
+
+            window_logs = []
+            for row in day_logs:
+                log_time_text = str(row["log_time"] or "").strip()
+                try:
+                    hour_value = int(log_time_text.split(":", 1)[0])
+                except Exception:
+                    continue
+                if HYUNDAI_COLLECT_START_HOUR <= hour_value <= HYUNDAI_COLLECT_END_HOUR:
+                    window_logs.append(row)
+
+            derived = _derive_daily_report_fields_from_window(window_logs)
+
+            latest_logs = conn.execute(
+                """
+                SELECT log_date, log_time, odometer_value
+                FROM odometer_logs
+                WHERE car_id = ?
+                ORDER BY log_date DESC, log_time DESC
+                LIMIT 20
+                """,
+                (selected_car_id,),
+            ).fetchall()
+
+            return jsonify({
+                "ok": True,
+                "db_path": db_path,
+                "selected_car_id": selected_car_id,
+                "target_date": target_date_text,
+                "window_hours": [HYUNDAI_COLLECT_START_HOUR, HYUNDAI_COLLECT_END_HOUR],
+                "overall": {
+                    "report_min_date": str(overall_reports[0] or "") if overall_reports else "",
+                    "report_max_date": str(overall_reports[1] or "") if overall_reports else "",
+                    "report_count": int(overall_reports[2] or 0) if overall_reports else 0,
+                    "log_min_date": str(overall_logs[0] or "") if overall_logs else "",
+                    "log_max_date": str(overall_logs[1] or "") if overall_logs else "",
+                    "log_count": int(overall_logs[2] or 0) if overall_logs else 0,
+                },
+                "car_range": {
+                    "report_min_date": str(car_report_range[0] or "") if car_report_range else "",
+                    "report_max_date": str(car_report_range[1] or "") if car_report_range else "",
+                    "report_count": int(car_report_range[2] or 0) if car_report_range else 0,
+                    "log_min_date": str(car_log_range[0] or "") if car_log_range else "",
+                    "log_max_date": str(car_log_range[1] or "") if car_log_range else "",
+                    "log_count": int(car_log_range[2] or 0) if car_log_range else 0,
+                },
+                "daily_report_row": dict(report_row) if report_row else None,
+                "target_day_log_count": len(day_logs),
+                "target_day_window_log_count": len(window_logs),
+                "target_day_window_derived": derived,
+                "latest_logs": [dict(row) for row in latest_logs],
+            })
+    except Exception as exc:
+        app.logger.exception("Failed to build vehicle-log debug payload.")
+        return jsonify({
+            "ok": False,
+            "error": str(exc),
+            "db_path": db_path,
+            "selected_car_id": selected_car_id,
+            "target_date": target_date_text,
+        }), 500
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
