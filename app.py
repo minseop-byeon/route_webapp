@@ -35,10 +35,11 @@ ROUTE_CACHE_FILE = "route_cache.json"
 VEHICLE_LOG_OVERRIDES_FILE = "vehicle_log_overrides.json"
 VEHICLE_LOG_BUNDLED_DB_FILE = "vehicle_log_source.db"
 VEHICLE_LOG_REMOTE_CACHE_DB_FILE = "vehicle_log_remote_cache.db"
+VEHICLE_LOG_RUNTIME_DB_FILE = "vehicle_log_runtime.db"
 VEHICLE_LOG_DB_PATH_DEFAULT = r"C:\Users\MINSEOP\Desktop\개발\hyundai-api-test\app.db"
 VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT = (
     os.getenv("VEHICLE_LOG_REMOTE_SNAPSHOT_URL")
-    or "https://raw.githubusercontent.com/minseop-byeon/hyundai-log/main/vehicle_log_snapshot.db"
+    or ""
 ).strip()
 try:
     VEHICLE_LOG_REMOTE_CACHE_TTL_SECONDS = max(
@@ -699,13 +700,16 @@ def get_vehicle_log_db_path():
 
 
 def get_vehicle_log_db_candidates():
+    primary_path = _ensure_vehicle_log_collection_db()
     refresh_vehicle_log_remote_snapshot()
     candidates = []
     env_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
     if env_path:
         candidates.append(env_path)
+    if primary_path:
+        candidates.append(primary_path)
     remote_cache_path = get_vehicle_log_remote_cache_path()
-    if remote_cache_path:
+    if remote_cache_path and remote_cache_path != primary_path:
         candidates.append(remote_cache_path)
     candidates.append(os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE))
     candidates.append(VEHICLE_LOG_DB_PATH_DEFAULT)
@@ -1007,8 +1011,6 @@ def build_vehicle_log_passenger_summary(main_driver, team_members):
 
 
 def get_vehicle_log_remote_cache_path():
-    if not VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT:
-        return ""
     runtime_dir = str(os.getenv("VEHICLE_LOG_RUNTIME_DIR") or "").strip()
     if not runtime_dir:
         render_disk_root = str(os.getenv("RENDER_DISK_ROOT") or "").strip()
@@ -1022,10 +1024,17 @@ def get_vehicle_log_remote_cache_path():
         os.makedirs(runtime_dir, exist_ok=True)
     except Exception:
         runtime_dir = APP_ROOT
-    return os.path.join(runtime_dir, VEHICLE_LOG_REMOTE_CACHE_DB_FILE)
+    env_db_path = str(os.getenv("VEHICLE_LOG_DB_PATH") or "").strip()
+    if env_db_path:
+        return env_db_path
+    use_legacy_name = (os.getenv("VEHICLE_LOG_USE_LEGACY_CACHE_NAME", "1").strip() == "1")
+    file_name = VEHICLE_LOG_REMOTE_CACHE_DB_FILE if use_legacy_name else VEHICLE_LOG_RUNTIME_DB_FILE
+    return os.path.join(runtime_dir, file_name)
 
 
 def refresh_vehicle_log_remote_snapshot(force=False):
+    if not VEHICLE_LOG_REMOTE_SNAPSHOT_URL_DEFAULT:
+        return ""
     cache_path = get_vehicle_log_remote_cache_path()
     if not cache_path:
         return ""
@@ -1110,75 +1119,97 @@ def _ensure_vehicle_log_collection_db():
     cache_path = get_vehicle_log_remote_cache_path()
     if not cache_path:
         return ""
+
+    def ensure_schema(conn):
+        conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS token_store (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                access_token TEXT,
+                refresh_token TEXT,
+                expires_at TEXT,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS vehicle_store (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                car_id TEXT NOT NULL,
+                car_name TEXT,
+                car_nickname TEXT,
+                car_sellname TEXT,
+                car_type TEXT,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS odometer_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                car_id TEXT NOT NULL,
+                log_date TEXT NOT NULL,
+                log_time TEXT NOT NULL,
+                odometer_value INTEGER NOT NULL,
+                api_timestamp TEXT,
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS daily_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                car_id TEXT NOT NULL,
+                drive_date TEXT NOT NULL,
+                start_time TEXT,
+                end_time TEXT,
+                odometer_start INTEGER,
+                odometer_end INTEGER,
+                distance_km INTEGER,
+                is_working_day INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS daily_manual_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                car_id TEXT NOT NULL,
+                drive_date TEXT NOT NULL,
+                passenger_name TEXT,
+                start_time TEXT,
+                end_time TEXT,
+                odometer_start INTEGER,
+                odometer_end INTEGER,
+                distance_km INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS collector_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_date TEXT NOT NULL,
+                run_time TEXT NOT NULL,
+                status TEXT NOT NULL,
+                car_id TEXT,
+                message TEXT,
+                details TEXT,
+                created_at TEXT NOT NULL
+            );
+            """
+        )
+        conn.commit()
+
     if os.path.exists(cache_path):
-        return cache_path
+        try:
+            with sqlite3.connect(cache_path) as conn:
+                ensure_schema(conn)
+            return cache_path
+        except Exception:
+            app.logger.warning("Failed to ensure schema on vehicle log DB: %s", cache_path)
 
     bundled_path = os.path.join(APP_ROOT, VEHICLE_LOG_BUNDLED_DB_FILE)
     if os.path.exists(bundled_path):
         try:
             with open(bundled_path, "rb") as src, open(cache_path, "wb") as dst:
                 dst.write(src.read())
+            with sqlite3.connect(cache_path) as conn:
+                ensure_schema(conn)
             return cache_path
         except Exception:
             app.logger.warning("Failed to seed collector DB from bundled snapshot.")
 
     try:
         with sqlite3.connect(cache_path) as conn:
-            conn.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS token_store (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    access_token TEXT,
-                    refresh_token TEXT,
-                    expires_at TEXT,
-                    updated_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS vehicle_store (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    car_id TEXT NOT NULL,
-                    car_name TEXT,
-                    car_nickname TEXT,
-                    car_sellname TEXT,
-                    car_type TEXT,
-                    created_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS odometer_logs (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    car_id TEXT NOT NULL,
-                    log_date TEXT NOT NULL,
-                    log_time TEXT NOT NULL,
-                    odometer_value INTEGER NOT NULL,
-                    api_timestamp TEXT,
-                    created_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS daily_reports (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    car_id TEXT NOT NULL,
-                    drive_date TEXT NOT NULL,
-                    start_time TEXT,
-                    end_time TEXT,
-                    odometer_start INTEGER,
-                    odometer_end INTEGER,
-                    distance_km INTEGER,
-                    is_working_day INTEGER NOT NULL DEFAULT 1,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS daily_manual_entries (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    car_id TEXT NOT NULL,
-                    drive_date TEXT NOT NULL,
-                    passenger_name TEXT,
-                    start_time TEXT,
-                    end_time TEXT,
-                    odometer_start INTEGER,
-                    odometer_end INTEGER,
-                    distance_km INTEGER,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-                """
-            )
+            ensure_schema(conn)
         return cache_path
     except Exception:
         app.logger.warning("Failed to initialize empty collector DB.")
@@ -1360,6 +1391,36 @@ def _upsert_daily_report_for_today(conn, car_id, target_date):
     conn.commit()
 
 
+def _record_collector_run(conn, status, car_id="", message="", details=None):
+    try:
+        local_now = datetime.now()
+        now_iso = datetime.utcnow().isoformat(sep=" ")
+        detail_text = ""
+        if details is not None:
+            if isinstance(details, str):
+                detail_text = details
+            else:
+                detail_text = json.dumps(details, ensure_ascii=False)
+        conn.execute(
+            """
+            INSERT INTO collector_runs (run_date, run_time, status, car_id, message, details, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                local_now.date().isoformat(),
+                local_now.strftime("%H:%M:%S"),
+                str(status or "").strip(),
+                str(car_id or "").strip(),
+                str(message or "").strip(),
+                detail_text,
+                now_iso,
+            ),
+        )
+        conn.commit()
+    except Exception:
+        app.logger.warning("Failed to write collector_runs log.")
+
+
 def _collect_odometer_once(db_path):
     if not HYUNDAI_DATA_BASE:
         return
@@ -1371,14 +1432,18 @@ def _collect_odometer_once(db_path):
         conn.row_factory = sqlite3.Row
         access_token = _ensure_access_token(conn)
         if not access_token:
+            _record_collector_run(conn, "token_missing", message="valid access token not available")
             app.logger.warning("Hyundai collector: valid access token not available.")
             return
 
         car_ids = _resolve_car_ids_for_collection(conn)
         if not car_ids:
+            _record_collector_run(conn, "car_missing", message="no car_id configured")
             app.logger.warning("Hyundai collector: no car_id configured.")
             return
 
+        success_count = 0
+        fail_count = 0
         for car_id in car_ids:
             try:
                 response = requests.get(
@@ -1386,13 +1451,26 @@ def _collect_odometer_once(db_path):
                     headers={"Authorization": f"Bearer {access_token}"},
                     timeout=20,
                 )
+                if response.status_code >= 400:
+                    fail_count += 1
+                    _record_collector_run(
+                        conn,
+                        "api_error",
+                        car_id=car_id,
+                        message=f"odometer api status {response.status_code}",
+                    )
+                    continue
                 payload = response.json() if "application/json" in (response.headers.get("content-type") or "") else {}
                 odometers = payload.get("odometers") or []
                 if not odometers:
+                    fail_count += 1
+                    _record_collector_run(conn, "no_odometer", car_id=car_id, message="odometers payload empty")
                     continue
                 latest = odometers[0] if isinstance(odometers[0], dict) else {}
                 value = latest.get("value")
                 if value is None:
+                    fail_count += 1
+                    _record_collector_run(conn, "invalid_odometer", car_id=car_id, message="odometer value missing")
                     continue
                 log_date = local_now.date().isoformat()
                 log_time = local_now.strftime("%H:%M")
@@ -1422,8 +1500,21 @@ def _collect_odometer_once(db_path):
                     )
                 conn.commit()
                 _upsert_daily_report_for_today(conn, car_id, log_date)
+                success_count += 1
+                _record_collector_run(
+                    conn,
+                    "ok",
+                    car_id=car_id,
+                    message="odometer collected",
+                    details={"log_date": log_date, "log_time": log_time, "odometer_value": int(value)},
+                )
             except Exception:
+                fail_count += 1
+                _record_collector_run(conn, "collect_exception", car_id=car_id, message="odometer collect failed")
                 app.logger.warning("Hyundai collector: odometer collect failed for car_id=%s", car_id)
+
+        if success_count == 0 and fail_count == 0:
+            _record_collector_run(conn, "no_target", message="no car produced data")
 
 
 def _hyundai_collector_loop(db_path):
@@ -4633,6 +4724,14 @@ def vehicle_log_debug():
                 """,
                 (selected_car_id,),
             ).fetchall()
+            latest_collector_runs = conn.execute(
+                """
+                SELECT run_date, run_time, status, car_id, message, details
+                FROM collector_runs
+                ORDER BY id DESC
+                LIMIT 30
+                """
+            ).fetchall()
 
             return jsonify({
                 "ok": True,
@@ -4678,6 +4777,7 @@ def vehicle_log_debug():
                 "target_day_window_log_count": len(window_logs),
                 "target_day_window_derived": derived,
                 "latest_logs": [dict(row) for row in latest_logs],
+                "latest_collector_runs": [dict(row) for row in latest_collector_runs],
             })
     except Exception as exc:
         app.logger.exception("Failed to build vehicle-log debug payload.")
