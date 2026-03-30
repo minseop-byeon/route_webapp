@@ -7,6 +7,7 @@ import math
 import html
 import base64
 import hashlib
+import re
 import smtplib
 import sqlite3
 import threading
@@ -2444,6 +2445,23 @@ def load_result_payload(result_id):
     entry = result_cache.get(str(result_id or "").strip()) or {}
     payload = entry.get("payload")
     return payload if isinstance(payload, dict) else None
+
+
+def mask_person_name(name):
+    text = str(name or "").strip()
+    if not text:
+        return ""
+
+    def _mask_token(token):
+        length = len(token)
+        if length <= 1:
+            return token
+        if length in {2, 3}:
+            return token[0] + "*" + token[2:]
+        return token[0] + "**" + token[3:]
+
+    parts = re.split(r"(\s+)", text)
+    return "".join(_mask_token(part) if part and not part.isspace() else part for part in parts)
 
 
 def cache_route_result(route_cache, cache_key, distance_m, duration_min, prediction_time):
@@ -4920,7 +4938,13 @@ def result_page():
     if ((work_type == "visit" and missing_visit_meta) or not payload):
         return redirect(url_for("start"))
     template_name = "result_phone.html" if work_type == "phone" else "result.html"
-    return render_template(template_name, **payload, tmap_app_key=get_tmap_app_key(), force_mobile=False)
+    return render_template(
+        template_name,
+        **payload,
+        tmap_app_key=get_tmap_app_key(),
+        force_mobile=False,
+        mask_person_name=mask_person_name,
+    )
 
 
 @app.route("/healthz", methods=["GET"])

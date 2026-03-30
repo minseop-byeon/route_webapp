@@ -272,11 +272,12 @@ body.force-mobile .action-btn{width:100%;}
                   <div class="card-main">
                     {% if v.address %}<div class="route-address">{{ v.address }}</div>{% endif %}
                     {% if v.name %}
-                      {% set display_name = v.name %}
-                      {% if v.type == "visit" and v.name|length > 5 %}
-                        {% set display_name = v.name[:5] ~ "…" %}
+                      {% set masked_name = mask_person_name(v.name) %}
+                      {% set display_name = masked_name %}
+                      {% if v.type == "visit" and masked_name|length > 5 %}
+                        {% set display_name = masked_name[:5] ~ "…" %}
                       {% endif %}
-                      <div class="route-name{% if v.type == 'visit' %} visit-name{% endif %}{% if v.type == 'wait' or v.type == 'lunch' %} emphasis{% endif %}" title="{{ v.name }}">{{ display_name }}</div>
+                      <div class="route-name{% if v.type == 'visit' %} visit-name{% endif %}{% if v.type == 'wait' or v.type == 'lunch' %} emphasis{% endif %}" title="{{ masked_name }}">{{ display_name }}</div>
                     {% endif %}
                     <div class="route-meta">
                       <div class="pill pill-primary">

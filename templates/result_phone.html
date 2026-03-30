@@ -219,7 +219,8 @@ body.force-mobile .action-btn{width:100%;}
                 {% elif v.type == "return" %}
                   <div class="route-name">복귀</div>
                 {% elif v.name %}
-                  <div class="route-name" title="{{ v.name }}">{{ v.name }}</div>
+                  {% set masked_name = mask_person_name(v.name) %}
+                  <div class="route-name" title="{{ masked_name }}">{{ masked_name }}</div>
                 {% endif %}
 
                 {% if v.type == "visit" or v.type == "return" %}
