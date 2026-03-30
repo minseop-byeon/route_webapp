@@ -11,6 +11,7 @@ import smtplib
 import sqlite3
 import threading
 import time
+import uuid
 from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from zoneinfo import ZoneInfo
@@ -33,6 +34,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "cpskqrhksfleks12#")
 SETTINGS_FILE = "admin_settings.json"
 GEOCODE_CACHE_FILE = "geocode_cache.json"
 ROUTE_CACHE_FILE = "route_cache.json"
+RESULT_CACHE_FILE = "result_cache.json"
 VEHICLE_LOG_OVERRIDES_FILE = "vehicle_log_overrides.json"
 VEHICLE_LOG_BUNDLED_DB_FILE = "vehicle_log_source.db"
 VEHICLE_LOG_REMOTE_CACHE_DB_FILE = "vehicle_log_remote_cache.db"
@@ -136,6 +138,8 @@ ORDER_CANDIDATE_LIMIT = 12
 APP_STATE_TABLE = "app_state"
 ROUTE_CACHE_MEMORY = None
 ROUTE_CACHE_DIRTY = False
+RESULT_CACHE_MEMORY = None
+RESULT_CACHE_DIRTY = False
 USE_TRAFFIC_FOR_PLANNING = (os.getenv("USE_TRAFFIC_FOR_PLANNING", "0").strip() == "1")
 PARKING_RESOLVED_CACHE_KEY = None
 PARKING_RESOLVED_CACHE = []
@@ -2395,6 +2399,53 @@ def save_route_cache(cache=None, force=False):
         ROUTE_CACHE_DIRTY = False
 
 
+def get_result_cache():
+    global RESULT_CACHE_MEMORY
+    if RESULT_CACHE_MEMORY is None:
+        data = load_persistent_json("result_cache", RESULT_CACHE_FILE, {})
+        RESULT_CACHE_MEMORY = data if isinstance(data, dict) else {}
+    return RESULT_CACHE_MEMORY
+
+
+def save_result_cache(cache=None, force=False):
+    global RESULT_CACHE_MEMORY, RESULT_CACHE_DIRTY
+    if cache is not None:
+        RESULT_CACHE_MEMORY = cache
+        RESULT_CACHE_DIRTY = True
+    if force or RESULT_CACHE_DIRTY:
+        save_persistent_json("result_cache", RESULT_CACHE_FILE, RESULT_CACHE_MEMORY or {})
+        RESULT_CACHE_DIRTY = False
+
+
+def store_result_payload(payload, max_entries=20):
+    global RESULT_CACHE_DIRTY
+    if not isinstance(payload, dict):
+        return ""
+    result_cache = get_result_cache()
+    result_id = uuid.uuid4().hex
+    result_cache[result_id] = {
+        "payload": payload,
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+    if len(result_cache) > max_entries:
+        ordered_keys = sorted(
+            result_cache.keys(),
+            key=lambda key: str((result_cache.get(key) or {}).get("updated_at") or ""),
+        )
+        for old_key in ordered_keys[:-max_entries]:
+            result_cache.pop(old_key, None)
+    RESULT_CACHE_DIRTY = True
+    save_result_cache(force=True)
+    return result_id
+
+
+def load_result_payload(result_id):
+    result_cache = get_result_cache()
+    entry = result_cache.get(str(result_id or "").strip()) or {}
+    payload = entry.get("payload")
+    return payload if isinstance(payload, dict) else None
+
+
 def cache_route_result(route_cache, cache_key, distance_m, duration_min, prediction_time):
     global ROUTE_CACHE_DIRTY
     route_cache[cache_key] = {
@@ -4087,6 +4138,7 @@ def start():
         session["team_no"] = team_no
         session["trip_date"] = trip_date
         session.pop("last_result_payload", None)
+        session.pop("last_result_id", None)
         session.pop("last_grouping_payload", None)
         if work_type == "phone":
             return redirect(url_for("phone_menu"))
@@ -4097,6 +4149,7 @@ def start():
     session.pop("team_no", None)
     session.pop("trip_date", None)
     session.pop("last_result_payload", None)
+    session.pop("last_result_id", None)
     session.pop("last_grouping_payload", None)
 
     return render_template(
@@ -4693,7 +4746,8 @@ def planner():
                 "user_name": trip_meta["user_name"],
                 "trip_date": trip_meta["trip_date"]
             }
-            session["last_result_payload"] = payload
+            session["last_result_id"] = store_result_payload(payload)
+            session.pop("last_result_payload", None)
             return redirect(url_for("result_page"))
 
         start_coord, start_meta, start_err = geocode_with_meta(get_start_address())
@@ -4709,7 +4763,8 @@ def planner():
                 "user_name": trip_meta["user_name"],
                 "trip_date": trip_meta["trip_date"]
             }
-            session["last_result_payload"] = payload
+            session["last_result_id"] = store_result_payload(payload)
+            session.pop("last_result_payload", None)
             return redirect(url_for("result_page"))
 
         start_display_address = (start_meta or {}).get("display_address") or get_start_address()
@@ -4739,7 +4794,8 @@ def planner():
                 "user_name": trip_meta["user_name"],
                 "trip_date": trip_meta["trip_date"]
             }
-            session["last_result_payload"] = payload
+            session["last_result_id"] = store_result_payload(payload)
+            session.pop("last_result_payload", None)
             return redirect(url_for("result_page"))
 
         size = len(coords)
@@ -4792,7 +4848,8 @@ def planner():
                 "user_name": trip_meta["user_name"],
                 "trip_date": trip_meta["trip_date"]
             }
-            session["last_result_payload"] = payload
+            session["last_result_id"] = store_result_payload(payload)
+            session.pop("last_result_payload", None)
             return redirect(url_for("result_page"))
 
         warning_message = ""
@@ -4840,7 +4897,8 @@ def planner():
             "user_name": trip_meta["user_name"],
             "trip_date": trip_meta["trip_date"]
         }
-        session["last_result_payload"] = payload
+        session["last_result_id"] = store_result_payload(payload)
+        session.pop("last_result_payload", None)
 
         return redirect(url_for("result_page"))
 
@@ -4856,7 +4914,7 @@ def planner():
 @app.route("/result", methods=["GET"])
 def result_page():
     trip_meta = get_trip_meta()
-    payload = session.get("last_result_payload")
+    payload = load_result_payload(session.get("last_result_id")) or session.get("last_result_payload")
     work_type = trip_meta["work_type"] if trip_meta["work_type"] in {"visit", "phone"} else "visit"
     missing_visit_meta = not trip_meta["user_name"] or not trip_meta["team_no"] or not trip_meta["trip_date"]
     if ((work_type == "visit" and missing_visit_meta) or not payload):
